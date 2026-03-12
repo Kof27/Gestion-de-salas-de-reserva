@@ -22,6 +22,7 @@ export default function RootLayout({children}: MainLayoutProps) {
         <html lang="en" className={inter.className}>
         <body
         >
+        <Navbar />
         {children}
         </body
         >
