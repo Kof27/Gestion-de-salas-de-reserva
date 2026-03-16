@@ -7,7 +7,6 @@ import {
     Card,
     CardContent,
     CardDescription,
-    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
@@ -15,7 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link";
 
-export default function RegisterPage() {
+function RegisterPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -118,7 +117,7 @@ export default function RegisterPage() {
                             </Button>
                             <Button type="button" variant="outline" className="w-full">
                                 <Link href="/login">
-                                ¿Tienes usuario? Inicia sesión!
+                                    ¿Tienes usuario? Inicia sesión!
                                 </Link>
                             </Button>
                         </div>
@@ -128,3 +127,5 @@ export default function RegisterPage() {
         </div>
     )
 }
+
+export {RegisterPage}

@@ -1,3 +1,4 @@
+"use client"
 import { Button } from "@/components/ui/button"
 import {
     Card,
@@ -11,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link";
 
-export default function page(){
+ function LoginPage(){
     return(
         <div className="w-full min-h-screen flex items-center justify-center bg-[url('/uaologinphoto.webp')] bg-cover bg-center" >
             <Card className="w-full max-w-sm">
@@ -55,12 +56,13 @@ export default function page(){
                     </Button>
                     <Button variant="outline" className="w-full">
                         <Link href="/register">
-                        ¿No tienes usuario? Registrate!
+                            ¿No tienes usuario? Registrate!
                         </Link>
                     </Button>
                 </CardFooter>
             </Card>
         </div>
-
     )
 }
+
+export { LoginPage }
