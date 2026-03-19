@@ -1,4 +1,4 @@
-import {RoomPage} from "@/src/pages/rooms/RoomsPage";
+import {RoomPage} from "@/src/pages/rooms/ui/RoomsPage";
 
 export default function page() {
     return (
