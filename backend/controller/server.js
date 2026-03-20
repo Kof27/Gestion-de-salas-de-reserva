@@ -7,7 +7,7 @@ class Server {
 
     constructor() {
         this.app = express();
-        this.port = process.env.PORT || 3000;
+        this.port = process.env.PORT || 4000;
 
         // 🔥 RUTAS DE TU PROYECTO
         this.paths = {
@@ -40,6 +40,10 @@ class Server {
         try {
             await bdmysql.authenticate();
             console.log('✅ Conectado a MySQL');
+            
+            // Sincronizar modelos
+            await bdmysql.sync({ alter: true });
+            console.log('✅ Modelos sincronizados');
         } catch (error) {
             console.error('❌ Error conexión BD:', error);
         }
