@@ -138,10 +138,10 @@ function NewRoomPage() {
                             </button>
 
                             <div>
-                                <h1 className="text-3xl font-bold tracking-tight text-[#2b2323] md:text-5xl">
+                                <h1 className=" font-bold tracking-tight text-[#2b2323] md:text-3xl">
                                     Crear Nueva Sala
                                 </h1>
-                                <p className="mt-2 text-sm text-[#b78d8d] md:text-base">
+                                <p className="mt-2text-[#b78d8d] md:text-base">
                                     Agregar un nuevo espacio para la Facultad de Ingeniería.
                                 </p>
                             </div>
