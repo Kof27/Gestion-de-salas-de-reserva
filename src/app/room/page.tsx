@@ -1,7 +1,2 @@
-import {RoomPage} from "@/src/pages/rooms/ui/RoomsPage";
-
-export default function page() {
-    return (
-        <RoomPage/>
-    )
-}
+import { EditRoomPage } from '@/src/pages/rooms/ui/EditRoomPage'
+export default EditRoomPage
