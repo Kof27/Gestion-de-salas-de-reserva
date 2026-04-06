@@ -18,12 +18,10 @@ interface MainLayoutProps {
 
 export default function RootLayout({children}: MainLayoutProps) {
     return (
-        <html lang="en" className={inter.className}>
-        <body
-        >
-        {children}
-        </body
-        >
+        <html lang="es">
+        <body className={inter.className}>
+            {children}
+        </body>
         </html>
     );
 }
