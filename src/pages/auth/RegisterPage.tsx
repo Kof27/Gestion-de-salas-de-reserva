@@ -12,11 +12,19 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import Link from "next/link";
 
 function RegisterPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [faculty, setFaculty] = useState<number | "">("");
     const [error, setError] = useState("");
     const [showPassword, setShowPassword] = useState(false); // Estado para el botón del ojo
 
@@ -40,9 +48,9 @@ function RegisterPage() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (error || password.length === 0) return;
+        if (error || password.length === 0 || !faculty) return;
 
-        console.log("Datos válidos:", { email, password });
+        console.log("Datos válidos:", { email, password, facultyId: faculty });
     };
 
     return(
@@ -68,6 +76,23 @@ function RegisterPage() {
                                     placeholder="@uao.edu.co"
                                     required
                                 />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="faculty">Facultad</Label>
+                                <Select value={faculty.toString()} onValueChange={(value) => setFaculty(parseInt(value))}>
+                                    <SelectTrigger id="faculty" className="w-full">
+                                        <SelectValue placeholder="Selecciona tu facultad" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="1">Ingeniería</SelectItem>
+                                        <SelectItem value="2">Administración</SelectItem>
+                                        <SelectItem value="3">Comunicación Social, Periodismo y Medios Digitales</SelectItem>
+                                        <SelectItem value="4">Ciencias Humanas y Artes</SelectItem>
+                                        <SelectItem value="5">Arquitectura, Urbanismo y Diseño</SelectItem>
+                                        <SelectItem value="6">Ciencias Básicas</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             <div className="grid gap-2">
@@ -111,7 +136,7 @@ function RegisterPage() {
                             <Button
                                 type="submit"
                                 className="bg-[#EC1313] hover:bg-red-700 font-bold w-full"
-                                disabled={!!error || password.length === 0 || email.length === 0}
+                                disabled={!!error || password.length === 0 || email.length === 0 || !faculty}
                             >
                                 Registrarte
                             </Button>
