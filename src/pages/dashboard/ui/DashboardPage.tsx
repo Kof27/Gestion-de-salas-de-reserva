@@ -124,7 +124,7 @@ export const DashboardPage = () => {
                                                     </svg>
                                                 </button>
                                                 <Link
-                                                    href={`/Editroom/`}
+                                                    href={`/room/`}
                                                     className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
