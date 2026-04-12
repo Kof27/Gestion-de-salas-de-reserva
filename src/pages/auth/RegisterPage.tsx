@@ -15,10 +15,13 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link";
 
 function RegisterPage() {
+    const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
-    const [showPassword, setShowPassword] = useState(false); // Estado para el botón del ojo
+    const [emailError, setEmailError] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     // Función para validar la contraseña
     const validatePassword = (value: string) => {
@@ -38,11 +41,54 @@ function RegisterPage() {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (error || password.length === 0) return;
+    // Función para validar el email
+    const validateEmail = (value: string) => {
+        setEmail(value);
 
-        console.log("Datos válidos:", { email, password });
+        if (value.length === 0) {
+            setEmailError("");
+            return;
+        }
+
+        if (!value.endsWith('@uao.edu.co')) {
+            setEmailError("El correo debe ser del dominio @uao.edu.co");
+        } else {
+            setEmailError("");
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (error || emailError || password.length === 0 || email.length === 0 || name.length === 0) return;
+
+        setIsLoading(true);
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    nombre: name,
+                    correo: email,
+                    contrasena: password,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('Usuario registrado exitosamente');
+                // Redirect to login or something
+                window.location.href = '/login';
+            } else {
+                setError(data.msg || 'Error al registrar');
+            }
+        } catch (err) {
+            setError('Error de conexión');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return(
@@ -59,15 +105,33 @@ function RegisterPage() {
                     <form onSubmit={handleSubmit}>
                         <div className="flex flex-col gap-6">
                             <div className="grid gap-2">
+                                <Label htmlFor="name">Nombre</Label>
+                                <Input
+                                    id="name"
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="Tu nombre completo"
+                                    required
+                                />
+                            </div>
+
+                            <div className="grid gap-2">
                                 <Label htmlFor="email">Correo</Label>
                                 <Input
                                     id="email"
                                     type="email"
                                     value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    onChange={(e) => validateEmail(e.target.value)}
                                     placeholder="@uao.edu.co"
                                     required
+                                    className={emailError ? "border-red-500 focus-visible:ring-red-500" : ""}
                                 />
+                                {emailError && (
+                                    <span className="text-xs text-red-500 font-medium">
+                                        {emailError}
+                                    </span>
+                                )}
                             </div>
 
                             <div className="grid gap-2">
@@ -111,9 +175,9 @@ function RegisterPage() {
                             <Button
                                 type="submit"
                                 className="bg-[#EC1313] hover:bg-red-700 font-bold w-full"
-                                disabled={!!error || password.length === 0 || email.length === 0}
+                                disabled={!!error || !!emailError || password.length === 0 || email.length === 0 || name.length === 0 || isLoading}
                             >
-                                Registrarte
+                                {isLoading ? 'Registrando...' : 'Registrarte'}
                             </Button>
                             <Button type="button" variant="outline" className="w-full">
                                 <Link href="/login">
@@ -128,4 +192,5 @@ function RegisterPage() {
     )
 }
 
-export {RegisterPage}
+export { RegisterPage }
+export default RegisterPage

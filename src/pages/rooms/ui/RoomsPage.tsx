@@ -18,4 +18,5 @@ function RoomPage() {
     )
 }
 
-export {RoomPage};
+export { RoomPage }
+export default RoomPage

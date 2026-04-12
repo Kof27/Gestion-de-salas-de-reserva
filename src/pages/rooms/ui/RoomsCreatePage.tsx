@@ -30,7 +30,7 @@ import {
     type ResourceCatalogItem,
     type RoomResourceItem,
     saveRoomMock,
-} from "@/src/pages/rooms/api/mocksAPI";
+} from "@/src/lib/rooms/mocksAPI";
 
 const iconMap = {
     monitor: Monitor,
@@ -353,4 +353,5 @@ function NewRoomPage() {
     );
 }
 
-export {NewRoomPage}
+export { NewRoomPage }
+export default NewRoomPage
