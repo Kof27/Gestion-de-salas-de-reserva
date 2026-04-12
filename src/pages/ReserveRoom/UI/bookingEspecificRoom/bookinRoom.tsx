@@ -136,7 +136,7 @@ function getAvailableEndTimes(startTime: string, allTimes: string[]) {
     return allTimes.filter((time) => parseTimeToMinutes(time) > startMinutes)
 }
 
-export function BookingRoomWindows() {
+export default function BookingRoomWindows() {
     const allTimes = React.useMemo(() => generateTimeOptions(), [])
     const agendaSlots = React.useMemo(() => generateAgendaSlots(), [])
 

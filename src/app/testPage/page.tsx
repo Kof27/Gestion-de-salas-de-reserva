@@ -1,4 +1,4 @@
-import { BookingRoomWindows } from "@/src/pages/ReserveRoom/UI/bookinRoom";
+import BookingRoomWindows from "@/src/pages/ReserveRoom/UI/bookingEspecificRoom/bookinRoom"
 
 export default function TestPage() {
     return (
