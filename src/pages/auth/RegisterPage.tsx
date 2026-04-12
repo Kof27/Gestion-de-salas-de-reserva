@@ -12,12 +12,20 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import Link from "next/link";
 
 function RegisterPage() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [faculty, setFaculty] = useState<number | "">("");
     const [error, setError] = useState("");
     const [emailError, setEmailError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -59,7 +67,7 @@ function RegisterPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (error || emailError || password.length === 0 || email.length === 0 || name.length === 0) return;
+        if (error || emailError || password.length === 0 || email.length === 0 || name.length === 0 || !faculty) return;
 
         setIsLoading(true);
         try {
@@ -79,7 +87,6 @@ function RegisterPage() {
 
             if (response.ok) {
                 alert('Usuario registrado exitosamente');
-                // Redirect to login or something
                 window.location.href = '/login';
             } else {
                 setError(data.msg || 'Error al registrar');
@@ -135,6 +142,23 @@ function RegisterPage() {
                             </div>
 
                             <div className="grid gap-2">
+                                <Label htmlFor="faculty">Facultad</Label>
+                                <Select value={faculty.toString()} onValueChange={(value) => setFaculty(parseInt(value))}>
+                                    <SelectTrigger id="faculty" className="w-full">
+                                        <SelectValue placeholder="Selecciona tu facultad" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="1">Ingeniería</SelectItem>
+                                        <SelectItem value="2">Administración</SelectItem>
+                                        <SelectItem value="3">Comunicación Social, Periodismo y Medios Digitales</SelectItem>
+                                        <SelectItem value="4">Ciencias Humanas y Artes</SelectItem>
+                                        <SelectItem value="5">Arquitectura, Urbanismo y Diseño</SelectItem>
+                                        <SelectItem value="6">Ciencias Básicas</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="grid gap-2">
                                 <Label htmlFor="password">Contraseña</Label>
 
                                 {/* Contenedor relativo para posicionar el ojo dentro del input */}
@@ -175,7 +199,7 @@ function RegisterPage() {
                             <Button
                                 type="submit"
                                 className="bg-[#EC1313] hover:bg-red-700 font-bold w-full"
-                                disabled={!!error || !!emailError || password.length === 0 || email.length === 0 || name.length === 0 || isLoading}
+                                disabled={!!error || !!emailError || password.length === 0 || email.length === 0 || name.length === 0 || !faculty || isLoading}
                             >
                                 {isLoading ? 'Registrando...' : 'Registrarte'}
                             </Button>
