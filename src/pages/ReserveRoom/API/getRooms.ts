@@ -18,4 +18,20 @@ async function getRooms(): Promise<Sala[]> {
     }
 }
 
-export { getRooms };
+async function getRoomById(id: string): Promise<Sala> {
+    try {
+        const response = await fetch(`${API_URL}/${id}`);
+        
+        if (!response.ok) {
+            throw new Error(`Error fetching room: ${response.statusText}`);
+        }
+        
+        const data: Sala = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error fetching room:", error);
+        throw error;
+    }
+}
+
+export { getRooms, getRoomById };
