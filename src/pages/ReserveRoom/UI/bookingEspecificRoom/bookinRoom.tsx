@@ -4,6 +4,7 @@ import * as React from "react"
 import { format, isSameDay, setHours, setMinutes, startOfDay } from "date-fns"
 import { es } from "date-fns/locale"
 import { CalendarIcon, CheckCircle2, Circle, Clock3, AlertCircle } from "lucide-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -17,7 +18,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { getRoomById } from "../../API/getRooms"
-import { getReservas } from "../../API/getReservas"
+import { getReservas, createReserva } from "../../API/getReservas"
 import type { Sala } from "@/src/entities/room"
 import type { reserva } from "@/src/entities/reserva"
 
@@ -129,40 +130,42 @@ export default function BookingRoomWindows({ roomId }: { roomId?: string }) {
     const [bookings, setBookings] = React.useState<Booking[]>([])
     const [loading, setLoading] = React.useState(true)
     const [error, setError] = React.useState<string | null>(null)
+    const [submitting, setSubmitting] = React.useState(false)
 
-    // Cargar sala y reservas
-    React.useEffect(() => {
-        const loadData = async () => {
-            try {
-                setLoading(true)
-                setError(null)
-                
-                // Cargar sala
-                const roomData = await getRoomById(effectiveRoomId)
-                setRoom(roomData)
-                
-                // Cargar todas las reservas
-                const allReservas = await getReservas()
-                
-                // Filtrar y convertir reservas para esta sala
-                const filteredBookings = allReservas
-                    .filter(r => String(r.id_sala) === effectiveRoomId)
-                    .map(convertReservaToBooking)
-                
-                setBookings(filteredBookings)
-            } catch (err) {
-                console.error("Error cargando datos:", err)
-                setError("Error al cargar la información de la sala")
-                setBookings([])
-            } finally {
-                setLoading(false)
-            }
+    // Función para cargar datos (sala y reservas)
+    const loadData = React.useCallback(async () => {
+        try {
+            setLoading(true)
+            setError(null)
+            
+            // Cargar sala
+            const roomData = await getRoomById(effectiveRoomId)
+            setRoom(roomData)
+            
+            // Cargar todas las reservas
+            const allReservas = await getReservas()
+            
+            // Filtrar y convertir reservas para esta sala
+            const filteredBookings = allReservas
+                .filter(r => String(r.id_sala) === effectiveRoomId)
+                .map(convertReservaToBooking)
+            
+            setBookings(filteredBookings)
+        } catch (err) {
+            console.error("Error cargando datos:", err)
+            setError("Error al cargar la información de la sala")
+            setBookings([])
+        } finally {
+            setLoading(false)
         }
+    }, [effectiveRoomId])
 
+    // Cargar sala y reservas al montar el componente
+    React.useEffect(() => {
         if (effectiveRoomId) {
             loadData()
         }
-    }, [effectiveRoomId])
+    }, [effectiveRoomId, loadData])
 
     const bookingsForDay = React.useMemo(() => {
         if (!selectedDate) return []
@@ -223,17 +226,63 @@ export default function BookingRoomWindows({ roomId }: { roomId?: string }) {
     function handleConfirmReservation() {
         if (hasConflict || !selectedDate) return
 
-        const newBooking: Booking = {
-            id: crypto.randomUUID(),
-            roomId: effectiveRoomId,
-            title: meetingReason.trim() || "Reserva sin título",
-            date: selectedDate,
-            start: startTime,
-            end: endTime,
+        const handleSubmit = async () => {
+            try {
+                setSubmitting(true)
+
+                // Construir la fecha y hora completa
+                const startDateTime = new Date(selectedDate)
+                const [horaInicio, minInicio] = startTime.split(":")
+                startDateTime.setHours(parseInt(horaInicio), parseInt(minInicio))
+
+                const endDateTime = new Date(selectedDate)
+                const [horaFin, minFin] = endTime.split(":")
+                endDateTime.setHours(parseInt(horaFin), parseInt(minFin))
+
+                // Crear objeto de reserva
+                const newReserva: Omit<reserva, "id_reserva" | "fecha_creacion"> = {
+                    id_sala: effectiveRoomId,
+                    id_usuario: "1", // Por ahora usar ID genérico, en futuro obtener del usuario autenticado
+                    hora_inicio: startDateTime,
+                    hora_fin: endDateTime,
+                    estado: true,
+                    motivo: meetingReason.trim() || "Reunión",
+                }
+
+                // Enviar reserva al backend
+                const result = await createReserva(newReserva)
+                
+                // Mostrar toast de éxito con información de la reserva
+                toast.success("Reserva confirmada exitosamente", {
+                    description: `Sala: ${room?.nombre} | ${format(selectedDate, "d 'de' MMMM yyyy", { locale: es })} | ${formatHourLabel(startTime)} - ${formatHourLabel(endTime)} | Motivo: ${newReserva.motivo}`,
+                })
+
+                console.log("Reserva creada exitosamente:", result)
+
+                // Recargar datos para actualizar los horarios reservados
+                await loadData()
+
+                // Aquí podrías cerrar el modal o redirigir
+            } catch (err) {
+                console.error("Error al crear reserva:", err)
+                
+                // Mostrar toast de error
+                toast.error("No se pudo realizar la reserva", {
+                    description: "Intenta de nuevo más tarde.",
+                    style: {
+                        background: "#EF4444",
+                        color: "#ffffff",
+                        border: "1px solid #DC2626",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                    },
+                })
+            } finally {
+                setSubmitting(false)
+            }
         }
 
-        console.log("Reserva confirmada:", newBooking)
-        alert("Reserva confirmada en consola")
+        handleSubmit()
     }
 
     if (loading) {
@@ -490,16 +539,16 @@ export default function BookingRoomWindows({ roomId }: { roomId?: string }) {
 
                 <Button
                     onClick={handleConfirmReservation}
-                    disabled={hasConflict}
+                    disabled={hasConflict || submitting}
                     className={cn(
                         "text-white font-bold px-4 py-2 rounded-lg",
-                        hasConflict
+                        hasConflict || submitting
                             ? "bg-slate-300 hover:bg-slate-300 cursor-not-allowed"
                             : "bg-[#22C55E] hover:bg-[#16A34A]"
                     )}
                 >
-                    Confirmar reserva
-                    <CheckCircle2 className="ml-2 h-4 w-4" />
+                    {submitting ? "Confirmando..." : "Confirmar reserva"}
+                    {!submitting && <CheckCircle2 className="ml-2 h-4 w-4" />}
                 </Button>
             </div>
         </div>
