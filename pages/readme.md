@@ -1,0 +1,1 @@
+NextJS jode bastante con FSD por el nombre de las carpetas toca dejar pages vacios
