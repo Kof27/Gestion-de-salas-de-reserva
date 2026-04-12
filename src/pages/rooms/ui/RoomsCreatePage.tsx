@@ -11,9 +11,11 @@ import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-    availableResources, defaultFaculty,
-    type RoomResourceItem, saveRoomMock,
-} from "@/src/pages/rooms/api/mocksAPI";
+    availableResources,
+    defaultFaculty,
+    type RoomResourceItem,
+    saveRoomMock,
+} from "@/src/lib/rooms/mocksAPI";
 
 const iconMap = { monitor: Monitor, video: Video, snowflake: Snowflake };
 
@@ -229,3 +231,6 @@ export function NewRoomPage() {
         </main>
     );
 }
+
+export { NewRoomPage }
+export default NewRoomPage
