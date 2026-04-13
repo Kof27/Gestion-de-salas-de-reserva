@@ -1,25 +1,40 @@
-"use client"
+"use client";
+
 import React from "react";
+import Link from "next/link";
 import { Building2 } from "lucide-react";
+import { usePathname } from "next/navigation";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
-type NavItem = {
-    key: "salas" | "reservas" | "admin";
-    label: string;
-};
+type NavKey = "salas" | "reservas" | "admin";
 
 interface NavbarBookingRoomProps {
-    activeTab: "salas" | "reservas" | "admin";
-    onTabChange: (tab: "salas" | "reservas" | "admin") => void;
-    navItems: readonly NavItem[];
+    activeTab?: NavKey;
 }
+
+const navItems = [
+    { key: "salas", label: "Salas disponibles", href: "/booking" },
+    { key: "reservas", label: "Mis reservas", href: "/booking/myBookings" },
+    { key: "admin", label: "Panel Administrativo", href: "/dashboard" },
+] as const;
 
 export default function NavbarBookingRoom({
     activeTab,
-    onTabChange,
-    navItems,
 }: NavbarBookingRoomProps) {
+    const pathname = usePathname();
+
+    const resolvedActiveTab: NavKey =
+        activeTab ??
+        (pathname === "/bookings"
+            ? "salas"
+            : pathname === "/booking/myBookings"
+                ? "reservas"
+                : pathname === "/dashboard"
+                    ? "admin"
+                    : "salas");
+
     return (
         <header className="border-b border-slate-200 bg-white/95 backdrop-blur">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-8">
@@ -34,21 +49,24 @@ export default function NavbarBookingRoom({
 
                 <nav className="hidden items-center gap-8 md:flex">
                     {navItems.map((item) => {
-                        const active = activeTab === item.key;
+                        const active = resolvedActiveTab === item.key;
+
                         return (
-                            <button
+                            <Link
                                 key={item.key}
-                                onClick={() => onTabChange(item.key)}
+                                href={item.href}
                                 className={cn(
                                     "relative pb-3 text-base font-semibold transition-colors",
-                                    active ? "text-red-500" : "text-slate-600 hover:text-slate-900"
+                                    active
+                                        ? "text-red-500"
+                                        : "text-slate-600 hover:text-slate-900"
                                 )}
                             >
                                 {item.label}
                                 {active && (
-                                    <span className="absolute inset-x-0 -bottom-5.25 h-0.75 rounded-full bg-red-500" />
+                                    <span className="absolute inset-x-0 -bottom-5 h-0.75 rounded-full bg-red-500" />
                                 )}
-                            </button>
+                            </Link>
                         );
                     })}
                 </nav>
