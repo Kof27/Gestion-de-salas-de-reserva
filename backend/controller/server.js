@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 
 const { bdmysql } = require('../lib/MySqlConnection');
+const { validarJWT } = require('../middlewares/validarJWT');
 
 class Server {
 
@@ -65,26 +66,35 @@ class Server {
         // 🔐 AUTH
         this.app.use(this.paths.auth, require('../routes/auth.route'));
 
-        // 👤 USUARIOS
-        this.app.use(this.paths.usuarios, require('../routes/usuario.route'));
+        // 👤 USUARIOS (requiere JWT)
+        this.app.use(this.paths.usuarios, validarJWT, require('../routes/usuario.route'));
 
         // 🎭 ROLES
-        this.app.use(this.paths.roles, require('../routes/rol.route'));
+        this.app.use(this.paths.roles, validarJWT, require('../routes/rol.route'));
 
         // 🏫 FACULTADES
-        this.app.use(this.paths.facultades, require('../routes/facultad.route'));
+        this.app.use(this.paths.facultades, validarJWT, require('../routes/facultad.route'));
 
         // 📅 RESERVAS
-        this.app.use(this.paths.reservas, require('../routes/reserva.route'));
+        this.app.use(this.paths.reservas, validarJWT, require('../routes/reserva.route'));
 
         // 🏢 SALAS
-        this.app.use(this.paths.salas, require('../routes/sala.route'));
+        this.app.use(this.paths.salas, validarJWT, require('../routes/sala.route'));
 
         // 🖥️ RECURSOS TECNOLÓGICOS
-        this.app.use(this.paths.recursos, require('../routes/recurso.route'));
+        this.app.use(this.paths.recursos, validarJWT, require('../routes/recurso.route'));
 
         // 📝 AUDITORÍA
-        this.app.use(this.paths.auditoria, require('../routes/log.route'));
+        this.app.use(this.paths.auditoria, validarJWT, require('../routes/log.route'));
+
+        this.app.use((req, res) => {
+            res.status(404).json({
+                msg: 'Ruta no encontrada en el backend Express',
+                method: req.method,
+                path: req.originalUrl,
+                hint: 'Login: POST http://localhost:4000/api/auth/login (JSON: correo, contrasena). El backend usa el puerto 4000 por defecto.',
+            });
+        });
     }
 
     listen() {
