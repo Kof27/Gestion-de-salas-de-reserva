@@ -68,13 +68,13 @@ export const DashboardPage = () => {
         const optimisticRooms = rooms.map((room) =>
             room.id === id
                 ? {
-                      ...room,
-                      status: nextStatus,
-                      raw: {
-                          ...room.raw,
-                          estado: nextStatus === "habilitada",
-                      },
-                  }
+                    ...room,
+                    status: nextStatus,
+                    raw: {
+                        ...room.raw,
+                        estado: nextStatus === "habilitada",
+                    },
+                }
                 : room
         );
 
@@ -103,9 +103,8 @@ export const DashboardPage = () => {
             );
 
             toast.success("Operación exitosa", {
-                description: `La sala "${updatedRoom.nombre}" fue ${
-                    updatedRoom.estado ? "habilitada" : "inhabilitada"
-                } correctamente.`,
+                description: `La sala "${updatedRoom.nombre}" fue ${updatedRoom.estado ? "habilitada" : "inhabilitada"
+                    } correctamente.`,
             });
         } catch (error) {
             console.error("Error actualizando estado de sala:", error);
@@ -114,13 +113,13 @@ export const DashboardPage = () => {
                 prev.map((room) =>
                     room.id === id
                         ? {
-                              ...room,
-                              status: previousStatus,
-                              raw: {
-                                  ...room.raw,
-                                  estado: previousStatus === "habilitada",
-                              },
-                          }
+                            ...room,
+                            status: previousStatus,
+                            raw: {
+                                ...room.raw,
+                                estado: previousStatus === "habilitada",
+                            },
+                        }
                         : room
                 )
             );
@@ -266,15 +265,13 @@ export const DashboardPage = () => {
                                                             type="button"
                                                             onClick={() => toggleStatus(room.id)}
                                                             disabled={isUpdating}
-                                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
-                                                                room.status === "habilitada"
+                                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${room.status === "habilitada"
                                                                     ? "bg-red-500"
                                                                     : "bg-gray-300"
-                                                            } ${
-                                                                isUpdating
+                                                                } ${isUpdating
                                                                     ? "cursor-not-allowed opacity-70"
                                                                     : ""
-                                                            }`}
+                                                                }`}
                                                         >
                                                             {isUpdating ? (
                                                                 <span className="flex w-full items-center justify-center">
@@ -282,21 +279,19 @@ export const DashboardPage = () => {
                                                                 </span>
                                                             ) : (
                                                                 <span
-                                                                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
-                                                                        room.status === "habilitada"
+                                                                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${room.status === "habilitada"
                                                                             ? "translate-x-6"
                                                                             : "translate-x-1"
-                                                                    }`}
+                                                                        }`}
                                                                 />
                                                             )}
                                                         </button>
 
                                                         <span
-                                                            className={`text-sm ${
-                                                                room.status === "habilitada"
+                                                            className={`text-sm ${room.status === "habilitada"
                                                                     ? "text-gray-700"
                                                                     : "text-gray-400"
-                                                            }`}
+                                                                }`}
                                                         >
                                                             {room.status === "habilitada"
                                                                 ? "Habilitada"
