@@ -84,4 +84,4 @@ async function updateRoom(
 }
 
 
-export { getRooms, getRoomById, createRoom };
+export { getRooms, getRoomById, createRoom, updateRoom };

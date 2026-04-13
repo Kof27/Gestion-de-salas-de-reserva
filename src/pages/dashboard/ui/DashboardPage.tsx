@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+
 import { Navbar } from "@/src/widgets/navbar/ui/Navbar";
 import { Sidebar } from "@/src/widgets/sidebar/ui/Sidebar";
-import { getRooms } from "@/src/shared/api/getRooms";
+import { getRooms, updateRoom } from "@/src/shared/api/getRooms";
 import type { Sala } from "@/src/entities/room";
 
 type RoomStatus = "habilitada" | "inhabilitada";
@@ -15,6 +18,7 @@ type RoomView = {
     location: string;
     capacity: number;
     status: RoomStatus;
+    raw: Sala;
 };
 
 export const DashboardPage = () => {
@@ -22,6 +26,7 @@ export const DashboardPage = () => {
     const [roomToDelete, setRoomToDelete] = useState<RoomView | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [updatingRoomId, setUpdatingRoomId] = useState<string | null>(null);
 
     const mapSalaToRoomView = (room: Sala): RoomView => ({
         id: room.id_sala ?? "",
@@ -29,6 +34,7 @@ export const DashboardPage = () => {
         location: room.ubicacion,
         capacity: room.capacidad,
         status: room.estado ? "habilitada" : "inhabilitada",
+        raw: room,
     });
 
     useEffect(() => {
@@ -50,18 +56,81 @@ export const DashboardPage = () => {
         loadRooms();
     }, []);
 
-    const toggleStatus = (id: string) => {
-        setRooms((prev) =>
-            prev.map((r) =>
-                r.id === id
-                    ? {
-                        ...r,
-                        status:
-                            r.status === "habilitada" ? "inhabilitada" : "habilitada",
-                    }
-                    : r
-            )
+    const toggleStatus = async (id: string) => {
+        const currentRoom = rooms.find((room) => room.id === id);
+        if (!currentRoom || !currentRoom.raw.id_sala) return;
+        if (updatingRoomId) return;
+
+        const previousStatus = currentRoom.status;
+        const nextStatus: RoomStatus =
+            previousStatus === "habilitada" ? "inhabilitada" : "habilitada";
+
+        const optimisticRooms = rooms.map((room) =>
+            room.id === id
+                ? {
+                      ...room,
+                      status: nextStatus,
+                      raw: {
+                          ...room.raw,
+                          estado: nextStatus === "habilitada",
+                      },
+                  }
+                : room
         );
+
+        setRooms(optimisticRooms);
+        setUpdatingRoomId(id);
+
+        try {
+            const updatedPayload: Omit<Sala, "id_sala"> = {
+                id_facultad: currentRoom.raw.id_facultad,
+                capacidad: currentRoom.raw.capacidad,
+                estado: nextStatus === "habilitada",
+                fecha_creacion: currentRoom.raw.fecha_creacion,
+                imagen_sala: currentRoom.raw.imagen_sala,
+                nombre: currentRoom.raw.nombre,
+                ubicacion: currentRoom.raw.ubicacion,
+                descripcion: currentRoom.raw.descripcion,
+                recursosTecnologico: currentRoom.raw.recursosTecnologico,
+            };
+
+            const updatedRoom = await updateRoom(currentRoom.raw.id_sala, updatedPayload);
+
+            setRooms((prev) =>
+                prev.map((room) =>
+                    room.id === id ? mapSalaToRoomView(updatedRoom) : room
+                )
+            );
+
+            toast.success("Operación exitosa", {
+                description: `La sala "${updatedRoom.nombre}" fue ${
+                    updatedRoom.estado ? "habilitada" : "inhabilitada"
+                } correctamente.`,
+            });
+        } catch (error) {
+            console.error("Error actualizando estado de sala:", error);
+
+            setRooms((prev) =>
+                prev.map((room) =>
+                    room.id === id
+                        ? {
+                              ...room,
+                              status: previousStatus,
+                              raw: {
+                                  ...room.raw,
+                                  estado: previousStatus === "habilitada",
+                              },
+                          }
+                        : room
+                )
+            );
+
+            toast.error("La operación no fue exitosa", {
+                description: "No se pudo actualizar el estado de la sala.",
+            });
+        } finally {
+            setUpdatingRoomId(null);
+        }
     };
 
     const confirmDelete = (room: RoomView) => {
@@ -135,135 +204,153 @@ export const DashboardPage = () => {
                                 </thead>
 
                                 <tbody>
-                                    {rooms.map((room) => (
-                                        <tr
-                                            key={room.id}
-                                            className="border-b border-gray-100 transition-colors hover:bg-gray-50"
-                                        >
-                                            <td className="px-4 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="flex h-8 w-8 items-center justify-center rounded bg-red-50">
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            className="h-4 w-4 text-red-400"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            stroke="currentColor"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={1.5}
-                                                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1"
-                                                            />
-                                                        </svg>
+                                    {rooms.map((room) => {
+                                        const isUpdating = updatingRoomId === room.id;
+
+                                        return (
+                                            <tr
+                                                key={room.id}
+                                                className="border-b border-gray-100 transition-colors hover:bg-gray-50"
+                                            >
+                                                <td className="px-4 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex h-8 w-8 items-center justify-center rounded bg-red-50">
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                className="h-4 w-4 text-red-400"
+                                                                fill="none"
+                                                                viewBox="0 0 24 24"
+                                                                stroke="currentColor"
+                                                            >
+                                                                <path
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                    strokeWidth={1.5}
+                                                                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1"
+                                                                />
+                                                            </svg>
+                                                        </div>
+                                                        <span className="text-sm font-medium text-gray-800">
+                                                            {room.name}
+                                                        </span>
                                                     </div>
-                                                    <span className="text-sm font-medium text-gray-800">
-                                                        {room.name}
-                                                    </span>
-                                                </div>
-                                            </td>
+                                                </td>
 
-                                            <td className="px-4 py-4 text-sm text-gray-500">
-                                                {room.location}
-                                            </td>
+                                                <td className="px-4 py-4 text-sm text-gray-500">
+                                                    {room.location}
+                                                </td>
 
-                                            <td className="px-4 py-4">
-                                                <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        className="h-4 w-4"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        stroke="currentColor"
-                                                    >
-                                                        <path
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            strokeWidth={1.5}
-                                                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-                                                        />
-                                                    </svg>
-                                                    {room.capacity}
-                                                </div>
-                                            </td>
+                                                <td className="px-4 py-4">
+                                                    <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            className="h-4 w-4"
+                                                            fill="none"
+                                                            viewBox="0 0 24 24"
+                                                            stroke="currentColor"
+                                                        >
+                                                            <path
+                                                                strokeLinecap="round"
+                                                                strokeLinejoin="round"
+                                                                strokeWidth={1.5}
+                                                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+                                                            />
+                                                        </svg>
+                                                        {room.capacity}
+                                                    </div>
+                                                </td>
 
-                                            <td className="px-4 py-4">
-                                                <div className="flex items-center gap-2">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => toggleStatus(room.id)}
-                                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${room.status === "habilitada"
-                                                                ? "bg-red-500"
-                                                                : "bg-gray-300"
+                                                <td className="px-4 py-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => toggleStatus(room.id)}
+                                                            disabled={isUpdating}
+                                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
+                                                                room.status === "habilitada"
+                                                                    ? "bg-red-500"
+                                                                    : "bg-gray-300"
+                                                            } ${
+                                                                isUpdating
+                                                                    ? "cursor-not-allowed opacity-70"
+                                                                    : ""
                                                             }`}
-                                                    >
+                                                        >
+                                                            {isUpdating ? (
+                                                                <span className="flex w-full items-center justify-center">
+                                                                    <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
+                                                                </span>
+                                                            ) : (
+                                                                <span
+                                                                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                                                                        room.status === "habilitada"
+                                                                            ? "translate-x-6"
+                                                                            : "translate-x-1"
+                                                                    }`}
+                                                                />
+                                                            )}
+                                                        </button>
+
                                                         <span
-                                                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${room.status === "habilitada"
-                                                                    ? "translate-x-6"
-                                                                    : "translate-x-1"
-                                                                }`}
-                                                        />
-                                                    </button>
-
-                                                    <span
-                                                        className={`text-sm ${room.status === "habilitada"
-                                                                ? "text-gray-700"
-                                                                : "text-gray-400"
+                                                            className={`text-sm ${
+                                                                room.status === "habilitada"
+                                                                    ? "text-gray-700"
+                                                                    : "text-gray-400"
                                                             }`}
-                                                    >
-                                                        {room.status === "habilitada"
-                                                            ? "Habilitada"
-                                                            : "Inhabilitada"}
-                                                    </span>
-                                                </div>
-                                            </td>
-
-                                            <td className="px-4 py-4">
-                                                <div className="flex items-center gap-1">
-                                                    <button
-                                                        onClick={() => confirmDelete(room)}
-                                                        className="p-1.5 text-gray-400 transition-colors hover:text-red-500"
-                                                    >
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            className="h-4 w-4"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            stroke="currentColor"
                                                         >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={1.5}
-                                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                                            />
-                                                        </svg>
-                                                    </button>
+                                                            {room.status === "habilitada"
+                                                                ? "Habilitada"
+                                                                : "Inhabilitada"}
+                                                        </span>
+                                                    </div>
+                                                </td>
 
-                                                    <Link
-                                                        href={`/editRoom/${room.id}`}
-                                                        className="p-1.5 text-gray-400 transition-colors hover:text-blue-500"
-                                                    >
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            className="h-4 w-4"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            stroke="currentColor"
+                                                <td className="px-4 py-4">
+                                                    <div className="flex items-center gap-1">
+                                                        <button
+                                                            onClick={() => confirmDelete(room)}
+                                                            className="p-1.5 text-gray-400 transition-colors hover:text-red-500"
                                                         >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={1.5}
-                                                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                                                            />
-                                                        </svg>
-                                                    </Link>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                className="h-4 w-4"
+                                                                fill="none"
+                                                                viewBox="0 0 24 24"
+                                                                stroke="currentColor"
+                                                            >
+                                                                <path
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                    strokeWidth={1.5}
+                                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                                                />
+                                                            </svg>
+                                                        </button>
+
+                                                        <Link
+                                                            href={`/editRoom/${room.id}`}
+                                                            className="p-1.5 text-gray-400 transition-colors hover:text-blue-500"
+                                                        >
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                className="h-4 w-4"
+                                                                fill="none"
+                                                                viewBox="0 0 24 24"
+                                                                stroke="currentColor"
+                                                            >
+                                                                <path
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                    strokeWidth={1.5}
+                                                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                                                                />
+                                                            </svg>
+                                                        </Link>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
