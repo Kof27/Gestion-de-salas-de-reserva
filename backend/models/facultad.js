@@ -21,7 +21,7 @@ const Facultad = bdmysql.define(
     },
   },
   {
-    tableName: 'facultades',
+    tableName: 'facultad',
     timestamps: false,
     freezeTableName: true,
   }

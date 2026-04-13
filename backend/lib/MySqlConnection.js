@@ -10,7 +10,9 @@ const host = process.env.DB_HOST || 'localhost';
 const port = process.env.DB_PORT || '3306';
 
 const useSsl = process.env.DB_SSL !== 'false';
-
+console.log('HOST BD:', process.env.DB_HOST);
+console.log('PORT BD:', process.env.DB_PORT);
+console.log('DB NAME:', process.env.DB_NAME);
 const dialectOptions = useSsl
     ? {
           ssl: {
@@ -33,6 +35,7 @@ const bdmysql = new Sequelize(database, username, password, {
         acquire: 30000,
         idle: 10000,
     },
+    
 });
 
 module.exports = {
