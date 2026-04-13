@@ -22,6 +22,7 @@ import type { Sala } from "@/src/entities/room";
 import {
     availableResources,
     defaultFaculty,
+    type ResourceCatalogItem,
     type RoomResourceItem,
 } from "@/src/pages/rooms/api/mockAPI";
 

@@ -66,7 +66,7 @@ const login = async (req, res) => {
 };
 
 const register = async (req, res) => {
-    const { nombre, correo, contrasena } = req.body;
+    const { nombre, correo, contrasena, id_facultad } = req.body;
 
     try {
         // Validar email dominio @uao.edu.co
@@ -106,16 +106,14 @@ const register = async (req, res) => {
             });
         }
 
-        // Encontrar facultad por defecto (primera activa)
-        const facultadDefault = await Facultad.findOne({
-            where: { estado: true }
-        });
+        // Encontrar facultad
+      const facultadExiste = await Facultad.findByPk(id_facultad);
 
-        if (!facultadDefault) {
-            return res.status(500).json({
-                msg: 'Facultad por defecto no encontrada'
-            });
-        }
+        if (!facultadExiste) {
+            return res.status(400).json({
+            msg: 'La facultad seleccionada no existe'
+        });
+    }
 
         // Hash de la contraseña
         const saltRounds = 10;
@@ -126,9 +124,9 @@ const register = async (req, res) => {
             nombre,
             correo,
             contrasena: hashedPassword,
-            id_facultad: facultadDefault.id_facultad,
+            id_facultad,
             id_rol: rolProfesor.id_rol,
-            fecha_registro: new Date()
+            
         });
 
         res.status(201).json({
