@@ -423,3 +423,6 @@ export function NewRoomPage() {
         </main>
     );
 }
+
+export { NewRoomPage }
+export default NewRoomPage
