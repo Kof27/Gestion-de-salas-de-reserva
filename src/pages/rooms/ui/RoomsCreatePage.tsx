@@ -13,6 +13,7 @@ import {
 import {
     availableResources,
     defaultFaculty,
+    type ResourceCatalogItem,
     type RoomResourceItem,
     saveRoomMock,
 } from "@/src/lib/rooms/mocksAPI";
@@ -232,5 +233,5 @@ export function NewRoomPage() {
     );
 }
 
-export { NewRoomPage }
+
 export default NewRoomPage
