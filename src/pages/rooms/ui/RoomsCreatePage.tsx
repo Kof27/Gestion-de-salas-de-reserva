@@ -24,7 +24,7 @@ import {
     defaultFaculty,
     type ResourceCatalogItem,
     type RoomResourceItem,
-} from "@/src/pages/rooms/api/mocksAPI";
+} from "@/src/pages/rooms/api/mockAPI";
 
 const iconMap = {
     monitor: Monitor,
