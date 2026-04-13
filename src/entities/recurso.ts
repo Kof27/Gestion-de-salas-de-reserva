@@ -1,6 +1,7 @@
 export interface Resource {
-    id: string;
-    name: string;
-    description: string;
-    quantity: number;
+    id_recurso: string;
+    id_sala: number;
+    nombre: string;
+    descripcion: string;
+    tipo: string;
 }
