@@ -84,7 +84,7 @@ function generateAgendaSlots() {
     const slots: { start: string; end: string }[] = []
     const start = 7 * 60       // 07:00
     const end = 21 * 60 + 30   // 21:30
-    const duration = 60        // 1 hora
+    const duration = 30        // bloques de 30 minutos
 
     for (let current = start; current + duration <= end; current += 30) {
         slots.push({
@@ -147,7 +147,9 @@ export default function BookingRoomWindows({ roomId }: { roomId?: string }) {
             
             // Filtrar y convertir reservas para esta sala
             const filteredBookings = allReservas
-                .filter(r => String(r.id_sala) === effectiveRoomId)
+                .filter(
+                    (r) => String(r.id_sala) === effectiveRoomId && r.estado === true
+                )
                 .map(convertReservaToBooking)
             
             setBookings(filteredBookings)
