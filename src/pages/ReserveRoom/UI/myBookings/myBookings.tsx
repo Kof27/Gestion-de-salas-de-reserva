@@ -13,8 +13,9 @@ import {
 
 import NavbarBookingRoom from "@/src/widgets/navbarBookingRoom/navbarBookingRoom";
 import { getReservas, cancelarReserva } from "../../API/getReservas";
-import { getRoomById } from "../../API/getRooms";
+import { getRooms } from "../../API/getRooms";
 import type { reserva } from "@/src/entities/reserva";
+import type { Sala } from "@/src/entities/room";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,14 +24,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 type ReservationStatus = "active" | "past" | "cancelled";
-
-type Sala = {
-    id_sala?: string | number;
-    id?: string | number;
-    nombre?: string;
-    name?: string;
-    nombre_sala?: string;
-};
 
 type ReservationView = {
     id: string;
@@ -217,16 +210,6 @@ function ReservationCardSkeleton() {
     );
 }
 
-function getRoomDisplayName(room: Sala | null | undefined, roomId: number) {
-    if (!room) return `Sala ${roomId}`;
-    return (
-        room.nombre_sala ||
-        room.nombre ||
-        room.name ||
-        `Sala ${roomId}`
-    );
-}
-
 export default function MyReservationsPage() {
     const [rawReservations, setRawReservations] = React.useState<reserva[]>([]);
     const [reservations, setReservations] = React.useState<ReservationView[]>([]);
@@ -240,32 +223,27 @@ export default function MyReservationsPage() {
                 setLoading(true);
                 setError(null);
 
-                const data = await getReservas();
-                setRawReservations(data);
+                const [reservasData, roomsData] = await Promise.all([
+                    getReservas(),
+                    getRooms(),
+                ]);
 
-                const uniqueRoomIds = [...new Set(data.map((item) => String(item.id_sala)))];
+                setRawReservations(reservasData);
 
-                const roomsEntries = await Promise.all(
-                    uniqueRoomIds.map(async (roomId) => {
-                        try {
-                            const room = await getRoomById(roomId);
-                            return [roomId, room] as const;
-                        } catch (error) {
-                            console.error(`Error cargando sala ${roomId}:`, error);
-                            return [roomId, null] as const;
-                        }
-                    })
-                );
+                const roomsMap = new Map<string, Sala>();
+                roomsData.forEach((room) => {
+                    if (room.id_sala) {
+                        roomsMap.set(String(room.id_sala), room);
+                    }
+                });
 
-                const roomsMap = new Map<string, Sala | null>(roomsEntries);
-
-                const mappedReservations: ReservationView[] = data.map((item) => {
+                const mappedReservations: ReservationView[] = reservasData.map((item) => {
                     const room = roomsMap.get(String(item.id_sala));
 
                     return {
                         id: item.id_reserva ?? "",
-                        title: getRoomDisplayName(room, item.id_sala),
-                        location: `Reserva del usuario ${item.id_usuario}`,
+                        title: room?.nombre ?? `Sala ${item.id_sala}`,
+                        location: room?.ubicacion ?? `Reserva del usuario ${item.id_usuario}`,
                         dateLabel: formatReservationDate(item.hora_inicio, item.hora_fin),
                         status: getReservationStatus(item),
                         motivo: item.motivo,
