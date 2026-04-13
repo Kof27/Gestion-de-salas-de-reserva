@@ -101,12 +101,15 @@ export const DashboardPage = () => {
                                         <td className="py-4 px-4">
                                             <div className="flex items-center gap-2">
                                                 <button
+                                                    type="button"
                                                     onClick={() => toggleStatus(room.id)}
-                                                    className={`relative w-10 h-6 rounded-full transition-colors duration-200 ${room.status === 'habilitada' ? 'bg-red-500' : 'bg-gray-300'
+                                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${room.status === "habilitada" ? "bg-red-500" : "bg-gray-300"
                                                         }`}
                                                 >
-                                                    <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 ${room.status === 'habilitada' ? 'translate-x-5' : 'translate-x-1'
-                                                        }`} />
+                                                    <span
+                                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${room.status === "habilitada" ? "translate-x-6" : "translate-x-1"
+                                                            }`}
+                                                    />
                                                 </button>
                                                 <span className={`text-sm ${room.status === 'habilitada' ? 'text-gray-700' : 'text-gray-400'}`}>
                                                     {room.status === 'habilitada' ? 'Habilitada' : 'Inhabilitada'}
