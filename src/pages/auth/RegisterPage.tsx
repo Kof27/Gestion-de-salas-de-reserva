@@ -67,7 +67,7 @@ function RegisterPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (error || emailError || password.length === 0 || email.length === 0 || name.length === 0 || !faculty) return;
+        if (error || emailError || password.length === 0 || email.length === 0 || name.length === 0) return;
 
         setIsLoading(true);
         try {
@@ -87,6 +87,7 @@ function RegisterPage() {
 
             if (response.ok) {
                 alert('Usuario registrado exitosamente');
+                // Redirect to login or something
                 window.location.href = '/login';
             } else {
                 setError(data.msg || 'Error al registrar');
@@ -199,7 +200,7 @@ function RegisterPage() {
                             <Button
                                 type="submit"
                                 className="bg-[#EC1313] hover:bg-red-700 font-bold w-full"
-                                disabled={!!error || !!emailError || password.length === 0 || email.length === 0 || name.length === 0 || !faculty || isLoading}
+                                disabled={!!error || password.length === 0 || email.length === 0 || !faculty}
                             >
                                 {isLoading ? 'Registrando...' : 'Registrarte'}
                             </Button>

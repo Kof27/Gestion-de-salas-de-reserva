@@ -22,6 +22,7 @@ import type { Sala } from "@/src/entities/room";
 import {
     availableResources,
     defaultFaculty,
+    type ResourceCatalogItem,
     type RoomResourceItem,
 } from "@/src/pages/rooms/api/mocksAPI";
 
@@ -424,5 +425,5 @@ export function NewRoomPage() {
     );
 }
 
-export { NewRoomPage }
+
 export default NewRoomPage

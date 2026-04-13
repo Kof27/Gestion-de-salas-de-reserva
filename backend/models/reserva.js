@@ -22,11 +22,11 @@ const Reserva = bdmysql.define(
       allowNull: false,
     },
     hora_inicio: {
-      type: DataTypes.TIME,
+      type: DataTypes.DATE,
       allowNull: false,
     },
     hora_fin: {
-      type: DataTypes.TIME,
+      type: DataTypes.DATE,
       allowNull: false,
     },
     motivo: {

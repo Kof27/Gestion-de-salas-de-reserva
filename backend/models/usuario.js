@@ -7,7 +7,8 @@ const Usuario = bdmysql.define('usuario',
         'id_usuario': {
             type: DataTypes.INTEGER,
             //allowNull: false,
-            primaryKey: true
+            primaryKey: true,
+            autoIncrement: true
         },
 
 
@@ -46,9 +47,9 @@ const Usuario = bdmysql.define('usuario',
             // allowNull defaults to true
         },
         'fecha_registro': {
-            type: DataTypes.STRING,
-            allowNull: false
-            // allowNull defaults to true
+            type: DataTypes.DATE,
+            allowNull: false,
+            defaultValue: DataTypes.NOW
         },
 
     },
