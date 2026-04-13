@@ -18,7 +18,7 @@ const validarJWT = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, obtenerSecreto());
-        req.usuarioAuth = decoded;
+        req.usuario = decoded;
         next();
     } catch (error) {
         if (error.name === 'TokenExpiredError') {
