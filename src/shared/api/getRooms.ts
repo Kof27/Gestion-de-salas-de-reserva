@@ -83,5 +83,20 @@ async function updateRoom(
     }
 }
 
+async function deleteRoom(id: string): Promise<void> {
+    try {
+        const response = await fetch(`${API_URL}/${id}`, {
+            method: "DELETE",
+        });
 
-export { getRooms, getRoomById, createRoom, updateRoom };
+        if (!response.ok) {
+            throw new Error(`Error deleting room: ${response.statusText}`);
+        }
+    } catch (error) {
+        console.error("Error deleting room:", error);
+        throw error;
+    }
+}
+
+
+export { getRooms, getRoomById, createRoom, updateRoom, deleteRoom };

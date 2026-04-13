@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 import { Navbar } from "@/src/widgets/navbar/ui/Navbar";
 import { Sidebar } from "@/src/widgets/sidebar/ui/Sidebar";
-import { getRooms, updateRoom } from "@/src/shared/api/getRooms";
+import { getRooms, updateRoom, deleteRoom } from "@/src/shared/api/getRooms";
 import type { Sala } from "@/src/entities/room";
 
 type RoomStatus = "habilitada" | "inhabilitada";
@@ -27,6 +27,7 @@ export const DashboardPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [updatingRoomId, setUpdatingRoomId] = useState<string | null>(null);
+    const [deletingRoomId, setDeletingRoomId] = useState<string | null>(null);
 
     const mapSalaToRoomView = (room: Sala): RoomView => ({
         id: room.id_sala ?? "",
@@ -136,10 +137,30 @@ export const DashboardPage = () => {
         setRoomToDelete(room);
     };
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
         if (!roomToDelete) return;
-        setRooms((prev) => prev.filter((r) => r.id !== roomToDelete.id));
-        setRoomToDelete(null);
+        if (deletingRoomId) return;
+
+        try {
+            setDeletingRoomId(roomToDelete.id);
+
+            await deleteRoom(roomToDelete.id);
+
+            toast.success("Operación exitosa", {
+                description: `La sala "${roomToDelete.name}" fue eliminada correctamente.`,
+            });
+
+            setRoomToDelete(null);
+            window.location.reload();
+        } catch (error) {
+            console.error("Error eliminando sala:", error);
+
+            toast.error("La operación no fue exitosa", {
+                description: "No se pudo eliminar la sala.",
+            });
+        } finally {
+            setDeletingRoomId(null);
+        }
     };
 
     return (
@@ -266,8 +287,8 @@ export const DashboardPage = () => {
                                                             onClick={() => toggleStatus(room.id)}
                                                             disabled={isUpdating}
                                                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${room.status === "habilitada"
-                                                                    ? "bg-red-500"
-                                                                    : "bg-gray-300"
+                                                                ? "bg-red-500"
+                                                                : "bg-gray-300"
                                                                 } ${isUpdating
                                                                     ? "cursor-not-allowed opacity-70"
                                                                     : ""
@@ -280,8 +301,8 @@ export const DashboardPage = () => {
                                                             ) : (
                                                                 <span
                                                                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${room.status === "habilitada"
-                                                                            ? "translate-x-6"
-                                                                            : "translate-x-1"
+                                                                        ? "translate-x-6"
+                                                                        : "translate-x-1"
                                                                         }`}
                                                                 />
                                                             )}
@@ -289,8 +310,8 @@ export const DashboardPage = () => {
 
                                                         <span
                                                             className={`text-sm ${room.status === "habilitada"
-                                                                    ? "text-gray-700"
-                                                                    : "text-gray-400"
+                                                                ? "text-gray-700"
+                                                                : "text-gray-400"
                                                                 }`}
                                                         >
                                                             {room.status === "habilitada"
@@ -304,7 +325,8 @@ export const DashboardPage = () => {
                                                     <div className="flex items-center gap-1">
                                                         <button
                                                             onClick={() => confirmDelete(room)}
-                                                            className="p-1.5 text-gray-400 transition-colors hover:text-red-500"
+                                                            disabled={!!deletingRoomId}
+                                                            className="p-1.5 text-gray-400 transition-colors hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
                                                         >
                                                             <svg
                                                                 xmlns="http://www.w3.org/2000/svg"
@@ -389,15 +411,17 @@ export const DashboardPage = () => {
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setRoomToDelete(null)}
-                                className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+                                disabled={!!deletingRoomId}
+                                className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-70"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={handleDelete}
-                                className="flex-1 rounded-xl bg-red-500 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-600"
+                                disabled={!!deletingRoomId}
+                                className="flex-1 rounded-xl bg-red-500 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70"
                             >
-                                Eliminar
+                                {deletingRoomId ? "Eliminando..." : "Eliminar"}
                             </button>
                         </div>
                     </div>

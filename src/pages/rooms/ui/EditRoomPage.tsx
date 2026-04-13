@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Navbar2 } from "@/src/widgets/navbar2/ui/Navbar2";
-import { getRoomById, updateRoom } from "@/src/shared/api/getRooms";
+import { getRoomById, updateRoom} from "@/src/shared/api/getRooms";
 import type { Sala } from "@/src/entities/room";
 
 interface Resource {
