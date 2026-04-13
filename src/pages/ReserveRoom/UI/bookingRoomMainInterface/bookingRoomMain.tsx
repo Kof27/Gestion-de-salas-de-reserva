@@ -41,11 +41,7 @@ const amenityIcons: Record<Amenity, React.ReactNode> = {
     camera: <Camera className="h-4 w-4" />,
 };
 
-const navItems = [
-    { key: "salas", label: "Salas disponibles" },
-    { key: "reservas", label: "Mis reservas" },
-    { key: "admin", label: "Panel Administrativo" },
-] as const;
+
 
 function RoomCard({ room, onReservar }: { room: Sala; onReservar: (room: Sala) => void }) {
     return (
@@ -109,7 +105,6 @@ function RoomCard({ room, onReservar }: { room: Sala; onReservar: (room: Sala) =
 }
 
 export default function RoomBookingPage() {
-    const [activeTab, setActiveTab] = useState<(typeof navItems)[number]["key"]>("salas");
     const [search, setSearch] = useState("");
     const [rooms, setRooms] = useState<Sala[]>([]);
     const [loading, setLoading] = useState(true);
@@ -168,7 +163,7 @@ export default function RoomBookingPage() {
 
     return (
         <div className="min-h-screen bg-[#f5f6f8] text-slate-900">
-            <NavbarBookingRoom activeTab={activeTab} onTabChange={setActiveTab} navItems={navItems} />
+            <NavbarBookingRoom />
 
             <main className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
                 <div className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
