@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import BookingRoomWindows from "../bookingEspecificRoom/bookinRoom";
 import NavbarBookingRoom from "@/src/widgets/navbarBookingRoom/navbarBookingRoom";
-import { getRooms } from "../../API/getRooms";
+import { getRooms } from "../../../../shared/api/getRooms";
 import type { Sala } from "@/src/entities/room";
 
 type Amenity =

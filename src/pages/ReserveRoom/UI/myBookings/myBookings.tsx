@@ -12,8 +12,8 @@ import {
 } from "lucide-react";
 
 import NavbarBookingRoom from "@/src/widgets/navbarBookingRoom/navbarBookingRoom";
-import { getReservas, cancelarReserva } from "../../API/getReservas";
-import { getRooms } from "../../API/getRooms";
+import { getReservas, cancelarReserva } from "../../../../shared/api/getReservas";
+import { getRooms } from "../../../../shared/api/getRooms";
 import type { reserva } from "@/src/entities/reserva";
 import type { Sala } from "@/src/entities/room";
 

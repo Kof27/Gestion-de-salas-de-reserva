@@ -17,8 +17,8 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
-import { getRoomById } from "../../API/getRooms"
-import { getReservas, createReserva } from "../../API/getReservas"
+import { getRoomById } from "../../../../shared/api/getRooms"
+import { getReservas, createReserva } from "../../../../shared/api/getReservas"
 import type { Sala } from "@/src/entities/room"
 import type { reserva } from "@/src/entities/reserva"
 
