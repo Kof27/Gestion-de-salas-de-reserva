@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Navbar2 } from "@/src/widgets/navbar2/ui/Navbar2";
 import { getRoomById, updateRoom } from "@/src/shared/api/getRooms";
 import { getResources, updateResource } from "@/src/shared/api/getRecursos";
+import { RoomResourcesManager } from "@/src/widgets/room_resource/roomResource";
 
 import type { Sala } from "@/src/entities/room";
 import type { Resource } from "@/src/entities/recurso";
@@ -21,10 +22,6 @@ function EditRoomSkeleton() {
           <div className="mb-4 h-4 w-32 animate-pulse rounded bg-gray-200" />
           <div className="mb-2 h-8 w-72 animate-pulse rounded bg-gray-200" />
           <div className="mb-8 h-4 w-96 animate-pulse rounded bg-gray-100" />
-
-          <div className="mb-8 rounded-xl border border-gray-100 p-4">
-            <div className="h-4 w-80 animate-pulse rounded bg-gray-200" />
-          </div>
 
           <div className="grid grid-cols-2 gap-10">
             <div className="space-y-4">
@@ -66,13 +63,14 @@ export function EditRoomPage() {
   const [description, setDescription] = useState("");
 
   const [resources, setResources] = useState<Resource[]>([]);
+  const [originalResources, setOriginalResources] = useState<Resource[]>([]);
   const [allResources, setAllResources] = useState<Resource[]>([]);
   const [selectedResourceId, setSelectedResourceId] = useState("");
 
+  const [pendingAssignedResourceIds, setPendingAssignedResourceIds] = useState<string[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-
-  const [pendingResourceAssignments, setPendingResourceAssignments] = useState<Resource[]>([]);
 
   const fillForm = useCallback((room: Sala, resourcesForRoom: Resource[], all: Resource[]) => {
     setRoomData(room);
@@ -81,9 +79,12 @@ export function EditRoomPage() {
     setLocation(room.ubicacion);
     setCapacity(String(room.capacidad));
     setDescription(room.descripcion);
+
     setResources(resourcesForRoom);
+    setOriginalResources(resourcesForRoom);
     setAllResources(all);
-    setPendingResourceAssignments([]);
+
+    setPendingAssignedResourceIds([]);
     setSelectedResourceId("");
   }, []);
 
@@ -115,15 +116,8 @@ export function EditRoomPage() {
     loadData();
   }, [loadData]);
 
-  const deleteResource = (id: string) => {
-    setResources((prev) => prev.filter((r) => String(r.id_recurso) !== id));
-    setPendingResourceAssignments((prev) =>
-      prev.filter((r) => String(r.id_recurso) !== id)
-    );
-  };
-
   const addResource = () => {
-    if (!selectedResourceId) return;
+    if (!selectedResourceId || !roomId) return;
 
     const selected = allResources.find(
       (resource) => String(resource.id_recurso) === selectedResourceId
@@ -146,20 +140,65 @@ export function EditRoomPage() {
     };
 
     setResources((prev) => [...prev, reassignedResource]);
-    setPendingResourceAssignments((prev) => [...prev, reassignedResource]);
+
+    const wasOriginallyInRoom = originalResources.some(
+      (resource) => String(resource.id_recurso) === selectedResourceId
+    );
+
+    if (!wasOriginallyInRoom) {
+      setPendingAssignedResourceIds((prev) =>
+        prev.includes(selectedResourceId) ? prev : [...prev, selectedResourceId]
+      );
+    }
+
     setSelectedResourceId("");
+  };
+
+  const deleteResourceNow = async (resource: Resource) => {
+    const resourceId = String(resource.id_recurso);
+    const wasAddedInThisEdit = pendingAssignedResourceIds.includes(resourceId);
+
+    if (wasAddedInThisEdit) {
+      setResources((prev) =>
+        prev.filter((item) => String(item.id_recurso) !== resourceId)
+      );
+
+      setPendingAssignedResourceIds((prev) =>
+        prev.filter((id) => id !== resourceId)
+      );
+
+      return;
+    }
+
+    await updateResource(resourceId, {
+      id_sala: 0, // Cambia a null si tu backend usa null y ajustas la interfaz
+      nombre: resource.nombre,
+      descripcion: resource.descripcion,
+      tipo: resource.tipo,
+    });
+
+    setResources((prev) =>
+      prev.filter((item) => String(item.id_recurso) !== resourceId)
+    );
+
+    setAllResources((prev) =>
+      prev.map((item) =>
+        String(item.id_recurso) === resourceId
+          ? { ...item, id_sala: 0 }
+          : item
+      )
+    );
+
+    setOriginalResources((prev) =>
+      prev.filter((item) => String(item.id_recurso) !== resourceId)
+    );
   };
 
   const handleSave = async () => {
     if (!roomId || !roomData) return;
 
-    const previousRoom = roomData;
-    const previousResources = [...resources];
-    const previousPendingAssignments = [...pendingResourceAssignments];
-
     try {
       setSaving(true);
-      setLoading(true);
 
       const roomPayload: Omit<Sala, "id_sala"> = {
         id_facultad: roomData.id_facultad,
@@ -176,15 +215,20 @@ export function EditRoomPage() {
       await updateRoom(String(roomId), roomPayload);
 
       await Promise.all(
-        pendingResourceAssignments.map((resource) =>
-          updateResource(String(resource.id_recurso), {
+        pendingAssignedResourceIds.map((resourceId) => {
+          const resource = allResources.find(
+            (item) => String(item.id_recurso) === resourceId
+          );
+
+          if (!resource) return Promise.resolve();
+
+          return updateResource(String(resource.id_recurso), {
             id_sala: Number(roomId),
             nombre: resource.nombre,
             descripcion: resource.descripcion,
             tipo: resource.tipo,
-          })
-        )
-        
+          });
+        })
       );
 
       await loadData();
@@ -194,26 +238,13 @@ export function EditRoomPage() {
       });
     } catch (error) {
       console.error("Error actualizando sala y recursos:", error);
-
-      setRoomData(previousRoom);
-      setResources(previousResources);
-      setPendingResourceAssignments(previousPendingAssignments);
-
       toast.error("La operación no fue exitosa", {
         description: "No se pudieron guardar los cambios.",
       });
     } finally {
       setSaving(false);
-      setLoading(false);
     }
   };
-
-  const selectableResources = allResources.filter(
-    (resource) =>
-      !resources.some(
-        (assigned) => String(assigned.id_recurso) === String(resource.id_recurso)
-      )
-  );
 
   if (loading) {
     return <EditRoomSkeleton />;
@@ -231,7 +262,6 @@ export function EditRoomPage() {
       </div>
     );
   }
-  console.log(resources)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -386,111 +416,18 @@ export function EditRoomPage() {
             </div>
 
             <div>
-              <h2 className="mb-5 text-base font-semibold text-gray-800">
-                Recursos Tecnológicos
-              </h2>
-
-              <div className="mb-4 overflow-hidden rounded-xl border border-gray-200">
-                {resources.length === 0 ? (
-                  <div className="px-4 py-6 text-sm text-gray-400">
-                    Esta sala no tiene recursos asociados.
-                  </div>
-                ) : (
-                  resources.map((resource, index) => (
-                    <div
-                      key={resource.id_recurso}
-                      className={`flex items-center justify-between px-4 py-3 ${
-                        index !== resources.length - 1 ? "border-b border-gray-100" : ""
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded bg-red-50">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 text-red-400"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={1.5}
-                              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                            />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-800">
-                            {resource.nombre}
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            {resource.descripcion}
-                          </p>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => deleteResource(String(resource.id_recurso))}
-                        disabled={saving}
-                        className="text-gray-300 transition-colors hover:text-red-400"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1.5}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              <div className="rounded-xl border border-gray-200 p-4">
-                <p className="mb-3 text-sm font-semibold text-gray-800">
-                  Agregar Recurso
-                </p>
-                <div className="mb-2 grid grid-cols-1 gap-2">
-                  <div>
-                    <label className="mb-1 block text-xs text-gray-500">
-                      Recurso
-                    </label>
-                    <select
-                      value={selectedResourceId}
-                      onChange={(e) => setSelectedResourceId(e.target.value)}
-                      disabled={saving}
-                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 outline-none focus:border-red-400"
-                    >
-                      <option value="">Seleccionar recurso</option>
-                      {selectableResources.map((resource) => (
-                        <option
-                          key={resource.id_recurso}
-                          value={String(resource.id_recurso)}
-                        >
-                          {resource.nombre}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <button
-                  onClick={addResource}
-                  disabled={saving || !selectedResourceId}
-                  className="w-full rounded-lg border border-gray-200 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  + Agregar
-                </button>
-              </div>
+              <RoomResourcesManager
+                resources={resources}
+                allResources={allResources}
+                selectedResourceId={selectedResourceId}
+                onSelectedResourceChange={setSelectedResourceId}
+                onAddResource={addResource}
+                onDeleteResource={deleteResourceNow}
+                saving={saving}
+                roomName={name}
+                roomId={roomId}
+                pendingAssignedResourceIds={pendingAssignedResourceIds}
+              />
             </div>
           </div>
 
