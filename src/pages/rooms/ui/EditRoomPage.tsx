@@ -209,7 +209,6 @@ export function EditRoomPage() {
         nombre: name.trim(),
         ubicacion: location.trim(),
         descripcion: description.trim(),
-        recursosTecnologico: roomData.recursosTecnologico,
       };
 
       await updateRoom(String(roomId), roomPayload);

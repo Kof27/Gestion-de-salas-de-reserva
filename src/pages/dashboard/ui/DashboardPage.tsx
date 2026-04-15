@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Navbar } from "@/src/widgets/navbar/ui/Navbar";
 import { Sidebar } from "@/src/widgets/sidebar/ui/Sidebar";
 import { getRooms, updateRoom, deleteRoom } from "@/src/shared/api/getRooms";
+import { getResources, updateResource } from "@/src/shared/api/getRecursos";
 import type { Sala } from "@/src/entities/room";
 
 type RoomStatus = "habilitada" | "inhabilitada";
@@ -92,7 +93,6 @@ export const DashboardPage = () => {
                 nombre: currentRoom.raw.nombre,
                 ubicacion: currentRoom.raw.ubicacion,
                 descripcion: currentRoom.raw.descripcion,
-                recursosTecnologico: currentRoom.raw.recursosTecnologico,
             };
 
             const updatedRoom = await updateRoom(currentRoom.raw.id_sala, updatedPayload);
@@ -144,24 +144,68 @@ export const DashboardPage = () => {
         try {
             setDeletingRoomId(roomToDelete.id);
 
+            const allResources = await getResources();
+
+            const resourcesFromRoom = allResources.filter(
+                (resource) => String(resource.id_sala) === String(roomToDelete.id)
+            );
+
+            console.log(
+                "Recursos a desasignar:",
+                resourcesFromRoom.map((r) => ({
+                    id_recurso: r.id_recurso,
+                    nombre: r.nombre,
+                    id_sala: r.id_sala,
+                }))
+            );
+
+            // Desasignar uno por uno
+            for (const resource of resourcesFromRoom) {
+                const updated = await updateResource(String(resource.id_recurso), {
+                    id_sala: 0,
+                    nombre: resource.nombre,
+                    descripcion: resource.descripcion,
+                    tipo: resource.tipo,
+                });
+
+                console.log("Recurso actualizado:", updated);
+            }
+
+            // Verificar después de actualizar
+            const refreshedResources = await getResources();
+            const stillAssigned = refreshedResources.filter(
+                (resource) => String(resource.id_sala) === String(roomToDelete.id)
+            );
+
+            if (stillAssigned.length > 0) {
+                console.error("Recursos que siguen asignados:", stillAssigned);
+                throw new Error(
+                    `Todavía hay ${stillAssigned.length} recurso(s) asociados a la sala.`
+                );
+            }
+
             await deleteRoom(roomToDelete.id);
 
             toast.success("Operación exitosa", {
-                description: `La sala "${roomToDelete.name}" fue eliminada correctamente.`,
+                description: `La sala "${roomToDelete.name}" fue eliminada correctamente y los dispositivos fueron desasignados.`,
             });
 
+            setRooms((prev) => prev.filter((room) => room.id !== roomToDelete.id));
             setRoomToDelete(null);
-            window.location.reload();
         } catch (error) {
             console.error("Error eliminando sala:", error);
 
             toast.error("La operación no fue exitosa", {
-                description: "No se pudo eliminar la sala.",
+                description:
+                    error instanceof Error
+                        ? error.message
+                        : "No se pudo eliminar la sala y desasignar sus dispositivos.",
             });
         } finally {
             setDeletingRoomId(null);
         }
     };
+
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -289,10 +333,7 @@ export const DashboardPage = () => {
                                                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${room.status === "habilitada"
                                                                 ? "bg-red-500"
                                                                 : "bg-gray-300"
-                                                                } ${isUpdating
-                                                                    ? "cursor-not-allowed opacity-70"
-                                                                    : ""
-                                                                }`}
+                                                                } ${isUpdating ? "cursor-not-allowed opacity-70" : ""}`}
                                                         >
                                                             {isUpdating ? (
                                                                 <span className="flex w-full items-center justify-center">
@@ -404,8 +445,8 @@ export const DashboardPage = () => {
                             <span className="font-bold text-gray-800">
                                 "{roomToDelete.name}"
                             </span>
-                            ? Esta acción no se puede deshacer y se perderá todo el historial
-                            asociado.
+                            ? Esta acción no se puede deshacer, se perderá todo el historial
+                            asociado y los dispositivos serán desasignados.
                         </p>
 
                         <div className="flex gap-3">

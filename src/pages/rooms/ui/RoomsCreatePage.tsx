@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -10,13 +11,56 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 
 import { createRoom } from "@/src/shared/api/getRooms";
-import { getResources } from "@/src/shared/api/getRecursos";
+import { getResources, updateResource } from "@/src/shared/api/getRecursos";
 import { RoomResourcesManager } from "@/src/widgets/room_resource/roomResource";
 
 import type { Sala } from "@/src/entities/room";
 import type { Resource } from "@/src/entities/recurso";
 
+function CreateRoomSkeleton() {
+    return (
+        <main className="min-h-screen bg-gray-50 px-4 py-8 md:px-8">
+            <div className="mx-auto max-w-4xl">
+                <Card className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                    <CardContent className="p-8">
+                        <div className="mb-6">
+                            <div className="h-8 w-64 animate-pulse rounded bg-gray-200" />
+                            <div className="mt-2 h-4 w-96 animate-pulse rounded bg-gray-100" />
+                        </div>
+
+                        <div className="mb-6 border-t border-gray-100" />
+
+                        <div className="grid grid-cols-2 gap-10">
+                            <div className="space-y-4">
+                                <div className="h-5 w-40 animate-pulse rounded bg-gray-200" />
+                                <div className="h-10 w-full animate-pulse rounded bg-gray-100" />
+                                <div className="h-10 w-full animate-pulse rounded bg-gray-100" />
+                                <div className="h-10 w-full animate-pulse rounded bg-gray-100" />
+                                <div className="h-10 w-full animate-pulse rounded bg-gray-100" />
+                                <div className="h-10 w-full animate-pulse rounded bg-gray-100" />
+                                <div className="h-12 w-full animate-pulse rounded bg-gray-100" />
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="h-5 w-48 animate-pulse rounded bg-gray-200" />
+                                <div className="h-56 w-full animate-pulse rounded bg-gray-100" />
+                                <div className="h-36 w-full animate-pulse rounded bg-gray-100" />
+                            </div>
+                        </div>
+
+                        <div className="mt-8 flex justify-end gap-3 border-t border-gray-100 pt-6">
+                            <div className="h-10 w-28 animate-pulse rounded bg-gray-100" />
+                            <div className="h-10 w-36 animate-pulse rounded bg-gray-200" />
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        </main>
+    );
+}
+
 export function NewRoomPage() {
+    const router = useRouter();
     const [roomName, setRoomName] = useState("");
     const [location, setLocation] = useState("");
     const [description, setDescription] = useState("");
@@ -113,12 +157,37 @@ export function NewRoomPage() {
                 descripcion: description.trim(),
             };
 
+            // 1. Crear la sala
             const result = await createRoom(payload);
 
+            const newRoomId = Number(result.id_sala);
+
+            if (!newRoomId) {
+                throw new Error("La respuesta del servidor no trajo un id_sala válido.");
+            }
+
+            // 2. Asignar recursos seleccionados a la sala creada
+            if (resources.length > 0) {
+                await Promise.all(
+                    resources.map((resource) =>
+                        updateResource(String(resource.id_recurso), {
+                            id_sala: newRoomId,
+                            nombre: resource.nombre,
+                            descripcion: resource.descripcion,
+                            tipo: resource.tipo,
+                        })
+                    )
+                );
+            }
+
             toast.success("Sala creada correctamente", {
-                description: `Se registró ${result.nombre}.`,
+                description: `Se registró ${result.nombre} y se asignaron sus recursos.`,
             });
 
+            // 3. Recargar catálogo de recursos por si cambió su id_sala
+            await loadResources();
+
+            // 4. Limpiar formulario
             setRoomName("");
             setLocation("");
             setDescription("");
@@ -128,12 +197,16 @@ export function NewRoomPage() {
             setResources([]);
             setPendingAssignedResourceIds([]);
         } catch (error) {
-            console.error("Error creando sala:", error);
-            toast.error("No se pudo crear la sala.");
+            console.error("Error creando sala y asignando recursos:", error);
+            toast.error("No se pudo crear la sala con sus recursos.");
         } finally {
             setSubmitting(false);
         }
     };
+
+    if (submitting) {
+        return <CreateRoomSkeleton />;
+    }
 
     return (
         <main className="min-h-screen bg-gray-50 px-4 py-8 md:px-8">
@@ -275,6 +348,7 @@ export function NewRoomPage() {
                             <button
                                 type="button"
                                 className="rounded-lg border border-gray-200 px-6 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                                onClick={() => router.push("/dashboard")}
                             >
                                 Cancelar
                             </button>
@@ -282,11 +356,11 @@ export function NewRoomPage() {
                             <button
                                 type="button"
                                 onClick={handleSubmit}
-                                disabled={submitting}
+                                disabled={submitting || loadingResources}
                                 className="flex items-center gap-2 rounded-lg bg-red-500 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70"
                             >
                                 <PlusCircle className="h-4 w-4" />
-                                {submitting ? "Registrando..." : "Registrar Sala"}
+                                Registrar Sala
                             </button>
                         </div>
                     </CardContent>
