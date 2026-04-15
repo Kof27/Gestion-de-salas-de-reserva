@@ -8,5 +8,4 @@ export interface Sala {
     nombre: string;
     ubicacion: string;
     descripcion: string;
-    recursosTecnologico: string[];
 }

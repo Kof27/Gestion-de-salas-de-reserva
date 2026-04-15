@@ -1,109 +1,138 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Monitor, Video, Snowflake, Trash2, PlusCircle } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 
 import { createRoom } from "@/src/shared/api/getRooms";
-import type { Sala } from "@/src/entities/room";
-import {
-    availableResources,
-    defaultFaculty,
-    type ResourceCatalogItem,
-    type RoomResourceItem,
-} from "@/src/pages/rooms/api/mockAPI";
+import { getResources, updateResource } from "@/src/shared/api/getRecursos";
+import { RoomResourcesManager } from "@/src/widgets/room_resource/roomResource";
 
-const iconMap = {
-    monitor: Monitor,
-    video: Video,
-    snowflake: Snowflake,
-};
+import type { Sala } from "@/src/entities/room";
+import type { Resource } from "@/src/entities/recurso";
+
+function CreateRoomSkeleton() {
+    return (
+        <main className="min-h-screen bg-gray-50 px-4 py-8 md:px-8">
+            <div className="mx-auto max-w-4xl">
+                <Card className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                    <CardContent className="p-8">
+                        <div className="mb-6">
+                            <div className="h-8 w-64 animate-pulse rounded bg-gray-200" />
+                            <div className="mt-2 h-4 w-96 animate-pulse rounded bg-gray-100" />
+                        </div>
+
+                        <div className="mb-6 border-t border-gray-100" />
+
+                        <div className="grid grid-cols-2 gap-10">
+                            <div className="space-y-4">
+                                <div className="h-5 w-40 animate-pulse rounded bg-gray-200" />
+                                <div className="h-10 w-full animate-pulse rounded bg-gray-100" />
+                                <div className="h-10 w-full animate-pulse rounded bg-gray-100" />
+                                <div className="h-10 w-full animate-pulse rounded bg-gray-100" />
+                                <div className="h-10 w-full animate-pulse rounded bg-gray-100" />
+                                <div className="h-10 w-full animate-pulse rounded bg-gray-100" />
+                                <div className="h-12 w-full animate-pulse rounded bg-gray-100" />
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="h-5 w-48 animate-pulse rounded bg-gray-200" />
+                                <div className="h-56 w-full animate-pulse rounded bg-gray-100" />
+                                <div className="h-36 w-full animate-pulse rounded bg-gray-100" />
+                            </div>
+                        </div>
+
+                        <div className="mt-8 flex justify-end gap-3 border-t border-gray-100 pt-6">
+                            <div className="h-10 w-28 animate-pulse rounded bg-gray-100" />
+                            <div className="h-10 w-36 animate-pulse rounded bg-gray-200" />
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        </main>
+    );
+}
 
 export function NewRoomPage() {
+    const router = useRouter();
     const [roomName, setRoomName] = useState("");
     const [location, setLocation] = useState("");
     const [description, setDescription] = useState("");
     const [imageUrl, setImageUrl] = useState("");
-    const [faculty] = useState(defaultFaculty);
+    const [faculty] = useState("Facultad de Ingeniería");
     const [capacity, setCapacity] = useState<number[]>([20]);
+
+    const [resources, setResources] = useState<Resource[]>([]);
+    const [allResources, setAllResources] = useState<Resource[]>([]);
     const [selectedResourceId, setSelectedResourceId] = useState("");
-    const [selectedQuantity, setSelectedQuantity] = useState(1);
+    const [pendingAssignedResourceIds, setPendingAssignedResourceIds] = useState<string[]>([]);
+
+    const [loadingResources, setLoadingResources] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
-    const [resources, setResources] = useState<RoomResourceItem[]>([
-        {
-            id: "pantalla-interactiva-65",
-            name: 'Pantalla Interactiva 65"',
-            description: "Pantalla táctil",
-            quantity: 1,
-            icon: "monitor",
-        },
-        {
-            id: "videoconferencia-logitech-meetup",
-            name: "Sistema de Videoconferencia",
-            description: "Logitech MeetUp",
-            quantity: 1,
-            icon: "video",
-        },
-        {
-            id: "aire-acondicionado",
-            name: "Aire Acondicionado",
-            description: "Control independiente",
-            quantity: 1,
-            icon: "snowflake",
-        },
-    ]);
+    const loadResources = useCallback(async () => {
+        try {
+            setLoadingResources(true);
+            const backendResources = await getResources();
+            setAllResources(backendResources);
+        } catch (error) {
+            console.error("Error cargando recursos:", error);
+            toast.error("No se pudieron cargar los recursos disponibles.");
+        } finally {
+            setLoadingResources(false);
+        }
+    }, []);
 
-    const selectedResource = useMemo(
-        () => availableResources.find((r) => r.id === selectedResourceId),
-        [selectedResourceId]
-    );
+    useEffect(() => {
+        loadResources();
+    }, [loadResources]);
 
     const handleAddResource = () => {
-        if (!selectedResource) return;
+        if (!selectedResourceId) return;
 
-        setResources((prev) => {
-            const existing = prev.find((r) => r.id === selectedResource.id);
+        const selected = allResources.find(
+            (resource) => String(resource.id_recurso) === selectedResourceId
+        );
 
-            if (existing) {
-                return prev.map((r) =>
-                    r.id === selectedResource.id
-                        ? { ...r, quantity: r.quantity + selectedQuantity }
-                        : r
-                );
-            }
+        if (!selected) return;
 
-            return [
-                ...prev,
-                {
-                    id: selectedResource.id,
-                    name: selectedResource.name,
-                    description: selectedResource.description,
-                    quantity: selectedQuantity,
-                    icon: selectedResource.icon,
-                },
-            ];
-        });
+        const alreadyAssigned = resources.some(
+            (resource) => String(resource.id_recurso) === selectedResourceId
+        );
 
+        if (alreadyAssigned) {
+            toast.error("Ese recurso ya está agregado a la nueva sala.");
+            return;
+        }
+
+        const localResource: Resource = {
+            ...selected,
+            id_sala: 0,
+        };
+
+        setResources((prev) => [...prev, localResource]);
+        setPendingAssignedResourceIds((prev) =>
+            prev.includes(selectedResourceId) ? prev : [...prev, selectedResourceId]
+        );
         setSelectedResourceId("");
-        setSelectedQuantity(1);
     };
 
-    const handleRemoveResource = (id: string) => {
-        setResources((prev) => prev.filter((r) => r.id !== id));
+    const handleDeleteResource = async (resource: Resource) => {
+        const resourceId = String(resource.id_recurso);
+
+        setResources((prev) =>
+            prev.filter((item) => String(item.id_recurso) !== resourceId)
+        );
+
+        setPendingAssignedResourceIds((prev) =>
+            prev.filter((id) => id !== resourceId)
+        );
     };
 
     const handleSubmit = async () => {
@@ -116,7 +145,7 @@ export function NewRoomPage() {
             setSubmitting(true);
 
             const payload: Omit<Sala, "id_sala"> = {
-                id_facultad: Number(faculty) || 1,
+                id_facultad: 1,
                 capacidad: capacity[0],
                 estado: true,
                 fecha_creacion: new Date().toISOString(),
@@ -126,54 +155,58 @@ export function NewRoomPage() {
                 nombre: roomName.trim(),
                 ubicacion: location.trim(),
                 descripcion: description.trim(),
-                recursosTecnologico: resources.map(
-                    (resource) => `${resource.name} x${resource.quantity}`
-                ),
             };
 
+            // 1. Crear la sala
             const result = await createRoom(payload);
 
+            const newRoomId = Number(result.id_sala);
+
+            if (!newRoomId) {
+                throw new Error("La respuesta del servidor no trajo un id_sala válido.");
+            }
+
+            // 2. Asignar recursos seleccionados a la sala creada
+            if (resources.length > 0) {
+                await Promise.all(
+                    resources.map((resource) =>
+                        updateResource(String(resource.id_recurso), {
+                            id_sala: newRoomId,
+                            nombre: resource.nombre,
+                            descripcion: resource.descripcion,
+                            tipo: resource.tipo,
+                        })
+                    )
+                );
+            }
+
             toast.success("Sala creada correctamente", {
-                description: `Se registró ${result.nombre}.`,
+                description: `Se registró ${result.nombre} y se asignaron sus recursos.`,
             });
 
+            // 3. Recargar catálogo de recursos por si cambió su id_sala
+            await loadResources();
+
+            // 4. Limpiar formulario
             setRoomName("");
             setLocation("");
             setDescription("");
             setImageUrl("");
             setCapacity([20]);
             setSelectedResourceId("");
-            setSelectedQuantity(1);
-            setResources([
-                {
-                    id: "pantalla-interactiva-65",
-                    name: 'Pantalla Interactiva 65"',
-                    description: "Pantalla táctil",
-                    quantity: 1,
-                    icon: "monitor",
-                },
-                {
-                    id: "videoconferencia-logitech-meetup",
-                    name: "Sistema de Videoconferencia",
-                    description: "Logitech MeetUp",
-                    quantity: 1,
-                    icon: "video",
-                },
-                {
-                    id: "aire-acondicionado",
-                    name: "Aire Acondicionado",
-                    description: "Control independiente",
-                    quantity: 1,
-                    icon: "snowflake",
-                },
-            ]);
+            setResources([]);
+            setPendingAssignedResourceIds([]);
         } catch (error) {
-            console.error("Error creando sala:", error);
-            toast.error("No se pudo crear la sala.");
+            console.error("Error creando sala y asignando recursos:", error);
+            toast.error("No se pudo crear la sala con sus recursos.");
         } finally {
             setSubmitting(false);
         }
     };
+
+    if (submitting) {
+        return <CreateRoomSkeleton />;
+    }
 
     return (
         <main className="min-h-screen bg-gray-50 px-4 py-8 md:px-8">
@@ -296,108 +329,18 @@ export function NewRoomPage() {
                             </div>
 
                             <div>
-                                <h2 className="mb-4 text-base font-semibold text-gray-800">
-                                    Recursos Tecnológicos
-                                </h2>
-
-                                <div className="mb-4 overflow-hidden rounded-xl border border-gray-200">
-                                    {resources.map((resource, index) => {
-                                        const Icon =
-                                            iconMap[resource.icon as keyof typeof iconMap];
-
-                                        return (
-                                            <div
-                                                key={resource.id}
-                                                className={`flex items-center justify-between px-4 py-3 ${index !== resources.length - 1
-                                                    ? "border-b border-gray-100"
-                                                    : ""
-                                                    }`}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className="flex h-8 w-8 items-center justify-center rounded bg-red-50">
-                                                        <Icon className="h-4 w-4 text-red-400" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm font-medium text-gray-800">
-                                                            {resource.name}
-                                                        </p>
-                                                        <p className="text-xs text-gray-400">
-                                                            {resource.description}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-sm text-gray-500">
-                                                        Cant: {resource.quantity}
-                                                    </span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            handleRemoveResource(resource.id)
-                                                        }
-                                                        className="text-gray-300 transition-colors hover:text-red-400"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-
-                                <div className="rounded-xl border border-gray-200 p-4">
-                                    <p className="mb-3 text-sm font-semibold text-gray-800">
-                                        Agregar Recurso
-                                    </p>
-                                    <div className="mb-2 grid grid-cols-2 gap-2">
-                                        <div>
-                                            <Label className="mb-1 block text-xs text-gray-500">
-                                                Recurso
-                                            </Label>
-                                            <Select
-                                                value={selectedResourceId}
-                                                onValueChange={setSelectedResourceId}
-                                            >
-                                                <SelectTrigger className="h-9 rounded-lg border-gray-200 text-sm">
-                                                    <SelectValue placeholder="Seleccionar recurso" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {availableResources.map((r) => (
-                                                        <SelectItem key={r.id} value={r.id}>
-                                                            {r.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div>
-                                            <Label
-                                                htmlFor="quantity"
-                                                className="mb-1 block text-xs text-gray-500"
-                                            >
-                                                Cantidad
-                                            </Label>
-                                            <Input
-                                                id="quantity"
-                                                type="number"
-                                                min={1}
-                                                value={selectedQuantity}
-                                                onChange={(e) =>
-                                                    setSelectedQuantity(Number(e.target.value) || 1)
-                                                }
-                                                className="h-9 rounded-lg border-gray-200 text-center text-sm"
-                                            />
-                                        </div>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={handleAddResource}
-                                        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-50"
-                                    >
-                                        <PlusCircle className="h-3.5 w-3.5" />
-                                        Agregar
-                                    </button>
-                                </div>
+                                <RoomResourcesManager
+                                    resources={resources}
+                                    allResources={allResources}
+                                    selectedResourceId={selectedResourceId}
+                                    onSelectedResourceChange={setSelectedResourceId}
+                                    onAddResource={handleAddResource}
+                                    onDeleteResource={handleDeleteResource}
+                                    saving={submitting || loadingResources}
+                                    roomName={roomName || "Nueva sala"}
+                                    roomId="nueva"
+                                    pendingAssignedResourceIds={pendingAssignedResourceIds}
+                                />
                             </div>
                         </div>
 
@@ -405,17 +348,19 @@ export function NewRoomPage() {
                             <button
                                 type="button"
                                 className="rounded-lg border border-gray-200 px-6 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                                onClick={() => router.push("/dashboard")}
                             >
                                 Cancelar
                             </button>
+
                             <button
                                 type="button"
                                 onClick={handleSubmit}
-                                disabled={submitting}
+                                disabled={submitting || loadingResources}
                                 className="flex items-center gap-2 rounded-lg bg-red-500 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70"
                             >
                                 <PlusCircle className="h-4 w-4" />
-                                {submitting ? "Registrando..." : "Registrar Sala"}
+                                Registrar Sala
                             </button>
                         </div>
                     </CardContent>
@@ -425,5 +370,4 @@ export function NewRoomPage() {
     );
 }
 
-
-export default NewRoomPage
+export default NewRoomPage;

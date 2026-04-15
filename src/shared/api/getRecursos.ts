@@ -1,6 +1,6 @@
 import { Resource } from "@/src/entities/recurso";
 
-const API_URL = "https://69dd25bd84f912a26404d50c.mockapi.io/recurso_tecnologico";
+const API_URL = "https://69de5adcefdd0339eea3f50f.mockapi.io/recurso_tecnologico";
 
 async function getResources(): Promise<Resource[]> {
     try {
