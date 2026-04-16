@@ -1,4 +1,4 @@
-import RoomBookingPage from "@/src/pages/ReserveRoom/bookingRoomMainInterface/bookingRoomMain";
+import RoomBookingPage from "@/src/pages/ReserveRoom/bookingRoomMainInterface/ui/bookingRoomMain";
 
 function BookingPage() {
     return <RoomBookingPage />;
