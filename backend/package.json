@@ -4,9 +4,9 @@
   "private": true,
   "main": "controller/server.js",
   "scripts": {
-    "start": "node controller/server.js",
+    "start": "node app.js",
     "dev": "npm --prefix .. run dev",
-    "dev:api": "node controller/server.js"
+    "dev:api": "node app.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

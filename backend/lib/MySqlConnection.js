@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
@@ -13,12 +14,22 @@ const useSsl = process.env.DB_SSL !== 'false';
 console.log('HOST BD:', process.env.DB_HOST);
 console.log('PORT BD:', process.env.DB_PORT);
 console.log('DB NAME:', process.env.DB_NAME);
+
+let ca;
+if (process.env.DB_SSL_CA_PATH) {
+    try {
+        ca = fs.readFileSync(path.join(__dirname, '..', process.env.DB_SSL_CA_PATH), 'utf8');
+    } catch (error) {
+        console.error('❌ No se pudo leer el certificado CA en DB_SSL_CA_PATH:', error);
+    }
+}
+
 const dialectOptions = useSsl
     ? {
           ssl: {
               require: true,
-              // Aiven / muchos proveedores cloud: sin CA explícita suele fallar con rejectUnauthorized true
               rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true',
+              ...(ca ? { ca } : {}),
           },
       }
     : {};
