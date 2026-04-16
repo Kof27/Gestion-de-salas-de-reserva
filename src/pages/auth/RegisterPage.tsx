@@ -67,11 +67,17 @@ function RegisterPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (error || emailError || password.length === 0 || email.length === 0 || name.length === 0) return;
+        if (error || emailError || password.length === 0 || email.length === 0 || name.length === 0 || !faculty) return;
 
         setIsLoading(true);
         try {
-            const response = await fetch('/api/auth/register', {
+            console.log({
+                nombre: name,
+                correo: email,
+                contrasena: password,
+                idFacultad: faculty,
+            });
+            const response = await fetch('http://localhost:4000/api/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -80,6 +86,7 @@ function RegisterPage() {
                     nombre: name,
                     correo: email,
                     contrasena: password,
+                    id_facultad: faculty,
                 }),
             });
 
