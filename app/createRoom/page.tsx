@@ -1,4 +1,4 @@
-import {NewRoomPage} from "@/src/pages/rooms/ui/RoomsCreatePage"
+import {NewRoomPage} from "@/src/pages/rooms/createRoom/RoomsCreatePage"
 
 export default function page() {
     return (

@@ -21,7 +21,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
-import { useBookingRoom } from "@/src/pages/ReserveRoom/UI/bookingEspecificRoom/hook/useBookingEspecificRoom";
+import { useBookingRoom } from "@/src/pages/ReserveRoom/bookingEspecificRoom/hook/useBookingEspecificRoom";
 
 type BookingRoomWindowsProps = {
     roomId?: string;

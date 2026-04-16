@@ -13,7 +13,7 @@ import { Slider } from "@/components/ui/slider";
 import { createRoom } from "@/src/shared/api/getRooms";
 import { getResources, updateResource } from "@/src/shared/api/getRecursos";
 import { RoomResourcesManager } from "@/src/widgets/room_resource/roomResource";
-import CreateRoomSkeleton from "./skeletons/createRoomSkeleton";
+import CreateRoomSkeleton from "../ui/skeletons/createRoomSkeleton";
 
 import type { Sala } from "@/src/entities/room";
 import type { Resource } from "@/src/entities/recurso";
