@@ -6,73 +6,14 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Navbar2 } from "@/src/widgets/navbar2/ui/Navbar2";
-import { getRoomById, updateRoom} from "@/src/shared/api/getRooms";
+import { getRoomById, updateRoom } from "@/src/shared/api/getRooms";
+import { getResources, updateResource } from "@/src/shared/api/getRecursos";
+import { RoomResourcesManager } from "@/src/widgets/room_resource/roomResource";
+import EditRoomSkeleton from "../ui/skeletons/editRoomSkeleton";
+
 import type { Sala } from "@/src/entities/room";
+import type { Resource } from "@/src/entities/recurso";
 
-interface Resource {
-  id: string;
-  name: string;
-  description: string;
-  quantity: number;
-}
-
-const resourceOptions = [
-  'Pantalla Interactiva 65"',
-  "Sistema de Videoconferencia",
-  "Aire Acondicionado",
-  "Proyector",
-  "Pizarrón",
-  "Micrófono",
-];
-
-function mapTechResourcesToUi(resources: string[]): Resource[] {
-  return resources.map((resource, index) => ({
-    id: `${index + 1}`,
-    name: resource,
-    description: "",
-    quantity: 1,
-  }));
-}
-
-function EditRoomSkeleton() {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar2 />
-      <div className="mx-auto max-w-4xl px-6 py-8">
-        <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
-          <div className="mb-4 h-4 w-32 animate-pulse rounded bg-gray-200" />
-          <div className="mb-2 h-8 w-72 animate-pulse rounded bg-gray-200" />
-          <div className="mb-8 h-4 w-96 animate-pulse rounded bg-gray-100" />
-
-          <div className="mb-8 rounded-xl border border-gray-100 p-4">
-            <div className="h-4 w-80 animate-pulse rounded bg-gray-200" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-10">
-            <div className="space-y-4">
-              <div className="h-5 w-40 animate-pulse rounded bg-gray-200" />
-              <div className="h-10 w-full animate-pulse rounded bg-gray-100" />
-              <div className="h-10 w-full animate-pulse rounded bg-gray-100" />
-              <div className="h-10 w-full animate-pulse rounded bg-gray-100" />
-              <div className="h-28 w-full animate-pulse rounded bg-gray-100" />
-            </div>
-
-            <div className="space-y-4">
-              <div className="h-5 w-44 animate-pulse rounded bg-gray-200" />
-              <div className="h-56 w-full animate-pulse rounded bg-gray-100" />
-              <div className="h-32 w-full animate-pulse rounded bg-gray-100" />
-            </div>
-          </div>
-
-          <div className="mt-8 flex justify-end gap-3 border-t border-gray-100 pt-6">
-            <div className="h-10 w-28 animate-pulse rounded bg-gray-100" />
-            <div className="h-10 w-40 animate-pulse rounded bg-gray-200" />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function EditRoomPage() {
   const router = useRouter();
@@ -86,72 +27,146 @@ export function EditRoomPage() {
   const [location, setLocation] = useState("");
   const [capacity, setCapacity] = useState("0");
   const [description, setDescription] = useState("");
+
   const [resources, setResources] = useState<Resource[]>([]);
-  const [selectedResource, setSelectedResource] = useState(resourceOptions[0]);
-  const [quantity, setQuantity] = useState(1);
+  const [originalResources, setOriginalResources] = useState<Resource[]>([]);
+  const [allResources, setAllResources] = useState<Resource[]>([]);
+  const [selectedResourceId, setSelectedResourceId] = useState("");
+
+  const [pendingAssignedResourceIds, setPendingAssignedResourceIds] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const fillForm = useCallback((room: Sala) => {
+  const fillForm = useCallback((room: Sala, resourcesForRoom: Resource[], all: Resource[]) => {
     setRoomData(room);
     setEnabled(room.estado);
     setName(room.nombre);
     setLocation(room.ubicacion);
     setCapacity(String(room.capacidad));
     setDescription(room.descripcion);
-    setResources(mapTechResourcesToUi(room.recursosTecnologico ?? []));
+
+    setResources(resourcesForRoom);
+    setOriginalResources(resourcesForRoom);
+    setAllResources(all);
+
+    setPendingAssignedResourceIds([]);
+    setSelectedResourceId("");
   }, []);
 
-  const loadRoom = useCallback(async () => {
+  const loadData = useCallback(async () => {
     if (!roomId) return;
 
     try {
       setLoading(true);
-      const data = await getRoomById(String(roomId));
-      fillForm(data);
+
+      const [room, allBackendResources] = await Promise.all([
+        getRoomById(String(roomId)),
+        getResources(),
+      ]);
+
+      const resourcesForRoom = allBackendResources.filter(
+        (resource) => Number(resource.id_sala) === Number(roomId)
+      );
+
+      fillForm(room, resourcesForRoom, allBackendResources);
     } catch (error) {
-      console.error("Error cargando sala:", error);
-      toast.error("No se pudo cargar la sala.");
+      console.error("Error cargando datos:", error);
+      toast.error("No se pudo cargar la información de la sala.");
     } finally {
       setLoading(false);
     }
   }, [roomId, fillForm]);
 
   useEffect(() => {
-    loadRoom();
-  }, [loadRoom]);
-
-  const deleteResource = (id: string) => {
-    setResources((prev) => prev.filter((r) => r.id !== id));
-  };
+    loadData();
+  }, [loadData]);
 
   const addResource = () => {
-    if (!selectedResource) return;
+    if (!selectedResourceId || !roomId) return;
 
-    setResources((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        name: selectedResource,
-        description: "",
-        quantity,
-      },
-    ]);
+    const selected = allResources.find(
+      (resource) => String(resource.id_recurso) === selectedResourceId
+    );
 
-    setQuantity(1);
+    if (!selected) return;
+
+    const alreadyAssigned = resources.some(
+      (resource) => String(resource.id_recurso) === selectedResourceId
+    );
+
+    if (alreadyAssigned) {
+      toast.error("Ese recurso ya está asociado a esta sala.");
+      return;
+    }
+
+    const reassignedResource: Resource = {
+      ...selected,
+      id_sala: Number(roomId),
+    };
+
+    setResources((prev) => [...prev, reassignedResource]);
+
+    const wasOriginallyInRoom = originalResources.some(
+      (resource) => String(resource.id_recurso) === selectedResourceId
+    );
+
+    if (!wasOriginallyInRoom) {
+      setPendingAssignedResourceIds((prev) =>
+        prev.includes(selectedResourceId) ? prev : [...prev, selectedResourceId]
+      );
+    }
+
+    setSelectedResourceId("");
+  };
+
+  const deleteResourceNow = async (resource: Resource) => {
+    const resourceId = String(resource.id_recurso);
+    const wasAddedInThisEdit = pendingAssignedResourceIds.includes(resourceId);
+
+    if (wasAddedInThisEdit) {
+      setResources((prev) =>
+        prev.filter((item) => String(item.id_recurso) !== resourceId)
+      );
+
+      setPendingAssignedResourceIds((prev) =>
+        prev.filter((id) => id !== resourceId)
+      );
+
+      return;
+    }
+
+    await updateResource(resourceId, {
+      id_sala: 0, // Cambia a null si tu backend usa null y ajustas la interfaz
+      nombre: resource.nombre,
+      descripcion: resource.descripcion,
+      tipo: resource.tipo,
+    });
+
+    setResources((prev) =>
+      prev.filter((item) => String(item.id_recurso) !== resourceId)
+    );
+
+    setAllResources((prev) =>
+      prev.map((item) =>
+        String(item.id_recurso) === resourceId
+          ? { ...item, id_sala: 0 }
+          : item
+      )
+    );
+
+    setOriginalResources((prev) =>
+      prev.filter((item) => String(item.id_recurso) !== resourceId)
+    );
   };
 
   const handleSave = async () => {
     if (!roomId || !roomData) return;
 
-    const previousRoom = roomData;
-
     try {
       setSaving(true);
-      setLoading(true);
 
-      const payload: Omit<Sala, "id_sala"> = {
+      const roomPayload: Omit<Sala, "id_sala"> = {
         id_facultad: roomData.id_facultad,
         capacidad: Number(capacity),
         estado: enabled,
@@ -160,25 +175,39 @@ export function EditRoomPage() {
         nombre: name.trim(),
         ubicacion: location.trim(),
         descripcion: description.trim(),
-        recursosTecnologico: roomData.recursosTecnologico, // mock por ahora
       };
 
-      await updateRoom(String(roomId), payload);
-      await loadRoom();
+      await updateRoom(String(roomId), roomPayload);
+
+      await Promise.all(
+        pendingAssignedResourceIds.map((resourceId) => {
+          const resource = allResources.find(
+            (item) => String(item.id_recurso) === resourceId
+          );
+
+          if (!resource) return Promise.resolve();
+
+          return updateResource(String(resource.id_recurso), {
+            id_sala: Number(roomId),
+            nombre: resource.nombre,
+            descripcion: resource.descripcion,
+            tipo: resource.tipo,
+          });
+        })
+      );
+
+      await loadData();
 
       toast.success("Operación exitosa", {
-        description: "La sala fue actualizada correctamente.",
+        description: "La sala y sus recursos fueron actualizados correctamente.",
       });
     } catch (error) {
-      console.error("Error actualizando sala:", error);
-      fillForm(previousRoom);
-
+      console.error("Error actualizando sala y recursos:", error);
       toast.error("La operación no fue exitosa", {
         description: "No se pudieron guardar los cambios.",
       });
     } finally {
       setSaving(false);
-      setLoading(false);
     }
   };
 
@@ -352,122 +381,18 @@ export function EditRoomPage() {
             </div>
 
             <div>
-              <h2 className="mb-5 text-base font-semibold text-gray-800">
-                Recursos Tecnológicos
-              </h2>
-
-              <div className="mb-4 overflow-hidden rounded-xl border border-gray-200">
-                {resources.map((resource, index) => (
-                  <div
-                    key={resource.id}
-                    className={`flex items-center justify-between px-4 py-3 ${
-                      index !== resources.length - 1 ? "border-b border-gray-100" : ""
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded bg-red-50">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 text-red-400"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1.5}
-                            d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                          />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-800">
-                          {resource.name}
-                        </p>
-                        {resource.description && (
-                          <p className="text-xs text-gray-400">
-                            {resource.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm text-gray-500">
-                        Cant: {resource.quantity}
-                      </span>
-                      <button
-                        onClick={() => deleteResource(resource.id)}
-                        disabled={saving}
-                        className="text-gray-300 transition-colors hover:text-red-400"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1.5}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="rounded-xl border border-gray-200 p-4">
-                <p className="mb-3 text-sm font-semibold text-gray-800">
-                  Agregar Recurso
-                </p>
-                <div className="mb-2 grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="mb-1 block text-xs text-gray-500">
-                      Recurso
-                    </label>
-                    <select
-                      value={selectedResource}
-                      onChange={(e) => setSelectedResource(e.target.value)}
-                      disabled={saving}
-                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 outline-none focus:border-red-400"
-                    >
-                      {resourceOptions.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {opt}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-xs text-gray-500">
-                      Cantidad
-                    </label>
-                    <input
-                      type="number"
-                      min={1}
-                      value={quantity}
-                      onChange={(e) => setQuantity(Number(e.target.value))}
-                      disabled={saving}
-                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 outline-none focus:border-red-400"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  onClick={addResource}
-                  disabled={saving}
-                  className="w-full rounded-lg border border-gray-200 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-50"
-                >
-                  + Agregar
-                </button>
-              </div>
+              <RoomResourcesManager
+                resources={resources}
+                allResources={allResources}
+                selectedResourceId={selectedResourceId}
+                onSelectedResourceChange={setSelectedResourceId}
+                onAddResource={addResource}
+                onDeleteResource={deleteResourceNow}
+                saving={saving}
+                roomName={name}
+                roomId={roomId}
+                pendingAssignedResourceIds={pendingAssignedResourceIds}
+              />
             </div>
           </div>
 
@@ -515,4 +440,4 @@ export function EditRoomPage() {
       </div>
     </div>
   );
-};
+}

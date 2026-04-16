@@ -1,4 +1,4 @@
-import { EditRoomPage } from "@/src/pages/rooms/ui/EditRoomPage";
+import { EditRoomPage } from "@/src/pages/rooms/editRoom/EditRoomPage";
 
 export default function Page() {
     return <EditRoomPage />;

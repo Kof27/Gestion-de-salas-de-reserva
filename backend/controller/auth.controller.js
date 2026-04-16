@@ -108,7 +108,7 @@ const register = async (req, res) => {
 
         // Encontrar facultad
       const facultadExiste = await Facultad.findByPk(id_facultad);
-
+        console.log('ID FACULTAD:', id_facultad, typeof id_facultad);
         if (!facultadExiste) {
             return res.status(400).json({
             msg: 'La facultad seleccionada no existe'
@@ -148,8 +148,60 @@ const register = async (req, res) => {
         });
     }
 };
+const changePassword = async (req, res) => {
+    const { actual, nueva } = req.body;
+
+    try {
+        // 👤 Usuario viene del JWT (middleware validarJWT)
+        const { id_usuario } = req.usuario;
+        console.log(req.usuario);
+        const usuario = await Usuario.findByPk(id_usuario);
+
+        if (!usuario) {
+            return res.status(404).json({
+                msg: 'Usuario no encontrado'
+            });
+        }
+
+        // 🔍 Validar contraseña actual
+        const isValid = await bcrypt.compare(actual, usuario.contrasena);
+
+        if (!isValid) {
+            return res.status(400).json({
+                msg: 'Contraseña actual incorrecta'
+            });
+        }
+
+        // 🧠 Validación extra (opcional pero pro)
+        if (actual === nueva) {
+            return res.status(400).json({
+                msg: 'La nueva contraseña no puede ser igual a la actual'
+            });
+        }
+
+        // 🔐 Hashear nueva contraseña
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(nueva, saltRounds);
+
+        // 💾 Guardar
+        usuario.contrasena = hashedPassword;
+        await usuario.save();
+
+        res.json({
+            msg: 'Contraseña actualizada correctamente'
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            msg: 'Error en el servidor',
+            error: error.message
+        });
+    }
+};
 
 module.exports = {
     login,
-    register
+    register,
+    changePassword
 };
