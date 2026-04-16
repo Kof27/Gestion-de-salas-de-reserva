@@ -108,7 +108,7 @@ const register = async (req, res) => {
 
         // Encontrar facultad
       const facultadExiste = await Facultad.findByPk(id_facultad);
-
+        console.log('ID FACULTAD:', id_facultad, typeof id_facultad);
         if (!facultadExiste) {
             return res.status(400).json({
             msg: 'La facultad seleccionada no existe'
