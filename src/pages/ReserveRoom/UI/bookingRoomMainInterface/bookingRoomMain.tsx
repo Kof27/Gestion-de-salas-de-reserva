@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import BookingRoomWindows from "../bookingEspecificRoom/bookinRoom";
+import BookingRoomWindows from "../bookingEspecificRoom/ui/bookinRoom";
 import NavbarBookingRoom from "@/src/widgets/navbarBookingRoom/navbarBookingRoom";
 import { getRooms } from "../../../../shared/api/getRooms";
 import type { Sala } from "@/src/entities/room";
@@ -206,8 +206,6 @@ export default function RoomBookingPage() {
                     {/* Modal */}
                     <div className="relative">
                         {/* Botón cerrar */}
-
-
                         {/* Componente de reserva */}
                         <BookingRoomWindows roomId={selectedRoom?.id_sala} />
                     </div>
