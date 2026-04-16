@@ -73,16 +73,6 @@ function RoomCard({ room, onReservar }: { room: Sala; onReservar: (room: Sala) =
                         <span className="text-sm sm:text-base">Capacidad: {room.capacidad} personas</span>
                     </div>
                 </div>
-
-                {room.recursosTecnologico && room.recursosTecnologico.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-3 text-red-500">
-                        {room.recursosTecnologico.slice(0, 4).map((_recurso, index) => (
-                            <div key={index} className="flex h-5 w-5 items-center justify-center">
-                                {amenityIcons.screen}
-                            </div>
-                        ))}
-                    </div>
-                )}
             </CardContent>
 
             <CardFooter className="flex flex-row gap-3 justify-center ">
