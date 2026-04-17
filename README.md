@@ -1,39 +1,113 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Gestión de Salas y Reservas - Universidad Autónoma de Occidente
 
-## Getting Started
+Este proyecto es una aplicación web para la **gestión de salas y reservas** de la **Universidad Autónoma de Occidente**.
 
-First, run the development server:
+La plataforma permite administrar espacios, consultar disponibilidad y gestionar reservas de manera organizada y eficiente.
+
+## Tecnologías utilizadas
+
+El frontend fue desarrollado con las siguientes tecnologías:
+
+- **Next.js**
+- **React**
+- **TypeScript**
+- **Tailwind CSS**
+- **shadcn/ui**
+
+## Requisitos previos
+
+Antes de ejecutar el proyecto, asegúrate de tener instalado:
+
+- **Node.js**
+- **npm**
+
+Puedes verificarlo con los siguientes comandos:
+
+```bash
+node -v
+npm -v
+```
+
+## Instalación
+
+Clona el repositorio y luego instala las dependencias:
+
+```bash
+npm install
+```
+
+> **Importante:** Se recomienda ejecutar `npm install` siempre que se haga merge de la rama `dev`, para asegurar que todas las dependencias estén actualizadas correctamente.
+
+## Ejecución en entorno de desarrollo
+
+Para iniciar el servidor de desarrollo, ejecuta:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Luego abre en tu navegador:
+http://localhost:3000
 
-You can start editing the page by modifying `app/Navbar.tsx`. The page auto-updates as you edit the file.
+## Comandos útiles
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Instalar dependencias:
 
-## Learn More
+```bash
+npm install
+```
 
-To learn more about Next.js, take a look at the following resources:
+Ejecutar el proyecto en desarrollo:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Generar build de producción:
 
-## Deploy on Vercel
+```bash
+npm run build
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Ejecutar el proyecto en producción:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run start
+```
 
+Ejecutar lint:
 
-Hacer npm install siempre que se hace merge del dev
+```bash
+npm run lint
+```
+
+## Estructura general del proyecto
+
+Este proyecto está desarrollado con **Next.js** y **React**, siguiendo una estructura modular basada en componentes, páginas y tipado con TypeScript, lo que facilita su mantenimiento, escalabilidad y organización.
+
+## Edición del proyecto
+
+Puedes comenzar a modificar la aplicación desde los archivos del frontend según la estructura definida en el proyecto.
+
+Los cambios se reflejarán automáticamente en el navegador mientras el servidor de desarrollo esté en ejecución.
+
+## Recomendaciones de trabajo en equipo
+
+- Ejecutar `npm install` después de clonar el proyecto.
+- Ejecutar `npm install` cada vez que se haga merge desde `dev`.
+- Verificar que el proyecto compile correctamente antes de subir cambios.
+- Mantener consistencia en componentes, estilos y tipado con TypeScript.
+
+## Despliegue
+
+Para generar la versión lista para producción:
+
+```bash
+npm run build
+```
+
+Y para ejecutarla:
+
+```bash
+npm run start
+```
