@@ -69,7 +69,11 @@ const Usuario = bdmysql.define('usuario',
     }
 );
 
-
-
+// Definir asociaciones
+const Rol = require('./rol');
+Usuario.belongsTo(Rol, {
+    foreignKey: 'id_rol',
+    as: 'rol'
+});
 
 module.exports = Usuario;

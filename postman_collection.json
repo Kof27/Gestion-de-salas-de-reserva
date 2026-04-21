@@ -1,0 +1,249 @@
+{
+  "info": {
+    "_postman_id": "gestion-salas-coleccion",
+    "name": "Gestión de Salas de Reuniones",
+    "description": "Colección de pruebas para los endpoints de salas de reuniones",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (Secretaria)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  var jsonData = pm.response.json();",
+                  "  if (jsonData.token) {",
+                  "    pm.environment.set('token', jsonData.token);",
+                  "    console.log('✅ Token guardado en la variable: token');",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correo}}\",\n  \"contrasena\": \"{{contrasena}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Salas - GET",
+      "item": [
+        {
+          "name": "Listar todas las salas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/salas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "salas"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obtener sala por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/salas/{{id_sala}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "salas",
+                "{{id_sala}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Salas - POST",
+      "item": [
+        {
+          "name": "Crear sala",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  var jsonData = pm.response.json();",
+                  "  if (jsonData.sala && jsonData.sala.id_sala) {",
+                  "    pm.environment.set('id_sala', jsonData.sala.id_sala);",
+                  "    console.log('✅ ID de la sala guardado: ' + jsonData.sala.id_sala);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Sala de Conferencias A\",\n  \"capacidad\": 20,\n  \"ubicacion\": \"Piso 3, Ala Norte\",\n  \"descripcion\": \"Sala amplia con proyector y video conferencia\",\n  \"imagen_sala\": \"https://ejemplo.com/sala-a.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/salas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "salas"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Salas - PUT",
+      "item": [
+        {
+          "name": "Actualizar sala",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Sala de Conferencias A - Actualizada\",\n  \"capacidad\": 25,\n  \"ubicacion\": \"Piso 3, Ala Sur\",\n  \"descripcion\": \"Sala renovada con nueva tecnología\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/salas/{{id_sala}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "salas",
+                "{{id_sala}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Salas - DELETE",
+      "item": [
+        {
+          "name": "Eliminar sala",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/salas/{{id_sala}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "salas",
+                "{{id_sala}}"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:4000/api",
+      "type": "default"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "secret"
+    },
+    {
+      "key": "id_facultad",
+      "value": "1",
+      "type": "default"
+    },
+    {
+      "key": "id_sala",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "correo",
+      "value": "secretaria@ejemplo.com",
+      "type": "default"
+    },
+    {
+      "key": "contrasena",
+      "value": "password123",
+      "type": "secret"
+    }
+  ]
+}

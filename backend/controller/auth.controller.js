@@ -10,9 +10,14 @@ const login = async (req, res) => {
     try {
         console.log('🔍 Buscando usuario con correo:', correo);
         
-        // 🔍 Buscar usuario por correo
+        // 🔍 Buscar usuario por correo con información del rol
         const usuario = await Usuario.findOne({
-            where: { correo }
+            where: { correo },
+            include: [{
+                model: Rol,
+                as: 'rol',
+                attributes: ['id_rol', 'nombre']
+            }]
         });
 
         console.log('👤 Usuario encontrado:', usuario ? 'Sí' : 'No');
@@ -42,6 +47,7 @@ const login = async (req, res) => {
             id_usuario: usuario.id_usuario,
             correo: usuario.correo,
             id_rol: usuario.id_rol,
+            nombre_rol: usuario.rol.nombre,
             id_facultad: usuario.id_facultad,
         });
 

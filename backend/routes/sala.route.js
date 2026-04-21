@@ -1,60 +1,21 @@
 const { Router } = require('express');
-const SalaReunion = require('../models/sala_reunion');
+const { crearSala, listarSalas, obtenerSala, actualizarSala, eliminarSala } = require('../controller/sala-controller');
 
 const router = Router();
 
-router.get('/', async (req, res) => {
-  try {
-    const salas = await SalaReunion.findAll();
-    res.json(salas);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al obtener salas', error: error.message });
-  }
-});
+// Obtener todas las salas de la facultad del usuario
+router.get('/', listarSalas);
 
-router.get('/:id', async (req, res) => {
-  try {
-    const sala = await SalaReunion.findByPk(req.params.id);
-    if (!sala) return res.status(404).json({ message: 'Sala no encontrada' });
-    res.json(sala);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al obtener la sala', error: error.message });
-  }
-});
+// Obtener una sala específica
+router.get('/:id', obtenerSala);
 
-router.post('/', async (req, res) => {
-  try {
-    const sala = await SalaReunion.create(req.body);
-    res.status(201).json(sala);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al crear la sala', error: error.message });
-  }
-});
+// Crear una nueva sala (solo secretaria)
+router.post('/', crearSala);
 
-router.put('/:id', async (req, res) => {
-  try {
-    const [updatedCount] = await SalaReunion.update(req.body, { where: { id_sala: req.params.id } });
-    if (!updatedCount) return res.status(404).json({ message: 'Sala no encontrada' });
-    const updated = await SalaReunion.findByPk(req.params.id);
-    res.json(updated);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al actualizar la sala', error: error.message });
-  }
-});
+// Actualizar una sala (solo secretaria)
+router.put('/:id', actualizarSala);
 
-router.delete('/:id', async (req, res) => {
-  try {
-    const deletedCount = await SalaReunion.destroy({ where: { id_sala: req.params.id } });
-    if (!deletedCount) return res.status(404).json({ message: 'Sala no encontrada' });
-    res.json({ message: 'Sala eliminada' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al eliminar la sala', error: error.message });
-  }
-});
+// Eliminar una sala (solo secretaria)
+router.delete('/:id', eliminarSala);
 
 module.exports = router;
