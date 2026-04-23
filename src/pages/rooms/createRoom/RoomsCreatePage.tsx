@@ -18,7 +18,6 @@ import CreateRoomSkeleton from "../ui/skeletons/createRoomSkeleton";
 import type { Sala } from "@/src/entities/room";
 import type { Resource } from "@/src/entities/recurso";
 
-
 export function NewRoomPage() {
     const router = useRouter();
     const [roomName, setRoomName] = useState("");
@@ -36,6 +35,12 @@ export function NewRoomPage() {
     const [loadingResources, setLoadingResources] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
+    const [aula, setAula] = useState("1");
+    const [piso, setPiso] = useState("1");
+    const [salon, setSalon] = useState("");
+
+    const buildUbicacion = () => `A${aula}. Salón ${aula}${piso}${salon.trim()}`;
+
     const loadResources = useCallback(async () => {
         try {
             setLoadingResources(true);
@@ -52,6 +57,10 @@ export function NewRoomPage() {
     useEffect(() => {
         loadResources();
     }, [loadResources]);
+
+    useEffect(() => {
+        setLocation(buildUbicacion());
+    }, [aula, piso, salon]);
 
     const handleAddResource = () => {
         if (!selectedResourceId) return;
@@ -96,7 +105,7 @@ export function NewRoomPage() {
     };
 
     const handleSubmit = async () => {
-        if (!roomName.trim() || !location.trim() || !description.trim()) {
+        if (!roomName.trim() || !salon.trim() || !description.trim()) {
             toast.error("Completa los campos obligatorios.");
             return;
         }
@@ -113,7 +122,7 @@ export function NewRoomPage() {
                     imageUrl.trim() ||
                     "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80",
                 nombre: roomName.trim(),
-                ubicacion: location.trim(),
+                ubicacion: buildUbicacion(),
                 descripcion: description.trim(),
             };
 
@@ -156,6 +165,9 @@ export function NewRoomPage() {
             setSelectedResourceId("");
             setResources([]);
             setPendingAssignedResourceIds([]);
+            setAula("1");
+            setPiso("1");
+            setSalon("");
         } catch (error) {
             console.error("Error creando sala y asignando recursos:", error);
             toast.error("No se pudo crear la sala con sus recursos.");
@@ -213,12 +225,45 @@ export function NewRoomPage() {
                                     >
                                         Ubicación <span className="text-red-500">*</span>
                                     </Label>
+
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <select
+                                            value={aula}
+                                            onChange={(e) => setAula(e.target.value)}
+                                            className="h-10 rounded-lg border border-gray-200 px-3 text-sm"
+                                        >
+                                            <option value="1">Aula 1</option>
+                                            <option value="2">Aula 2</option>
+                                            <option value="3">Aula 3</option>
+                                            <option value="4">Aula 4</option>
+                                        </select>
+
+                                        <select
+                                            value={piso}
+                                            onChange={(e) => setPiso(e.target.value)}
+                                            className="h-10 rounded-lg border border-gray-200 px-3 text-sm"
+                                        >
+                                            <option value="1">Piso 1</option>
+                                            <option value="2">Piso 2</option>
+                                            <option value="3">Piso 3</option>
+                                            <option value="4">Piso 4</option>
+                                        </select>
+
+                                        <Input
+                                            id="location"
+                                            value={salon}
+                                            onChange={(e) =>
+                                                setSalon(e.target.value.replace(/\D/g, ""))
+                                            }
+                                            placeholder="Salón"
+                                            className="h-10 rounded-lg border-gray-200 text-sm"
+                                        />
+                                    </div>
+
                                     <Input
-                                        id="location"
                                         value={location}
-                                        onChange={(e) => setLocation(e.target.value)}
-                                        placeholder="ej. Edificio Central, Piso 2"
-                                        className="h-10 rounded-lg border-gray-200 text-sm"
+                                        readOnly
+                                        className="mt-2 h-10 rounded-lg border-gray-200 bg-gray-50 text-sm text-gray-500"
                                     />
                                 </div>
 
@@ -308,7 +353,7 @@ export function NewRoomPage() {
                             <button
                                 type="button"
                                 className="rounded-lg border border-gray-200 px-6 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-                                onClick={() => router.push("/dashboard")}
+                                onClick={() => router.push("/salas")}
                             >
                                 Cancelar
                             </button>
