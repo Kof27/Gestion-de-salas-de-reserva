@@ -20,6 +20,7 @@ import type { Resource } from "@/src/entities/recurso";
 
 export function NewRoomPage() {
     const router = useRouter();
+
     const [roomName, setRoomName] = useState("");
     const [location, setLocation] = useState("");
     const [description, setDescription] = useState("");
@@ -39,7 +40,30 @@ export function NewRoomPage() {
     const [piso, setPiso] = useState("1");
     const [salon, setSalon] = useState("");
 
+    const [submitAttempted, setSubmitAttempted] = useState(false);
+
     const buildUbicacion = () => `A${aula}. Salón ${aula}${piso}${salon.trim()}`;
+
+    const isRoomNameInvalid = submitAttempted && !roomName.trim();
+    const isSalonInvalid = submitAttempted && !salon.trim();
+    const isDescriptionInvalid = submitAttempted && !description.trim();
+
+    const isFormValid =
+        roomName.trim() &&
+        salon.trim() &&
+        description.trim();
+
+    const requiredInputClass = (hasError: boolean) =>
+        `h-10 rounded-lg text-sm ${hasError
+            ? "border-red-500 focus-visible:ring-red-500"
+            : "border-gray-200"
+        }`;
+
+    const requiredSelectClass = (hasError: boolean) =>
+        `h-10 rounded-lg border px-3 text-sm ${hasError
+            ? "border-red-500 focus-visible:ring-red-500"
+            : "border-gray-200"
+        }`;
 
     const loadResources = useCallback(async () => {
         try {
@@ -86,9 +110,11 @@ export function NewRoomPage() {
         };
 
         setResources((prev) => [...prev, localResource]);
+
         setPendingAssignedResourceIds((prev) =>
             prev.includes(selectedResourceId) ? prev : [...prev, selectedResourceId]
         );
+
         setSelectedResourceId("");
     };
 
@@ -105,8 +131,9 @@ export function NewRoomPage() {
     };
 
     const handleSubmit = async () => {
-        if (!roomName.trim() || !salon.trim() || !description.trim()) {
-            toast.error("Completa los campos obligatorios.");
+        setSubmitAttempted(true);
+
+        if (!isFormValid) {
             return;
         }
 
@@ -126,7 +153,6 @@ export function NewRoomPage() {
                 descripcion: description.trim(),
             };
 
-            // 1. Crear la sala
             const result = await createRoom(payload);
 
             const newRoomId = Number(result.id_sala);
@@ -135,7 +161,6 @@ export function NewRoomPage() {
                 throw new Error("La respuesta del servidor no trajo un id_sala válido.");
             }
 
-            // 2. Asignar recursos seleccionados a la sala creada
             if (resources.length > 0) {
                 await Promise.all(
                     resources.map((resource) =>
@@ -153,10 +178,8 @@ export function NewRoomPage() {
                 description: `Se registró ${result.nombre} y se asignaron sus recursos.`,
             });
 
-            // 3. Recargar catálogo de recursos por si cambió su id_sala
             await loadResources();
 
-            // 4. Limpiar formulario
             setRoomName("");
             setLocation("");
             setDescription("");
@@ -168,6 +191,7 @@ export function NewRoomPage() {
             setAula("1");
             setPiso("1");
             setSalon("");
+            setSubmitAttempted(false);
         } catch (error) {
             console.error("Error creando sala y asignando recursos:", error);
             toast.error("No se pudo crear la sala con sus recursos.");
@@ -209,13 +233,20 @@ export function NewRoomPage() {
                                     >
                                         Nombre <span className="text-red-500">*</span>
                                     </Label>
+
                                     <Input
                                         id="room-name"
                                         value={roomName}
                                         onChange={(e) => setRoomName(e.target.value)}
                                         placeholder="ej. Sala de Juntas 1"
-                                        className="h-10 rounded-lg border-gray-200 text-sm"
+                                        className={requiredInputClass(isRoomNameInvalid)}
                                     />
+
+                                    {isRoomNameInvalid && (
+                                        <p className="mt-1 text-xs text-red-500">
+                                            El nombre de la sala es obligatorio.
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>
@@ -230,7 +261,7 @@ export function NewRoomPage() {
                                         <select
                                             value={aula}
                                             onChange={(e) => setAula(e.target.value)}
-                                            className="h-10 rounded-lg border border-gray-200 px-3 text-sm"
+                                            className={requiredSelectClass(false)}
                                         >
                                             <option value="1">Aula 1</option>
                                             <option value="2">Aula 2</option>
@@ -241,7 +272,7 @@ export function NewRoomPage() {
                                         <select
                                             value={piso}
                                             onChange={(e) => setPiso(e.target.value)}
-                                            className="h-10 rounded-lg border border-gray-200 px-3 text-sm"
+                                            className={requiredSelectClass(false)}
                                         >
                                             <option value="1">Piso 1</option>
                                             <option value="2">Piso 2</option>
@@ -256,9 +287,15 @@ export function NewRoomPage() {
                                                 setSalon(e.target.value.replace(/\D/g, ""))
                                             }
                                             placeholder="Salón"
-                                            className="h-10 rounded-lg border-gray-200 text-sm"
+                                            className={requiredInputClass(isSalonInvalid)}
                                         />
                                     </div>
+
+                                    {isSalonInvalid && (
+                                        <p className="mt-1 text-xs text-red-500">
+                                            El número del salón es obligatorio.
+                                        </p>
+                                    )}
 
                                     <Input
                                         value={location}
@@ -274,13 +311,20 @@ export function NewRoomPage() {
                                     >
                                         Descripción <span className="text-red-500">*</span>
                                     </Label>
+
                                     <Input
                                         id="description"
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
                                         placeholder="Describe brevemente la sala"
-                                        className="h-10 rounded-lg border-gray-200 text-sm"
+                                        className={requiredInputClass(isDescriptionInvalid)}
                                     />
+
+                                    {isDescriptionInvalid && (
+                                        <p className="mt-1 text-xs text-red-500">
+                                            La descripción es obligatoria.
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>
@@ -290,6 +334,7 @@ export function NewRoomPage() {
                                     >
                                         URL de imagen
                                     </Label>
+
                                     <Input
                                         id="imageUrl"
                                         value={imageUrl}
@@ -303,11 +348,13 @@ export function NewRoomPage() {
                                     <Label className="mb-1.5 block text-sm font-medium text-gray-700">
                                         Facultad
                                     </Label>
+
                                     <Input
                                         value={faculty}
                                         disabled
                                         className="h-10 rounded-lg border-gray-100 bg-gray-50 text-sm text-gray-400 disabled:opacity-100"
                                     />
+
                                     <p className="mt-1 text-xs text-gray-400">
                                         Asignado automáticamente a su facultad.
                                     </p>
@@ -318,10 +365,12 @@ export function NewRoomPage() {
                                         <Label className="text-sm font-medium text-gray-700">
                                             Capacidad (2-100) <span className="text-red-500">*</span>
                                         </Label>
+
                                         <span className="text-xl font-bold text-red-500">
                                             {capacity[0]}
                                         </span>
                                     </div>
+
                                     <Slider
                                         value={capacity}
                                         min={2}
