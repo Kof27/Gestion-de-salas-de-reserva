@@ -14,7 +14,6 @@ import EditRoomSkeleton from "../ui/skeletons/editRoomSkeleton";
 import type { Sala } from "@/src/entities/room";
 import type { Resource } from "@/src/entities/recurso";
 
-
 export function EditRoomPage() {
   const router = useRouter();
   const params = useParams();
@@ -28,6 +27,10 @@ export function EditRoomPage() {
   const [capacity, setCapacity] = useState("0");
   const [description, setDescription] = useState("");
 
+  const [aula, setAula] = useState("1");
+  const [piso, setPiso] = useState("1");
+  const [salon, setSalon] = useState("");
+
   const [resources, setResources] = useState<Resource[]>([]);
   const [originalResources, setOriginalResources] = useState<Resource[]>([]);
   const [allResources, setAllResources] = useState<Resource[]>([]);
@@ -38,13 +41,46 @@ export function EditRoomPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  const buildUbicacion = () => `A${aula}. Salón ${aula}${piso}${salon.trim()}`;
+
+  const parseUbicacion = (ubicacion: string) => {
+    const match = ubicacion.match(/A(\d+)\.\s*Salón\s*(\d+)/i);
+
+    if (!match) {
+      return {
+        aulaParsed: "1",
+        pisoParsed: "1",
+        salonParsed: "",
+      };
+    }
+
+    const aulaParsed = match[1];
+    const codigoSalon = match[2];
+
+    return {
+      aulaParsed,
+      pisoParsed: codigoSalon[1] || "1",
+      salonParsed: codigoSalon.slice(2) || "",
+    };
+  };
+
+  useEffect(() => {
+    setLocation(buildUbicacion());
+  }, [aula, piso, salon]);
+
   const fillForm = useCallback((room: Sala, resourcesForRoom: Resource[], all: Resource[]) => {
+    const { aulaParsed, pisoParsed, salonParsed } = parseUbicacion(room.ubicacion);
+
     setRoomData(room);
     setEnabled(room.estado);
     setName(room.nombre);
     setLocation(room.ubicacion);
     setCapacity(String(room.capacidad));
     setDescription(room.descripcion);
+
+    setAula(aulaParsed);
+    setPiso(pisoParsed);
+    setSalon(salonParsed);
 
     setResources(resourcesForRoom);
     setOriginalResources(resourcesForRoom);
@@ -137,7 +173,7 @@ export function EditRoomPage() {
     }
 
     await updateResource(resourceId, {
-      id_sala: 0, // Cambia a null si tu backend usa null y ajustas la interfaz
+      id_sala: 0,
       nombre: resource.nombre,
       descripcion: resource.descripcion,
       tipo: resource.tipo,
@@ -173,7 +209,7 @@ export function EditRoomPage() {
         fecha_creacion: roomData.fecha_creacion,
         imagen_sala: roomData.imagen_sala,
         nombre: name.trim(),
-        ubicacion: location.trim(),
+        ubicacion: buildUbicacion(),
         descripcion: description.trim(),
       };
 
@@ -344,11 +380,46 @@ export function EditRoomPage() {
                   <label className="mb-1.5 block text-sm font-medium text-gray-700">
                     Ubicación
                   </label>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <select
+                      value={aula}
+                      onChange={(e) => setAula(e.target.value)}
+                      disabled={saving}
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 outline-none transition-colors focus:border-red-400 disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                      <option value="1">Aula 1</option>
+                      <option value="2">Aula 2</option>
+                      <option value="3">Aula 3</option>
+                      <option value="4">Aula 4</option>
+                    </select>
+
+                    <select
+                      value={piso}
+                      onChange={(e) => setPiso(e.target.value)}
+                      disabled={saving}
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 outline-none transition-colors focus:border-red-400 disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                      <option value="1">Piso 1</option>
+                      <option value="2">Piso 2</option>
+                      <option value="3">Piso 3</option>
+                      <option value="4">Piso 4</option>
+                    </select>
+
+                    <input
+                      value={salon}
+                      onChange={(e) => setSalon(e.target.value.replace(/\D/g, ""))}
+                      disabled={saving}
+                      placeholder="Salón"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 outline-none transition-colors focus:border-red-400 disabled:cursor-not-allowed disabled:opacity-70"
+                    />
+                  </div>
+
                   <input
                     value={location}
-                    onChange={(e) => setLocation(e.target.value)}
+                    readOnly
                     disabled={saving}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 outline-none transition-colors focus:border-red-400"
+                    className="mt-2 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-500 outline-none"
                   />
                 </div>
 
@@ -441,3 +512,5 @@ export function EditRoomPage() {
     </div>
   );
 }
+
+export default EditRoomPage;

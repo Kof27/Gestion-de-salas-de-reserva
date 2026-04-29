@@ -49,7 +49,7 @@ function LoginPage() {
             localStorage.setItem('usuario', JSON.stringify(data.usuario));
             
             // Redirigir al dashboard
-            router.push('/dashboard');
+            router.push('/salas');
 
         } catch (err) {
             console.error('Error:', err);
