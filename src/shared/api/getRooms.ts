@@ -1,10 +1,26 @@
 import { Sala } from "@/src/entities/room";
 
-const API_URL = "https://69b73e25ffbcd0286094cde0.mockapi.io/room";
+const API_URL = "http://localhost:4000/api/salas";
+
+// Obtener token del localStorage
+const getToken = () => {
+    if (typeof window !== 'undefined') {
+        return localStorage.getItem('token');
+    }
+    return null;
+};
+
+// Headers con autenticación
+const getHeaders = () => ({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${getToken()}`,
+});
 
 async function getRooms(): Promise<Sala[]> {
     try {
-        const response = await fetch(API_URL);
+        const response = await fetch(API_URL, {
+            headers: getHeaders(),
+        });
 
         if (!response.ok) {
             throw new Error(`Error fetching rooms: ${response.statusText}`);
@@ -20,7 +36,9 @@ async function getRooms(): Promise<Sala[]> {
 
 async function getRoomById(id: string): Promise<Sala> {
     try {
-        const response = await fetch(`${API_URL}/${id}`);
+        const response = await fetch(`${API_URL}/${id}`, {
+            headers: getHeaders(),
+        });
 
         if (!response.ok) {
             throw new Error(`Error fetching room: ${response.statusText}`);
@@ -40,9 +58,7 @@ async function createRoom(
     try {
         const response = await fetch(API_URL, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: getHeaders(),
             body: JSON.stringify(room),
         });
 
@@ -65,9 +81,7 @@ async function updateRoom(
     try {
         const response = await fetch(`${API_URL}/${id}`, {
             method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: getHeaders(),
             body: JSON.stringify(room),
         });
 
@@ -87,6 +101,7 @@ async function deleteRoom(id: string): Promise<void> {
     try {
         const response = await fetch(`${API_URL}/${id}`, {
             method: "DELETE",
+            headers: getHeaders(),
         });
 
         if (!response.ok) {

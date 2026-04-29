@@ -45,8 +45,9 @@ function LoginPage() {
             // ✅ Login exitoso
             console.log('Usuario logueado:', data.usuario);
             
-            // Guardar datos del usuario en localStorage
+            // Guardar datos del usuario y token en localStorage
             localStorage.setItem('usuario', JSON.stringify(data.usuario));
+            localStorage.setItem('token', data.token);
             
             // Redirigir al dashboard
             router.push('/salas');

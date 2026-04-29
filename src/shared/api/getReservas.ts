@@ -1,10 +1,26 @@
 import { reserva } from "@/src/entities/reserva";
 
-const API_URL = "https://69b73e25ffbcd0286094cde0.mockapi.io/reserva";
+const API_URL = "http://localhost:4000/api/reservas";
+
+// Obtener token del localStorage
+const getToken = () => {
+    if (typeof window !== 'undefined') {
+        return localStorage.getItem('token');
+    }
+    return null;
+};
+
+// Headers con autenticación
+const getHeaders = () => ({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${getToken()}`,
+});
 
 async function getReservas(): Promise<reserva[]> {
     try {
-        const response = await fetch(API_URL);
+        const response = await fetch(API_URL, {
+            headers: getHeaders(),
+        });
 
         if (!response.ok) {
             throw new Error(`Error fetching reservas: ${response.statusText}`);
@@ -22,9 +38,7 @@ async function createReserva(reserva: Omit<reserva, "id_reserva" | "fecha_creaci
     try {
         const response = await fetch(API_URL, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: getHeaders(),
             body: JSON.stringify(reserva),
         });
 
@@ -52,9 +66,7 @@ async function cancelarReserva(reservaActual: reserva): Promise<reserva> {
 
         const response = await fetch(`${API_URL}/${reservaActual.id_reserva}`, {
             method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: getHeaders(),
             body: JSON.stringify(payload),
         });
 
