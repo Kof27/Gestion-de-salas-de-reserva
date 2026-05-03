@@ -57,6 +57,7 @@ export default function BookingRoomWindows({ roomId }: BookingRoomWindowsProps) 
 
 
     } = useBookingRoom({ roomId });
+    
 
     if (loading) {
         return (
@@ -77,6 +78,7 @@ export default function BookingRoomWindows({ roomId }: BookingRoomWindowsProps) 
             </div>
         );
     }
+    
 
     return (
         <div className="w-[95vw] max-w-275 h-[85vh] bg-white rounded-2xl flex flex-col overflow-hidden">

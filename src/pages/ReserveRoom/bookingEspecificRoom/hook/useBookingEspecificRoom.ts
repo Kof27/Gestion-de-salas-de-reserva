@@ -60,16 +60,16 @@ export function useBookingRoom({ roomId }: UseBookingRoomParams) {
             setRoom(roomData);
 
             const allReservas = await getReservas();
+            console.log("Reservas recibidas del backend:", allReservas);
+            const reservasActivasDeLaSala = allReservas.filter(
+                (reservaItem) =>
+                    reservaItem.estado === true &&
+                    String(reservaItem.id_sala) === String(effectiveRoomId)
+            );
 
-            const filteredBookings = allReservas
-                .filter(
-                    (reservaItem) =>
-                        String(reservaItem.id_sala) === effectiveRoomId &&
-                        reservaItem.estado === true
-                )
-                .map(convertReservaToBooking);
+            const bookingsConvertidos = reservasActivasDeLaSala.map(convertReservaToBooking);
 
-            setBookings(filteredBookings);
+            setBookings(bookingsConvertidos);
         } catch (err) {
             console.error("Error cargando datos:", err);
             setError("Error al cargar la información de la sala");

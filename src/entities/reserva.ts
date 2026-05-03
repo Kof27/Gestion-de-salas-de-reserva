@@ -1,11 +1,11 @@
 export interface reserva {
-    id_reserva?: string;
-    id_sala: string;
-    id_usuario: string;
-    fecha: string | Date;
-    hora_inicio: string | Date;
-    hora_fin: string | Date;
+    id_reserva: number | string;
+    id_sala: number | string;
+    id_usuario: number | string;
+    fecha: string;
+    hora_inicio: string;
+    hora_fin: string;
     estado: boolean;
-    fecha_creacion?: string | Date;
+    fecha_creacion?: string;
     motivo: string;
 }
