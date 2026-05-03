@@ -32,6 +32,8 @@ type UseBookingRoomParams = {
 
 export function useBookingRoom({ roomId }: UseBookingRoomParams) {
     const effectiveRoomId = roomId || "1";
+    const usuarioStorage = typeof window !== "undefined" ? localStorage.getItem("usuario") : null;
+    const usuario = usuarioStorage ? JSON.parse(usuarioStorage) : null;
 
     const allTimes = React.useMemo(() => generateTimeOptions(), []);
     const agendaSlots = React.useMemo(() => generateAgendaSlots(), []);
@@ -154,15 +156,15 @@ export function useBookingRoom({ roomId }: UseBookingRoomParams) {
             const [horaFin, minFin] = endTime.split(":");
             endDateTime.setHours(parseInt(horaFin), parseInt(minFin));
 
-            const newReserva: Omit<reserva, "id_reserva" | "fecha_creacion"> = {
+            const newReserva = {
                 id_sala: effectiveRoomId,
-                id_usuario: "1",
-                hora_inicio: startDateTime,
-                hora_fin: endDateTime,
+                id_usuario: String(usuario.id_usuario),
+                fecha: selectedDate.toISOString(),
+                hora_inicio: startDateTime.toISOString(),
+                hora_fin: endDateTime.toISOString(),
                 estado: true,
                 motivo: meetingReason.trim() || "Reunión",
             };
-
             await createReserva(newReserva);
 
             toast.success("Reserva confirmada exitosamente", {
