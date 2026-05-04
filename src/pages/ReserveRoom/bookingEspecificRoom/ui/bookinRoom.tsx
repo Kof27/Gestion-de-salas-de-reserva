@@ -7,9 +7,15 @@ import {
     CalendarIcon,
     CheckCircle2,
     Clock3,
+    MapPin,
+    Users,
+    Building2,
+    FileText,
+    Monitor,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import {
     Select,
@@ -25,73 +31,108 @@ import { useBookingRoom } from "@/src/pages/ReserveRoom/bookingEspecificRoom/hoo
 
 type BookingRoomWindowsProps = {
     roomId?: string;
+    onClose?: () => void;
 };
 
-export default function BookingRoomWindows({ roomId }: BookingRoomWindowsProps) {
+export default function BookingRoomWindows({ roomId, onClose }: BookingRoomWindowsProps) {
     const {
         room,
+        resources,
         loading,
         error,
         submitting,
-
         selectedDate,
         handleSelectDate,
         isDateDisabled,
-
         startTime,
         setStartTime,
-
         endTime,
         setEndTime,
-
         meetingReason,
         setMeetingReason,
-
         allTimes,
         endTimeOptions,
         agendaItems,
         hasConflict,
-
         handleConfirmReservation,
         formatHourLabel,
-
-
     } = useBookingRoom({ roomId });
-    
 
     if (loading) {
         return (
-            <div className="w-[95vw] max-w-275 h-[85vh] bg-white rounded-2xl flex flex-col items-center justify-center">
-                <p className="text-lg text-slate-600">
-                    Cargando información de la sala...
-                </p>
+            <div className="w-[95vw] max-w-[1100px] h-[85vh] bg-white rounded-2xl flex items-center justify-center">
+                <p className="text-sm text-slate-400">Cargando sala...</p>
             </div>
         );
     }
 
     if (error || !room) {
         return (
-            <div className="w-[95vw] max-w-275 h-[85vh] bg-white rounded-2xl flex flex-col items-center justify-center">
-                <p className="text-lg text-red-600">
-                    {error || "No se pudo cargar la sala"}
-                </p>
+            <div className="w-[95vw] max-w-[1100px] h-[85vh] bg-white rounded-2xl flex items-center justify-center">
+                <p className="text-sm text-red-500">{error || "No se pudo cargar la sala"}</p>
             </div>
         );
     }
-    
 
     return (
-        <div className="w-[95vw] max-w-275 h-[85vh] bg-white rounded-2xl flex flex-col overflow-hidden">
-            <div className="w-full h-16 shrink-0 bg-[#F1F5F9] rounded-t-2xl flex items-center justify-start px-6 py-4 border-b">
-                <h1 className="text-2xl font-bold text-slate-900">
-                    Reservar Sala {room.nombre}
-                </h1>
+        <div className="w-[95vw] max-w-[1100px] h-[85vh] bg-white rounded-2xl flex flex-col overflow-hidden shadow-2xl">
+
+            {/* ── Header ── */}
+            <div className="shrink-0 border-b border-slate-100 px-6 py-4 flex items-center gap-4">
+                {room.imagen_sala ? (
+                    <img
+                        src={room.imagen_sala}
+                        alt={room.nombre}
+                        className="h-14 w-20 rounded-xl object-cover shrink-0"
+                    />
+                ) : (
+                    <div className="h-14 w-20 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
+                        <Building2 className="h-6 w-6 text-slate-300" />
+                    </div>
+                )}
+
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <h1 className="text-lg font-extrabold text-slate-900 tracking-tight">
+                            {room.nombre}
+                        </h1>
+                        <Badge className={cn(
+                            "rounded-full px-2.5 py-0.5 text-xs font-semibold border",
+                            room.estado
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                                : "bg-red-50 text-red-600 border-red-200 hover:bg-red-50"
+                        )}>
+                            <span className={cn(
+                                "mr-1.5 inline-block h-1.5 w-1.5 rounded-full",
+                                room.estado ? "bg-emerald-500" : "bg-red-500"
+                            )} />
+                            {room.estado ? "Disponible" : "No disponible"}
+                        </Badge>
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-4 text-xs text-slate-500">
+                        {room.ubicacion && (
+                            <span className="flex items-center gap-1">
+                                <MapPin className="h-3 w-3 shrink-0" />
+                                {room.ubicacion}
+                            </span>
+                        )}
+                        <span className="flex items-center gap-1">
+                            <Users className="h-3 w-3 shrink-0" />
+                            {room.capacidad} personas
+                        </span>
+                    </div>
+                </div>
             </div>
 
-            <div className="w-full flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1.65fr_0.85fr]">
-                <div className="p-6 border-r bg-white overflow-y-auto min-h-0">
-                    <div className="grid grid-cols-1 gap-6">
-                        <div className="rounded-2xl border bg-white p-4 flex justify-center">
+            {/* ── Body ── */}
+            <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1.65fr_0.85fr]">
+
+                {/* Left — form */}
+                <div className="p-6 border-r border-slate-100 bg-white overflow-y-auto min-h-0">
+                    <div className="flex flex-col gap-5">
+
+                        {/* Calendar */}
+                        <div className="rounded-2xl border border-slate-100 bg-white p-4 flex justify-center">
                             <Calendar
                                 mode="single"
                                 selected={selectedDate}
@@ -104,245 +145,256 @@ export default function BookingRoomWindows({ roomId }: BookingRoomWindowsProps) 
                                 classNames={{
                                     months: "flex flex-col",
                                     month: "space-y-4",
-                                    caption:
-                                        "flex justify-center pt-1 relative items-center text-slate-900",
-                                    caption_label: "text-lg font-bold",
+                                    caption: "flex justify-center pt-1 relative items-center text-slate-900",
+                                    caption_label: "text-base font-bold",
                                     nav: "space-x-1 flex items-center",
-                                    nav_button:
-                                        "h-8 w-8 bg-transparent p-0 opacity-70 hover:opacity-100",
+                                    nav_button: "h-8 w-8 bg-transparent p-0 opacity-70 hover:opacity-100",
                                     table: "w-full border-collapse space-y-1",
                                     head_row: "flex w-full justify-between",
-                                    head_cell:
-                                        "text-slate-500 rounded-md w-10 font-semibold text-[0.8rem]",
+                                    head_cell: "text-slate-400 rounded-md w-10 font-semibold text-[0.75rem]",
                                     row: "flex w-full mt-2 justify-between",
                                     cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20",
-                                    day: cn(
-                                        "h-10 w-10 p-0 font-semibold rounded-full",
-                                        "aria-selected:opacity-100"
-                                    ),
-                                    day_selected:
-                                        "bg-[#22C55E] text-white hover:bg-[#16A34A] focus:bg-[#16A34A]",
+                                    day: cn("h-10 w-10 p-0 font-semibold rounded-full", "aria-selected:opacity-100"),
+                                    day_selected: "bg-red-500 text-white hover:bg-red-600 focus:bg-red-600",
                                     day_today: "bg-slate-100 text-slate-900",
                                     day_outside: "text-slate-300 opacity-50",
-                                    day_disabled:
-                                        "text-slate-300 opacity-40 line-through cursor-not-allowed",
+                                    day_disabled: "text-slate-300 opacity-40 line-through cursor-not-allowed",
                                 }}
                             />
                         </div>
 
-                        <div className="flex flex-col gap-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-slate-700">
-                                        Hora de inicio
-                                    </label>
-
-                                    <Select value={startTime} onValueChange={setStartTime}>
-                                        <SelectTrigger className="h-12 rounded-xl">
-                                            <div className="flex items-center gap-2">
-                                                <Clock3 className="w-4 h-4 text-slate-500" />
-                                                <SelectValue placeholder="Selecciona hora inicio" />
-                                            </div>
-                                        </SelectTrigger>
-
-                                        <SelectContent>
-                                            {allTimes.slice(0, -1).map((time) => (
-                                                <SelectItem key={time} value={time}>
-                                                    {formatHourLabel(time)}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-slate-700">
-                                        Hora de fin
-                                    </label>
-
-                                    <Select value={endTime} onValueChange={setEndTime}>
-                                        <SelectTrigger className="h-12 rounded-xl">
-                                            <div className="flex items-center gap-2">
-                                                <Clock3 className="w-4 h-4 text-slate-500" />
-                                                <SelectValue placeholder="Selecciona hora fin" />
-                                            </div>
-                                        </SelectTrigger>
-
-                                        <SelectContent>
-                                            {endTimeOptions.map((time) => (
-                                                <SelectItem key={time} value={time}>
-                                                    {formatHourLabel(time)}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-
-                            <div
-                                className={cn(
-                                    "rounded-xl border px-4 py-3 text-sm flex items-start gap-3",
-                                    hasConflict
-                                        ? "border-red-200 bg-red-50 text-red-700"
-                                        : "border-green-200 bg-green-50 text-green-700"
-                                )}
-                            >
-                                {hasConflict ? (
-                                    <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                                ) : (
-                                    <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" />
-                                )}
-
-                                <div>
-                                    {hasConflict
-                                        ? "La franja seleccionada entra en conflicto con una reserva existente. Cambia la hora para continuar."
-                                        : "La franja seleccionada está disponible."}
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold text-slate-700">
-                                    Motivo de la reunión{" "}
-                                    <span className="font-normal text-slate-400">
-                                        (opcional)
-                                    </span>
+                        {/* Time selectors */}
+                        <div className="flex gap-2">
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
+                                    Hora de inicio
                                 </label>
-
-                                <Textarea
-                                    value={meetingReason}
-                                    onChange={(e) => setMeetingReason(e.target.value)}
-                                    placeholder="Ej. Revisión de proyecto de tesis..."
-                                    className="min-h-35 resize-none rounded-xl"
-                                />
+                                <Select modal={false} value={startTime} onValueChange={setStartTime}>
+                                    <SelectTrigger className="h-10 rounded-xl border-slate-200 bg-slate-50 text-sm">
+                                        <div className="flex items-center gap-2">
+                                            <Clock3 className="w-4 h-4 text-slate-400" />
+                                            <SelectValue placeholder="Hora inicio" />
+                                        </div>
+                                    </SelectTrigger>
+                                    <SelectContent position="popper" sideOffset={4}>
+                                        {allTimes.slice(0, -1).map((time) => (
+                                            <SelectItem key={time} value={time}>
+                                                {formatHourLabel(time)}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
 
-                            <div className="rounded-2xl border bg-slate-50 p-4">
-                                <div className="flex items-center gap-2 mb-2 text-slate-700">
-                                    <CalendarIcon className="w-4 h-4" />
-                                    <p className="text-sm font-semibold">Resumen de reserva</p>
-                                </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
+                                    Hora de fin
+                                </label>
+                                <Select modal={false} value={endTime} onValueChange={setEndTime}>
+                                    <SelectTrigger className="h-10 rounded-xl border-slate-200 bg-slate-50 text-sm">
+                                        <div className="flex items-center gap-2">
+                                            <Clock3 className="w-4 h-4 text-slate-400" />
+                                            <SelectValue placeholder="Hora fin" />
+                                        </div>
+                                    </SelectTrigger>
+                                    <SelectContent position="popper" sideOffset={4}>
+                                        {endTimeOptions.map((time) => (
+                                            <SelectItem key={time} value={time}>
+                                                {formatHourLabel(time)}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
 
-                                <div className="text-sm text-slate-600 space-y-1">
-                                    <p>
-                                        <span className="font-semibold text-slate-800">
-                                            Fecha:
-                                        </span>{" "}
-                                        {selectedDate
-                                            ? format(selectedDate, "d 'de' MMMM yyyy", {
-                                                locale: es,
-                                            })
-                                            : "No seleccionada"}
-                                    </p>
+                        {/* Conflict indicator */}
+                        <div className={cn(
+                            "rounded-xl border px-4 py-3 text-sm flex items-start gap-3",
+                            hasConflict
+                                ? "border-red-200 bg-red-50 text-red-700"
+                                : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        )}>
+                            {hasConflict
+                                ? <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                                : <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" />
+                            }
+                            <span>
+                                {hasConflict
+                                    ? "La franja seleccionada entra en conflicto con una reserva existente. Cambia la hora para continuar."
+                                    : "La franja seleccionada está disponible."}
+                            </span>
+                        </div>
 
-                                    <p>
-                                        <span className="font-semibold text-slate-800">
-                                            Horario:
-                                        </span>{" "}
-                                        {formatHourLabel(startTime)} - {formatHourLabel(endTime)}
-                                    </p>
+                        {/* Reason */}
+                        <div className="space-y-1.5">
+                            <label className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
+                                Motivo de la reunión{" "}
+                                <span className="normal-case font-normal text-slate-400">(opcional)</span>
+                            </label>
+                            <Textarea
+                                value={meetingReason}
+                                onChange={(e) => setMeetingReason(e.target.value)}
+                                placeholder="Ej. Revisión de proyecto de tesis..."
+                                className="min-h-24 resize-none rounded-xl border-slate-200 text-sm"
+                            />
+                        </div>
 
-                                    <p>
-                                        <span className="font-semibold text-slate-800">
-                                            Sala:
-                                        </span>{" "}
-                                        {room.nombre}
-                                    </p>
-                                </div>
+                        {/* Summary */}
+                        <div className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
+                            <div className="flex items-center gap-1.5 mb-2">
+                                <CalendarIcon className="w-3.5 h-3.5 text-slate-400" />
+                                <p className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
+                                    Resumen de reserva
+                                </p>
+                            </div>
+                            <div className="text-sm text-slate-600 space-y-1">
+                                <p>
+                                    <span className="font-semibold text-slate-800">Fecha:</span>{" "}
+                                    {selectedDate
+                                        ? format(selectedDate, "d 'de' MMMM yyyy", { locale: es })
+                                        : "No seleccionada"}
+                                </p>
+                                <p>
+                                    <span className="font-semibold text-slate-800">Horario:</span>{" "}
+                                    {formatHourLabel(startTime)} — {formatHourLabel(endTime)}
+                                </p>
+                                <p>
+                                    <span className="font-semibold text-slate-800">Sala:</span>{" "}
+                                    {room.nombre}
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-slate-50 p-6 overflow-y-auto min-h-0">
-                    <div className="flex items-center gap-2 mb-6">
-                        <CalendarIcon className="w-5 h-5 text-[#22C55E]" />
-                        <h2 className="text-xl font-bold text-slate-900">
-                            Disponibilidad para{" "}
-                            {selectedDate
-                                ? format(selectedDate, "d MMM", { locale: es })
-                                : "la fecha"}
-                        </h2>
-                    </div>
+                {/* Right — room info + availability */}
+                <div className="bg-slate-50 p-6 overflow-y-auto min-h-0 flex flex-col gap-5">
 
-                    <div className="relative pl-8">
-                        <div className="absolute left-2.75 top-0 bottom-0 w-px bg-slate-300" />
+                    {/* Room description */}
+                    {room.descripcion && (
+                        <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                                <FileText className="w-3.5 h-3.5 text-slate-400" />
+                                <p className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
+                                    Descripción
+                                </p>
+                            </div>
+                            <p className="text-sm text-slate-600 leading-relaxed">
+                                {room.descripcion}
+                            </p>
+                        </div>
+                    )}
 
-                        <div className="space-y-5">
-                            {agendaItems.map((item, index) => {
-                                const isBusy = item.status === "busy";
-                                const isCurrent = item.status === "current";
-
-                                return (
-                                    <div
-                                        key={`${item.start}-${item.end}-${index}`}
-                                        className="relative"
-                                    >
-                                        <div
-                                            className={cn(
-                                                "absolute -left-0.5 top-1 h-6 w-6 rounded-full border-4 bg-white",
-                                                isBusy && "border-red-500",
-                                                isCurrent && "border-[#22C55E]",
-                                                item.status === "free" && "border-slate-300"
-                                            )}
-                                        />
-
-                                        <div className="ml-6">
-                                            <p
-                                                className={cn(
-                                                    "text-sm font-semibold",
-                                                    isBusy && "text-slate-600",
-                                                    isCurrent && "text-[#22C55E]",
-                                                    item.status === "free" && "text-slate-600"
-                                                )}
-                                            >
-                                                {formatHourLabel(item.start)} -{" "}
-                                                {formatHourLabel(item.end)}
+                    {/* Equipamiento */}
+                    {resources.length > 0 && (
+                        <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+                            <div className="flex items-center gap-1.5 mb-2.5">
+                                <Monitor className="w-3.5 h-3.5 text-slate-400" />
+                                <p className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
+                                    Equipamiento
+                                </p>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                {resources.map((r) => (
+                                    <div key={r.id_recurso} className="flex items-start gap-2">
+                                        <span className="mt-0.5 shrink-0 rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                                            {r.tipo}
+                                        </span>
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-semibold text-slate-700 leading-tight">
+                                                {r.nombre}
                                             </p>
-
-                                            {item.status === "free" && (
-                                                <p className="text-[28px] leading-none text-slate-700 mt-1">
-                                                    Libre
+                                            {r.descripcion && (
+                                                <p className="text-xs text-slate-400 leading-snug mt-0.5">
+                                                    {r.descripcion}
                                                 </p>
-                                            )}
-
-                                            {isBusy && (
-                                                <div className="mt-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
-                                                    <p className="font-bold text-red-600">Reservado</p>
-                                                    <p className="text-red-500 text-sm">
-                                                        {item.booking?.title || "Sala ocupada"}
-                                                    </p>
-                                                </div>
-                                            )}
-
-                                            {isCurrent && (
-                                                <div className="mt-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
-                                                    <p className="font-bold text-[#22C55E]">
-                                                        Tu reserva actual
-                                                    </p>
-                                                </div>
                                             )}
                                         </div>
                                     </div>
-                                );
-                            })}
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Availability timeline */}
+                    <div>
+                        <div className="flex items-center gap-2 mb-4">
+                            <CalendarIcon className="w-3.5 h-3.5 text-red-500" />
+                            <h2 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
+                                Disponibilidad —{" "}
+                                {selectedDate
+                                    ? format(selectedDate, "d MMM", { locale: es })
+                                    : "fecha"}
+                            </h2>
+                        </div>
+
+                        <div className="relative pl-7">
+                            <div className="absolute left-2.5 top-0 bottom-0 w-px bg-slate-200" />
+                            <div className="space-y-4">
+                                {agendaItems.map((item, index) => {
+                                    const isBusy = item.status === "busy";
+                                    const isCurrent = item.status === "current";
+                                    return (
+                                        <div key={`${item.start}-${item.end}-${index}`} className="relative">
+                                            <div className={cn(
+                                                "absolute -left-0.5 top-1 h-5 w-5 rounded-full border-[3px] bg-white",
+                                                isBusy && "border-red-400",
+                                                isCurrent && "border-emerald-500",
+                                                item.status === "free" && "border-slate-300"
+                                            )} />
+                                            <div className="ml-5">
+                                                <p className={cn(
+                                                    "text-xs font-semibold",
+                                                    isBusy && "text-slate-500",
+                                                    isCurrent && "text-emerald-600",
+                                                    item.status === "free" && "text-slate-500"
+                                                )}>
+                                                    {formatHourLabel(item.start)} — {formatHourLabel(item.end)}
+                                                </p>
+                                                {item.status === "free" && (
+                                                    <p className="text-sm text-slate-400 mt-0.5">Libre</p>
+                                                )}
+                                                {isBusy && (
+                                                    <div className="mt-1.5 rounded-lg border border-red-100 bg-red-50 px-3 py-2">
+                                                        <p className="text-xs font-bold text-red-600">Reservado</p>
+                                                        <p className="text-xs text-red-400 mt-0.5">
+                                                            {item.booking?.title || "Sala ocupada"}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                                {isCurrent && (
+                                                    <div className="mt-1.5 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2">
+                                                        <p className="text-xs font-bold text-emerald-600">Tu reserva actual</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="w-full h-16 shrink-0 bg-[#F1F5F9] rounded-b-2xl flex items-center justify-end px-6 py-4 gap-3 border-t">
-                <Button variant="ghost" className="text-[#475569] font-semibold text-sm">
+            {/* ── Footer ── */}
+            <div className="shrink-0 border-t border-slate-100 bg-white px-6 py-4 flex items-center justify-end gap-3">
+                <Button
+                    variant="ghost"
+                    className="text-slate-500 font-semibold text-sm hover:text-slate-700"
+                    onClick={onClose}
+                >
                     Cancelar
                 </Button>
-
                 <Button
                     onClick={handleConfirmReservation}
                     disabled={hasConflict || submitting}
                     className={cn(
-                        "text-white font-bold px-4 py-2 rounded-lg",
+                        "font-bold text-sm px-6 rounded-xl text-white",
                         hasConflict || submitting
-                            ? "bg-slate-300 hover:bg-slate-300 cursor-not-allowed"
-                            : "bg-[#22C55E] hover:bg-[#16A34A]"
+                            ? "bg-slate-300 cursor-not-allowed hover:bg-slate-300"
+                            : "bg-red-500 hover:bg-red-600"
                     )}
                 >
                     {submitting ? "Confirmando..." : "Confirmar reserva"}

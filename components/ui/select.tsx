@@ -7,9 +7,16 @@ import { cn } from "@/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
 function Select({
+  modal = false,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Root>) {
-  return <SelectPrimitive.Root data-slot="select" {...props} />
+}: React.ComponentProps<typeof SelectPrimitive.Root> & { modal?: boolean }) {
+  return (
+    <SelectPrimitive.Root
+      data-slot="select"
+      modal={modal as never}
+      {...props}
+    />
+  )
 }
 
 function SelectGroup({

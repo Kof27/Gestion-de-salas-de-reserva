@@ -122,8 +122,66 @@
   }
   body {
     @apply bg-background text-foreground;
+    margin: 0;
+    padding: 0;
   }
   html {
     @apply font-sans;
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
   }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Scrollbar custom — discreto y consistente con la paleta del app.
+
+   Por qué: como forzamos overflow-y:scroll en html (necesario para que el
+   navbar sticky no salte al cambiar entre pestañas), el track del scrollbar
+   es siempre visible. El track por defecto de Chrome/Windows es blanco y
+   contrasta con el fondo gris de las páginas (#f5f6f8) creando una franja
+   blanca vertical en la derecha.
+
+   La solución: track transparente + thumb sutil. Así el carril del scrollbar
+   se mezcla con cualquier fondo de página y el thumb solo se ve cuando hay
+   contenido para hacer scroll.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* Chromium / Edge / Safari */
+html::-webkit-scrollbar {
+  width: 10px;
+}
+html::-webkit-scrollbar-track {
+  background: transparent;
+}
+html::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.45); /* slate-400 / 45% */
+  border-radius: 9999px;
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+html::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 116, 139, 0.7); /* slate-500 / 70% */
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+/* Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
+}
+
+/* Defensivo — Radix react-remove-scroll añade padding-right al body cuando
+   abre un dropdown con modal={true}. Aunque ya pusimos modal={false} por
+   defecto en el wrapper Select, dejamos este override por si algún Dialog
+   o Popover futuro escapa. Fuera de @layer para máxima prioridad. */
+body[data-scroll-locked],
+body.react-remove-scroll-bar,
+body[style*="padding-right"] {
+  padding-right: 0 !important;
+  margin-right: 0 !important;
+}
+
+body {
+  --removed-body-scroll-bar-size: 0px !important;
 }
