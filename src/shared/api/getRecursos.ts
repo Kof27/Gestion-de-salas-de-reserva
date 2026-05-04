@@ -1,10 +1,26 @@
 import { Resource } from "@/src/entities/recurso";
 
-const API_URL = "https://69de5adcefdd0339eea3f50f.mockapi.io/recurso_tecnologico";
+const API_URL = "http://localhost:4000/api/recursos";
+
+// Obtener token del localStorage
+const getToken = () => {
+    if (typeof window !== 'undefined') {
+        return localStorage.getItem('token');
+    }
+    return null;
+};
+
+// Headers con autenticación
+const getHeaders = () => ({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${getToken()}`,
+});
 
 async function getResources(): Promise<Resource[]> {
     try {
-        const response = await fetch(API_URL);
+        const response = await fetch(API_URL, {
+            headers: getHeaders(),
+        });
 
         if (!response.ok) {
             throw new Error(`Error fetching resources: ${response.statusText}`);
@@ -20,7 +36,9 @@ async function getResources(): Promise<Resource[]> {
 
 async function getResourceById(id: string): Promise<Resource> {
     try {
-        const response = await fetch(`${API_URL}/${id}`);
+        const response = await fetch(`${API_URL}/${id}`, {
+            headers: getHeaders(),
+        });
 
         if (!response.ok) {
             throw new Error(`Error fetching resource: ${response.statusText}`);
@@ -41,9 +59,7 @@ async function updateResource(
     try {
         const response = await fetch(`${API_URL}/${id}`, {
             method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: getHeaders(),
             body: JSON.stringify(resource),
         });
 

@@ -297,14 +297,12 @@ export function EditRoomPage() {
                 type="button"
                 onClick={() => setEnabled(!enabled)}
                 disabled={saving}
-                className={`relative h-6 w-11 rounded-full transition-colors duration-200 ${
-                  enabled ? "bg-green-500" : "bg-gray-300"
-                } ${saving ? "cursor-not-allowed opacity-70" : ""}`}
+                className={`relative h-6 w-11 rounded-full transition-colors duration-200 ${enabled ? "bg-green-500" : "bg-gray-300"
+                  } ${saving ? "cursor-not-allowed opacity-70" : ""}`}
               >
                 <span
-                  className={`absolute top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white transition-transform duration-200 ${
-                    enabled ? "translate-x-6" : "translate-x-1"
-                  }`}
+                  className={`absolute top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white transition-transform duration-200 ${enabled ? "translate-x-6" : "translate-x-1"
+                    }`}
                 >
                   {enabled && (
                     <svg
@@ -323,9 +321,8 @@ export function EditRoomPage() {
                 </span>
               </button>
               <span
-                className={`text-sm font-medium ${
-                  enabled ? "text-green-600" : "text-gray-400"
-                }`}
+                className={`text-sm font-medium ${enabled ? "text-green-600" : "text-gray-400"
+                  }`}
               >
                 {enabled ? "Habilitada" : "Inhabilitada"}
               </span>
