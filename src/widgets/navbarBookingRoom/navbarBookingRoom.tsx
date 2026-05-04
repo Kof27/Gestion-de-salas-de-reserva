@@ -17,7 +17,7 @@ interface NavbarBookingRoomProps {
 const navItems = [
     { key: "salas", label: "Salas disponibles", href: "/booking" },
     { key: "reservas", label: "Mis reservas", href: "/booking/myBookings" },
-    { key: "admin", label: "Panel Administrativo", href: "/dashboard" },
+    { key: "admin", label: "Panel Administrativo", href: "/salas" },
 ] as const;
 
 export default function NavbarBookingRoom({
@@ -31,7 +31,7 @@ export default function NavbarBookingRoom({
             ? "salas"
             : pathname === "/booking/myBookings"
                 ? "reservas"
-                : pathname === "/dashboard"
+                : pathname === "/salas"
                     ? "admin"
                     : "salas");
 
