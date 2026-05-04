@@ -1,7 +1,7 @@
 export type ReservationStatus = "active" | "past" | "cancelled";
 
 export type ReservationView = {
-    id: string;
+    id: number | string;
     title: string;
     location: string;
     dateLabel: string;
