@@ -7,9 +7,11 @@ import { toast } from "sonner";
 
 import { getRoomById } from "@/src/shared/api/getRooms";
 import { getReservas, createReserva } from "@/src/shared/api/getReservas";
+import { getResources } from "@/src/shared/api/getRecursos";
 
 import type { Sala } from "@/src/entities/room";
 import type { reserva } from "@/src/entities/reserva";
+import type { Resource } from "@/src/entities/recurso";
 
 import {
     convertReservaToBooking,
@@ -46,6 +48,7 @@ export function useBookingRoom({ roomId }: UseBookingRoomParams) {
     const [meetingReason, setMeetingReason] = React.useState("");
 
     const [room, setRoom] = React.useState<Sala | null>(null);
+    const [resources, setResources] = React.useState<Resource[]>([]);
     const [bookings, setBookings] = React.useState<Booking[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
@@ -56,10 +59,16 @@ export function useBookingRoom({ roomId }: UseBookingRoomParams) {
             setLoading(true);
             setError(null);
 
-            const roomData = await getRoomById(effectiveRoomId);
-            setRoom(roomData);
+            const [roomData, allRecursos, allReservas] = await Promise.all([
+                getRoomById(effectiveRoomId),
+                getResources(),
+                getReservas(),
+            ]);
 
-            const allReservas = await getReservas();
+            setRoom(roomData);
+            setResources(
+                allRecursos.filter((r) => String(r.id_sala) === String(effectiveRoomId))
+            );
             console.log("Reservas recibidas del backend:", allReservas);
             const reservasActivasDeLaSala = allReservas.filter(
                 (reservaItem) =>
@@ -168,13 +177,14 @@ export function useBookingRoom({ roomId }: UseBookingRoomParams) {
             await createReserva(newReserva);
 
             toast.success("Reserva confirmada exitosamente", {
-                description: `Sala: ${room?.nombre} | ${format(
-                    selectedDate,
-                    "d 'de' MMMM yyyy",
-                    { locale: es }
-                )} | ${formatHourLabel(startTime)} - ${formatHourLabel(
-                    endTime
-                )} | Motivo: ${newReserva.motivo}`,
+                description: `${room?.nombre} · ${format(selectedDate, "d 'de' MMMM yyyy", { locale: es })} · ${formatHourLabel(startTime)} - ${formatHourLabel(endTime)}`,
+                style: {
+                    background: "#16a34a",
+                    color: "#ffffff",
+                    border: "1px solid #15803d",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                },
             });
 
             await loadData();
@@ -210,6 +220,7 @@ export function useBookingRoom({ roomId }: UseBookingRoomParams) {
         effectiveRoomId,
 
         room,
+        resources,
         bookings,
         loading,
         error,

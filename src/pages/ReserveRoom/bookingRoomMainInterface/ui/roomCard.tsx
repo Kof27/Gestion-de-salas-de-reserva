@@ -37,17 +37,11 @@ export default function RoomCard({ room, onReservar }: { room: Sala; onReservar:
                 </div>
             </CardContent>
 
-            <CardFooter className="flex flex-row gap-3 justify-center ">
-                <Button
-                    variant="secondary"
-                    className="h-12 w-28 rounded-lg  bg-rose-50 text-base font-semibold text-red-600 hover:bg-rose-100"
-                >
-                    Ver disp.
-                </Button>
+            <CardFooter className="flex justify-center">
                 <Button
                     onClick={() => onReservar(room)}
                     disabled={!room.estado}
-                    className="h-12 w-28 rounded-lg bg-red-500 text-base font-semibold text-white hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="h-12 w-full rounded-lg bg-red-500 text-base font-semibold text-white hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                     Reservar
                 </Button>

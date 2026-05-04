@@ -25,15 +25,23 @@ function formatReservationDate(start: Date | string, end: Date | string) {
     return `${dayLabel} • ${startHour} - ${endHour}`;
 }
 
+function formatDateOnly(start: Date | string): string {
+    return format(new Date(start), "d MMM yyyy", { locale: es });
+}
+
+function formatTimeOnly(time: Date | string): string {
+    return format(new Date(time), "HH:mm");
+}
+
 function statusLabel(status: ReservationStatus) {
     switch (status) {
         case "active":
-            return "CONFIRMADA";
+            return "Confirmada";
         case "past":
-            return "PASADA";
+            return "Pasada";
         case "cancelled":
-            return "CANCELADA";
+            return "Cancelada";
     }
 }
 
-export { getReservationStatus, formatReservationDate, statusLabel };
+export { getReservationStatus, formatReservationDate, formatDateOnly, formatTimeOnly, statusLabel };

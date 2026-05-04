@@ -12,13 +12,14 @@ import type { ReservationView } from "../model/reservationView";
 import {
     getReservationStatus,
     formatReservationDate,
+    formatDateOnly,
+    formatTimeOnly,
 } from "../lib/myBookingLib";
 
 function sortReservasFromNewestToOldest(reservas: reserva[]) {
     return [...reservas].sort((a, b) => {
         const dateA = new Date(a.hora_inicio).getTime();
         const dateB = new Date(b.hora_inicio).getTime();
-
         return dateB - dateA;
     });
 }
@@ -28,11 +29,8 @@ function mapReservasToView(
     roomsData: Sala[]
 ): ReservationView[] {
     const roomsMap = new Map<string, Sala>();
-
     roomsData.forEach((room) => {
-        if (room.id_sala) {
-            roomsMap.set(String(room.id_sala), room);
-        }
+        if (room.id_sala) roomsMap.set(String(room.id_sala), room);
     });
 
     return reservasData.map((item) => {
@@ -41,10 +39,17 @@ function mapReservasToView(
         return {
             id: item.id_reserva ?? "",
             title: room?.nombre ?? `Sala ${item.id_sala}`,
-            location: room?.ubicacion ?? `Reserva del usuario ${item.id_usuario}`,
+            location: room?.ubicacion ?? "",
             dateLabel: formatReservationDate(item.hora_inicio, item.hora_fin),
+            fecha: formatDateOnly(item.hora_inicio),
+            horaInicio: formatTimeOnly(item.hora_inicio),
+            horaFin: formatTimeOnly(item.hora_fin),
             status: getReservationStatus(item),
             motivo: item.motivo,
+            capacidad: room?.capacidad ?? 0,
+            descripcion: room?.descripcion ?? "",
+            imagenSala: room?.imagen_sala ?? "",
+            estadoSala: room?.estado ?? false,
         };
     });
 }
@@ -67,7 +72,6 @@ export function useMyReservations() {
             ]);
 
             const sortedReservas = sortReservasFromNewestToOldest(reservasData);
-
             setRawReservations(sortedReservas);
             setReservations(mapReservasToView(sortedReservas, roomsData));
         } catch (err) {
@@ -140,11 +144,9 @@ export function useMyReservations() {
         loading,
         error,
         cancellingId,
-
         activeReservations,
         pastReservations,
         cancelledReservations,
-
         handleCancelReservation,
         reloadReservations: loadReservas,
     };

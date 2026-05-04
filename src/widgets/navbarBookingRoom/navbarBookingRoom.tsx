@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Building2 } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -30,29 +30,24 @@ const navItems = [
     { key: "admin", label: "Panel Administrativo", href: "/salas" },
 ] as const;
 
-export default function NavbarBookingRoom({
-    activeTab,
-}: NavbarBookingRoomProps) {
+export default function NavbarBookingRoom({ activeTab }: NavbarBookingRoomProps) {
     const pathname = usePathname();
-
     const [usuario, setUsuario] = useState<Usuario | null>(null);
 
     useEffect(() => {
         const usuarioStorage = localStorage.getItem("usuario");
-
         if (usuarioStorage) {
             try {
-                const usuarioParseado = JSON.parse(usuarioStorage);
-                setUsuario(usuarioParseado);
+                setUsuario(JSON.parse(usuarioStorage));
             } catch (error) {
                 console.error("Error al leer el usuario desde localStorage:", error);
             }
         }
     }, []);
 
-    const esUsuarioRolUno = usuario?.id_rol === 1;
+    const esDocente = usuario?.id_rol === 1;
 
-    const navItemsFiltrados = esUsuarioRolUno
+    const navItemsFiltrados = esDocente
         ? navItems.filter((item) => item.key !== "admin")
         : navItems;
 
@@ -71,45 +66,43 @@ export default function NavbarBookingRoom({
         : "U";
 
     return (
-        <header className="border-b border-slate-200 bg-white/95 backdrop-blur">
-            <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-8">
-                <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500 text-white shadow-sm">
-                        <Building2 className="h-5 w-5" />
+        <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+            <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3 lg:px-8">
+                {/* Logo */}
+                <div className="flex items-center gap-2.5">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500 text-white shadow-sm">
+                        <Building2 className="h-4 w-4" />
                     </div>
-
-                    <div className="text-xl font-extrabold tracking-tight text-slate-900">
-                        UAO{!esUsuarioRolUno && " - Secretaria"}
-                    </div>
+                    <span className="text-sm font-bold tracking-tight text-slate-900">UAO</span>
                 </div>
 
-                <nav className="hidden items-center gap-8 md:flex">
+                {/* Nav links */}
+                <nav className="hidden items-center gap-6 md:flex">
                     {navItemsFiltrados.map((item) => {
                         const active = resolvedActiveTab === item.key;
-
                         return (
                             <Link
                                 key={item.key}
                                 href={item.href}
                                 className={cn(
-                                    "relative pb-3 text-base font-semibold transition-colors",
+                                    "pb-0.5 text-sm font-semibold transition-colors",
                                     active
-                                        ? "text-red-500"
+                                        ? "border-b-2 border-red-500 text-red-500"
                                         : "text-slate-600 hover:text-slate-900"
                                 )}
                             >
                                 {item.label}
-
-                                {active && (
-                                    <span className="absolute inset-x-0 -bottom-5 h-0.75 rounded-full bg-red-500" />
-                                )}
                             </Link>
                         );
                     })}
                 </nav>
 
-                <Avatar className="h-11 w-11 border border-slate-200 bg-red-500 text-white shadow-sm">
-                    <AvatarFallback className="bg-red-500 font-bold text-white">
+                {/* Avatar */}
+                <Avatar
+                    className="h-9 w-9 border border-slate-200 bg-red-500 text-white shadow-sm cursor-default"
+                    title={usuario?.nombre}
+                >
+                    <AvatarFallback className="bg-red-500 text-sm font-bold text-white">
                         {inicialCorreo}
                     </AvatarFallback>
                 </Avatar>
