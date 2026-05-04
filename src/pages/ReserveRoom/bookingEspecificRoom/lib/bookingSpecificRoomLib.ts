@@ -27,7 +27,7 @@ export function convertReservaToBooking(reserva: reserva): Booking {
     const endDate = new Date(reserva.hora_fin);
 
     return {
-        id: reserva.id_reserva || "",
+        id: String(reserva.id_reserva || ""),
         roomId: String(reserva.id_sala),
         title: reserva.motivo,
         date: startDate,

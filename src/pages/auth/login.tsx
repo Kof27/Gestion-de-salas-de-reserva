@@ -49,8 +49,11 @@ function LoginPage() {
             localStorage.setItem('usuario', JSON.stringify(data.usuario));
             localStorage.setItem('token', data.token);
             
-            // Redirigir al dashboard
-            router.push('/salas');
+            if (data.usuario.id_rol === 1) {
+                router.push('/booking');    
+            } else {
+                router.push('/salas');
+            }
 
         } catch (err) {
             console.error('Error:', err);
