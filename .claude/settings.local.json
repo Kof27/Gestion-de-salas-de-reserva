@@ -6,6 +6,8 @@
       "Bash(Get-ChildItem -Path \"d:\\\\Programacion\\\\desarrollo web+\\\\ingenieriaDeSoftware\\\\Gestion-de-salas-de-reserva\\\\Gestion-de-salas-de-reserva\" -Directory)",
       "Bash(Select-Object -First 20)",
       "Bash(Select-Object Name)",
+      "Bash(cd /d 'd:\\\\Programacion\\\\desarrollo web+\\\\ingenieriaDeSoftware\\\\Gestion-de-salas-de-reserva\\\\Gestion-de-salas-de-reserva')",
+      "Bash(Find /s /name \"*.tsx\" /name \"*.ts\" /name \"*.jsx\" /name \"*.js\")"
     ]
   }
 }
