@@ -44,7 +44,7 @@ function LoginPage() {
             localStorage.setItem('usuario', JSON.stringify(data.usuario));
             localStorage.setItem('token', data.token);
 
-            if (data.usuario.id_rol === 1) {
+            if (Number(data.usuario.id_rol) === 1) {
                 router.push('/booking');
             } else {
                 router.push('/salas');

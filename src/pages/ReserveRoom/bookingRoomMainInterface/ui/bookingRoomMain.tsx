@@ -1,20 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, SlidersHorizontal } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
+import { FilterSelect } from "@/src/shared/ui/FilterSelect";
 
 import BookingRoomWindows from "../../bookingEspecificRoom/ui/bookinRoom";
 import NavbarBookingRoom from "@/src/widgets/navbarBookingRoom/navbarBookingRoom";
 import RoomCard from "./roomCard";
 
 import { useRoomBooking } from "@/src/pages/ReserveRoom/bookingRoomMainInterface/hook/RoomMainInterafeHooks";
+import type { RoomStatusFilter } from "@/src/pages/ReserveRoom/bookingRoomMainInterface/hook/RoomMainInterafeHooks";
+import { PageTransition } from "@/src/shared/ui/PageTransition";
 
 export default function RoomBookingPage() {
     const {
         search,
         setSearch,
+        statusFilter,
+        setStatusFilter,
         rooms,
         filteredRooms,
         loading,
@@ -43,10 +48,11 @@ export default function RoomBookingPage() {
     const salasNoDisponibles = rooms.filter((r) => !r.estado).length;
 
     return (
-        <div className="min-h-screen bg-[#f5f6f8] text-slate-900">
+        <div className="min-h-screen bg-[#f5f6f8] pt-[60px] text-slate-900">
             <NavbarBookingRoom />
 
             <main className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
+                <PageTransition>
                 {/* Dashboard header */}
                 <div className="mb-6">
                     {nombreUsuario && (
@@ -60,14 +66,26 @@ export default function RoomBookingPage() {
                             Salas disponibles
                         </h1>
 
-                        {/* Search */}
-                        <div className="relative w-full sm:max-w-sm">
-                            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                            <Input
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Buscar sala..."
-                                className="h-10 rounded-xl border-slate-200 bg-white pl-10 text-sm placeholder:text-slate-400 focus-visible:ring-red-500"
+                        {/* Search + filter */}
+                        <div className="flex shrink-0 items-center gap-2">
+                            <div className="relative">
+                                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                <Input
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    placeholder="Buscar sala..."
+                                    className="h-9 w-48 rounded-lg border-slate-200 bg-white pl-9 text-sm placeholder:text-slate-400 focus-visible:ring-red-500"
+                                />
+                            </div>
+                            <FilterSelect
+                                value={statusFilter}
+                                onChange={(v) => setStatusFilter(v as RoomStatusFilter)}
+                                icon={<SlidersHorizontal className="h-3.5 w-3.5 shrink-0 text-slate-400" />}
+                                options={[
+                                    { value: "all", label: "Todas" },
+                                    { value: "available", label: "Disponibles" },
+                                    { value: "unavailable", label: "No disponibles" },
+                                ]}
                             />
                         </div>
                     </div>
@@ -106,7 +124,7 @@ export default function RoomBookingPage() {
                     </div>
                 ) : (
                     <>
-                        {search && (
+                        {(search || statusFilter !== "all") && (
                             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-slate-400">
                                 {filteredRooms.length} resultado{filteredRooms.length !== 1 ? "s" : ""}
                             </p>
@@ -122,6 +140,7 @@ export default function RoomBookingPage() {
                         </section>
                     </>
                 )}
+                </PageTransition>
             </main>
 
             {isModalOpen && (

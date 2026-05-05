@@ -1,34 +1,13 @@
-import { reserva } from "@/src/entities/reserva";
+import type { reserva } from "@/src/entities/reserva";
+import { apiFetch } from "./apiClient";
 
-const API_URL = "http://localhost:4000/api/reservas";
-
-// Obtener token del localStorage
-const getToken = () => {
-    if (typeof window !== "undefined") {
-        return localStorage.getItem("token");
-    }
-
-    return null;
-};
-
-// Headers con autenticación
-const getHeaders = () => ({
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${getToken()}`,
-});
+const BASE = "/api/reservas";
 
 async function getReservas(): Promise<reserva[]> {
     try {
-        const response = await fetch(API_URL, {
-            headers: getHeaders(),
-        });
-
-        if (!response.ok) {
-            throw new Error(`Error fetching reservas: ${response.statusText}`);
-        }
-
-        const data: reserva[] = await response.json();
-        return data;
+        const response = await apiFetch(BASE);
+        if (!response.ok) throw new Error(`Error fetching reservas: ${response.statusText}`);
+        return response.json();
     } catch (error) {
         console.error("Error fetching reservas:", error);
         throw error;
@@ -37,16 +16,9 @@ async function getReservas(): Promise<reserva[]> {
 
 async function getReservaById(id_reserva: string): Promise<reserva> {
     try {
-        const response = await fetch(`${API_URL}/${id_reserva}`, {
-            headers: getHeaders(),
-        });
-
-        if (!response.ok) {
-            throw new Error(`Error fetching reserva: ${response.statusText}`);
-        }
-
-        const data: reserva = await response.json();
-        return data;
+        const response = await apiFetch(`${BASE}/${id_reserva}`);
+        if (!response.ok) throw new Error(`Error fetching reserva: ${response.statusText}`);
+        return response.json();
     } catch (error) {
         console.error("Error fetching reserva:", error);
         throw error;
@@ -57,18 +29,12 @@ async function createReserva(
     reserva: Omit<reserva, "id_reserva" | "fecha_creacion">
 ): Promise<reserva> {
     try {
-        const response = await fetch(API_URL, {
+        const response = await apiFetch(BASE, {
             method: "POST",
-            headers: getHeaders(),
             body: JSON.stringify(reserva),
         });
-
-        if (!response.ok) {
-            throw new Error(`Error creating reserva: ${response.statusText}`);
-        }
-
-        const data: reserva = await response.json();
-        return data;
+        if (!response.ok) throw new Error(`Error creating reserva: ${response.statusText}`);
+        return response.json();
     } catch (error) {
         console.error("Error creating reserva:", error);
         throw error;
@@ -80,18 +46,12 @@ async function editarReserva(
     reservaActualizada: Omit<reserva, "id_reserva" | "fecha_creacion">
 ): Promise<reserva> {
     try {
-        const response = await fetch(`${API_URL}/${id_reserva}`, {
+        const response = await apiFetch(`${BASE}/${id_reserva}`, {
             method: "PUT",
-            headers: getHeaders(),
             body: JSON.stringify(reservaActualizada),
         });
-
-        if (!response.ok) {
-            throw new Error(`Error editando reserva: ${response.statusText}`);
-        }
-
-        const data: reserva = await response.json();
-        return data;
+        if (!response.ok) throw new Error(`Error editando reserva: ${response.statusText}`);
+        return response.json();
     } catch (error) {
         console.error("Error editando reserva:", error);
         throw error;
@@ -115,28 +75,16 @@ async function cancelarReserva(reservaActual: reserva): Promise<reserva> {
             fecha_creacion: reservaActual.fecha_creacion,
         };
 
-        const response = await fetch(`${API_URL}/${reservaActual.id_reserva}`, {
+        const response = await apiFetch(`${BASE}/${reservaActual.id_reserva}`, {
             method: "PUT",
-            headers: getHeaders(),
             body: JSON.stringify(payload),
         });
-
-        if (!response.ok) {
-            throw new Error(`Error cancelando reserva: ${response.statusText}`);
-        }
-
-        const data: reserva = await response.json();
-        return data;
+        if (!response.ok) throw new Error(`Error cancelando reserva: ${response.statusText}`);
+        return response.json();
     } catch (error) {
         console.error("Error cancelando reserva:", error);
         throw error;
     }
 }
 
-export {
-    getReservas,
-    getReservaById,
-    createReserva,
-    editarReserva,
-    cancelarReserva,
-};
+export { getReservas, getReservaById, createReserva, editarReserva, cancelarReserva };

@@ -1,0 +1,8 @@
+backend/
+node_modules/
+.next/
+public/
+*.ico
+*.png
+*.jpg
+*.svg
