@@ -4,9 +4,11 @@ import * as React from "react";
 
 import { getReservas, cancelarReserva } from "@/src/shared/api/getReservas";
 import { getRooms } from "@/src/shared/api/getRooms";
+import { getResources } from "@/src/shared/api/getRecursos";
 
 import type { reserva } from "@/src/entities/reserva";
 import type { Sala } from "@/src/entities/room";
+import type { Resource } from "@/src/entities/recurso";
 import type { ReservationView } from "../model/reservationView";
 
 import {
@@ -26,18 +28,28 @@ function sortReservasFromNewestToOldest(reservas: reserva[]) {
 
 function mapReservasToView(
     reservasData: reserva[],
-    roomsData: Sala[]
+    roomsData: Sala[],
+    recursosData: Resource[]
 ): ReservationView[] {
     const roomsMap = new Map<string, Sala>();
     roomsData.forEach((room) => {
         if (room.id_sala) roomsMap.set(String(room.id_sala), room);
     });
 
+    const recursosBySala = new Map<number, Resource[]>();
+    recursosData.forEach((r) => {
+        const list = recursosBySala.get(r.id_sala) ?? [];
+        list.push(r);
+        recursosBySala.set(r.id_sala, list);
+    });
+
     return reservasData.map((item) => {
         const room = roomsMap.get(String(item.id_sala));
+        const salaId = Number(item.id_sala);
 
         return {
             id: item.id_reserva ?? "",
+            id_sala: salaId,
             title: room?.nombre ?? `Sala ${item.id_sala}`,
             location: room?.ubicacion ?? "",
             dateLabel: formatReservationDate(item.hora_inicio, item.hora_fin),
@@ -50,6 +62,7 @@ function mapReservasToView(
             descripcion: room?.descripcion ?? "",
             imagenSala: room?.imagen_sala ?? "",
             estadoSala: room?.estado ?? false,
+            recursos: recursosBySala.get(salaId) ?? [],
         };
     });
 }
@@ -66,14 +79,24 @@ export function useMyReservations() {
             setLoading(true);
             setError(null);
 
-            const [reservasData, roomsData] = await Promise.all([
+            const usuarioRaw = localStorage.getItem("usuario");
+            const idUsuarioActual = usuarioRaw
+                ? (JSON.parse(usuarioRaw) as { id_usuario: number }).id_usuario
+                : null;
+
+            const [reservasData, roomsData, recursosData] = await Promise.all([
                 getReservas(),
                 getRooms(),
+                getResources(),
             ]);
 
-            const sortedReservas = sortReservasFromNewestToOldest(reservasData);
+            const misReservas = idUsuarioActual !== null
+                ? reservasData.filter((r) => Number(r.id_usuario) === Number(idUsuarioActual))
+                : reservasData;
+
+            const sortedReservas = sortReservasFromNewestToOldest(misReservas);
             setRawReservations(sortedReservas);
-            setReservations(mapReservasToView(sortedReservas, roomsData));
+            setReservations(mapReservasToView(sortedReservas, roomsData, recursosData));
         } catch (err) {
             console.error(err);
             setError("No se pudieron cargar las reservas.");

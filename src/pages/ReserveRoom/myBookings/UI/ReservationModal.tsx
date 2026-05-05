@@ -11,6 +11,16 @@ import {
     Building2,
     Loader2,
     XCircle,
+    Monitor,
+    Tv,
+    Video,
+    Volume2,
+    Wind,
+    Projector,
+    Wifi,
+    Printer,
+    Package,
+    type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +44,35 @@ const statusConfig = {
     },
 };
 
+const recursoIconMap: Record<string, LucideIcon> = {
+    proyector: Projector,
+    computador: Monitor,
+    computadora: Monitor,
+    pc: Monitor,
+    televisor: Tv,
+    tv: Tv,
+    pantalla: Tv,
+    videoconferencia: Video,
+    camara: Video,
+    audio: Volume2,
+    parlante: Volume2,
+    sonido: Volume2,
+    "aire acondicionado": Wind,
+    aire: Wind,
+    wifi: Wifi,
+    internet: Wifi,
+    impresora: Printer,
+};
+
+function getRecursoIcon(tipo: string | undefined | null): LucideIcon {
+    if (!tipo) return Package;
+    const key = tipo.toLowerCase().trim();
+    for (const [pattern, Icon] of Object.entries(recursoIconMap)) {
+        if (key.includes(pattern)) return Icon;
+    }
+    return Package;
+}
+
 interface ReservationModalProps {
     reservation: ReservationView | null;
     onClose: () => void;
@@ -47,7 +86,6 @@ export default function ReservationModal({
     onCancel,
     cancellingId,
 }: ReservationModalProps) {
-    // Cerrar con Escape
     useEffect(() => {
         if (!reservation) return;
         const handler = (e: KeyboardEvent) => {
@@ -56,18 +94,6 @@ export default function ReservationModal({
         window.addEventListener("keydown", handler);
         return () => window.removeEventListener("keydown", handler);
     }, [reservation, onClose]);
-
-    // Bloquear scroll del body
-    useEffect(() => {
-        if (reservation) {
-            document.body.style.overflow = "hidden";
-        } else {
-            document.body.style.overflow = "";
-        }
-        return () => {
-            document.body.style.overflow = "";
-        };
-    }, [reservation]);
 
     if (!reservation) return null;
 
@@ -90,7 +116,7 @@ export default function ReservationModal({
 
             {/* Modal */}
             <div className="relative z-10 w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl">
-                {/* Header: imagen o fallback */}
+                {/* Header */}
                 {reservation.imagenSala ? (
                     <div className="relative h-52 w-full overflow-hidden rounded-t-2xl">
                         <img
@@ -99,7 +125,6 @@ export default function ReservationModal({
                             className="h-full w-full object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-
                         <button
                             onClick={onClose}
                             className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm transition-colors hover:bg-black/50"
@@ -107,13 +132,9 @@ export default function ReservationModal({
                         >
                             <X className="h-4 w-4" />
                         </button>
-
                         <Badge
                             variant="outline"
-                            className={cn(
-                                "absolute bottom-4 left-4 border font-bold",
-                                cfg.badge
-                            )}
+                            className={cn("absolute bottom-4 left-4 border font-bold", cfg.badge)}
                         >
                             <span className={cn("mr-1.5 h-1.5 w-1.5 rounded-full", cfg.dot)} />
                             {statusLabel(reservation.status)}
@@ -133,7 +154,7 @@ export default function ReservationModal({
                 )}
 
                 <div className="p-6 space-y-5">
-                    {/* Sala */}
+                    {/* Info sala */}
                     <div>
                         <div className="flex items-start justify-between gap-3">
                             <div>
@@ -173,9 +194,45 @@ export default function ReservationModal({
                         </div>
                     </div>
 
+                    {/* Recursos de la sala */}
+                    {reservation.recursos.length > 0 && (
+                        <>
+                            <Separator />
+                            <div>
+                                <p className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.2em] text-slate-400">
+                                    Recursos disponibles
+                                </p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {reservation.recursos.map((recurso) => {
+                                        const Icon = getRecursoIcon(recurso.tipo);
+                                        return (
+                                            <div
+                                                key={recurso.id_recurso}
+                                                className="flex items-center gap-2.5 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2.5"
+                                                title={recurso.descripcion}
+                                            >
+                                                <Icon className="h-4 w-4 shrink-0 text-red-400" />
+                                                <div className="min-w-0">
+                                                    <p className="truncate text-sm font-medium text-slate-700">
+                                                        {recurso.nombre}
+                                                    </p>
+                                                    {recurso.tipo && (
+                                                        <p className="truncate text-xs text-slate-400">
+                                                            {recurso.tipo}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </>
+                    )}
+
                     <Separator />
 
-                    {/* Reserva */}
+                    {/* Detalle reserva */}
                     <div>
                         <p className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.2em] text-slate-400">
                             Detalle de la reserva
@@ -187,9 +244,7 @@ export default function ReservationModal({
                             </div>
                             <div className="flex items-center gap-2.5">
                                 <Clock className="h-4 w-4 shrink-0 text-slate-400" />
-                                <span>
-                                    {reservation.horaInicio} — {reservation.horaFin}
-                                </span>
+                                <span>{reservation.horaInicio} — {reservation.horaFin}</span>
                             </div>
                             <div className="flex items-start gap-2.5">
                                 <MessageSquare className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />

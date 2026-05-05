@@ -12,19 +12,14 @@ import {
 import NavbarBookingRoom from "@/src/widgets/navbarBookingRoom/navbarBookingRoom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+import { FilterSelect } from "@/src/shared/ui/FilterSelect";
 import { cn } from "@/lib/utils";
 
 import { useMyReservations } from "@/src/pages/ReserveRoom/myBookings/hook/myBookingsHooks";
 import { statusLabel } from "@/src/pages/ReserveRoom/myBookings/lib/myBookingLib";
 import type { ReservationView, ReservationStatus } from "../model/reservationView";
 import ReservationModal from "./ReservationModal";
+import { PageTransition } from "@/src/shared/ui/PageTransition";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -98,10 +93,11 @@ export default function MyReservationsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#f5f6f8] text-slate-900">
+        <div className="min-h-screen bg-[#f5f6f8] pt-[60px] text-slate-900">
             <NavbarBookingRoom />
 
             <main className="mx-auto max-w-7xl px-6 pb-16 pt-10 lg:px-8">
+                <PageTransition>
                 {/* Page header */}
                 <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div>
@@ -147,35 +143,29 @@ export default function MyReservationsPage() {
                         </div>
 
                         <div className="flex items-center gap-2 shrink-0">
-                            <Select modal={false} value={statusFilter} onValueChange={handleFilterChange}>
-                                <SelectTrigger className="h-9 w-36 rounded-lg border-slate-200 bg-slate-50 text-sm">
-                                    <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent position="popper" sideOffset={4}>
-                                    <SelectItem value="all">Todas</SelectItem>
-                                    <SelectItem value="active">Activas</SelectItem>
-                                    <SelectItem value="past">Pasadas</SelectItem>
-                                    <SelectItem value="cancelled">Canceladas</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <FilterSelect
+                                value={statusFilter}
+                                onChange={handleFilterChange}
+                                icon={<SlidersHorizontal className="h-3.5 w-3.5 shrink-0 text-slate-400" />}
+                                options={[
+                                    { value: "all", label: "Todas" },
+                                    { value: "active", label: "Activas" },
+                                    { value: "past", label: "Pasadas" },
+                                    { value: "cancelled", label: "Canceladas" },
+                                ]}
+                            />
 
-                            <Select
-                                modal={false}
+                            <FilterSelect
                                 value={sortOrder}
-                                onValueChange={(v) => {
+                                onChange={(v) => {
                                     setSortOrder(v as "newest" | "oldest");
                                     setPage(1);
                                 }}
-                            >
-                                <SelectTrigger className="h-9 w-36 rounded-lg border-slate-200 bg-slate-50 text-sm">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent position="popper" sideOffset={4}>
-                                    <SelectItem value="newest">Más reciente</SelectItem>
-                                    <SelectItem value="oldest">Más antiguo</SelectItem>
-                                </SelectContent>
-                            </Select>
+                                options={[
+                                    { value: "newest", label: "Más reciente" },
+                                    { value: "oldest", label: "Más antiguo" },
+                                ]}
+                            />
 
                             <span className="text-sm text-slate-400 whitespace-nowrap">
                                 {filtered.length} resultado{filtered.length !== 1 ? "s" : ""}
@@ -314,6 +304,7 @@ export default function MyReservationsPage() {
                         </div>
                     )}
                 </div>
+                </PageTransition>
             </main>
 
             {/* Modal de detalle */}
