@@ -19,6 +19,7 @@ import {
     formatTimeOnly,
 } from "../lib/myBookingLib";
 
+
 function sortReservasFromNewestToOldest(reservas: reserva[]) {
     return [...reservas].sort((a, b) => {
         const dateA = new Date(a.hora_inicio).getTime();

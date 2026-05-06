@@ -213,7 +213,14 @@ export default function MyReservationsPage() {
                                             No se encontraron reservas.
                                         </td>
                                     </tr>
-                                ) : (
+                                ) : reservations.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={8} className="py-16 text-center text-sm text-slate-400">
+                                            No tienes reservas realizadas.
+                                        </td>
+                                    </tr>
+                                ) : 
+                                (
                                     paginated.map((r, i) => (
                                         <tr
                                             key={r.id}
