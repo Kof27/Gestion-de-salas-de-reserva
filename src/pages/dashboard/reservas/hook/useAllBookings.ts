@@ -2,24 +2,155 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import type { DateRange } from "react-day-picker";
 
 import { getReservas, cancelarReserva } from "@/src/shared/api/getReservas";
 import { getRooms } from "@/src/shared/api/getRooms";
+import { getUsuarios } from "@/src/shared/api/getUsuario";
 
+import type { usuario } from "@/src/entities/usuario";
 import type { FilterStatus, ReservationView } from "../lib/bookingMapper";
 import { mapReservaToView } from "../lib/bookingMapper";
 
+type AulaFilter = "todas" | "1" | "2" | "3" | "4";
+type PisoFilter = "todos" | "1" | "2" | "3" | "4";
+
+function getAulaYPisoFromLocation(location: string) {
+    /*
+        Formato esperado:
+        A2. Salón 232
+
+        A2  = Aulas 2 / edificio 2
+        232 = piso 2, salón 32
+
+        Regla:
+        - El número después de la A indica el aula/edificio.
+        - El primer número después de "Salón" indica el piso.
+    */
+
+    const match = location.match(/A(\d+)\.\s*Salón\s*(\d+)/i);
+
+    if (!match) {
+        return {
+            aula: "",
+            piso: "",
+        };
+    }
+
+    const aula = match[1];
+    const codigoSalon = match[2];
+
+    return {
+        aula,
+        piso: codigoSalon[0] || "",
+    };
+}
+
+function getUsuarioFromLocalStorage(): usuario | null {
+    if (typeof window === "undefined") return null;
+
+    const storedUser = localStorage.getItem("usuario");
+
+    if (!storedUser) return null;
+
+    try {
+        return JSON.parse(storedUser) as usuario;
+    } catch (error) {
+        console.error("Error leyendo usuario desde localStorage:", error);
+        return null;
+    }
+}
+
+function getNombreUsuario(user: usuario) {
+    const possibleUser = user as usuario & {
+        nombre?: string;
+        apellido?: string;
+        nombres?: string;
+        apellidos?: string;
+        nombre_usuario?: string;
+        correo?: string;
+        email?: string;
+    };
+
+    const nombre =
+        possibleUser.nombre ||
+        possibleUser.nombres ||
+        possibleUser.nombre_usuario ||
+        "";
+
+    const apellido =
+        possibleUser.apellido ||
+        possibleUser.apellidos ||
+        "";
+
+    const nombreCompleto = `${nombre} ${apellido}`.trim();
+
+    return (
+        nombreCompleto ||
+        possibleUser.correo ||
+        possibleUser.email ||
+        `Usuario ${user.id_usuario}`
+    );
+}
+
+function isSameOrAfter(date: Date, comparison: Date) {
+    const normalizedDate = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate()
+    );
+
+    const normalizedComparison = new Date(
+        comparison.getFullYear(),
+        comparison.getMonth(),
+        comparison.getDate()
+    );
+
+    return normalizedDate >= normalizedComparison;
+}
+
+function isSameOrBefore(date: Date, comparison: Date) {
+    const normalizedDate = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate()
+    );
+
+    const normalizedComparison = new Date(
+        comparison.getFullYear(),
+        comparison.getMonth(),
+        comparison.getDate()
+    );
+
+    return normalizedDate <= normalizedComparison;
+}
+
+function sortReservationsByMostRecent(a: ReservationView, b: ReservationView) {
+    const dateA = new Date(a.start).getTime();
+    const dateB = new Date(b.start).getTime();
+
+    return dateB - dateA;
+}
+
 export function useAllBookings() {
     const [reservations, setReservations] = useState<ReservationView[]>([]);
-    const [reservationToDelete, setReservationToDelete] = useState<ReservationView | null>(null);
+    const [reservationToDelete, setReservationToDelete] =
+        useState<ReservationView | null>(null);
+
+    const [users, setUsers] = useState<usuario[]>([]);
+    const [teachers, setTeachers] = useState<usuario[]>([]);
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const [deletingReservationId, setDeletingReservationId] = useState<string | null>(null);
+    const [deletingReservationId, setDeletingReservationId] =
+        useState<string | null>(null);
 
-    const [searchTerm, setSearchTerm] = useState("");
+    const [aulaFilter, setAulaFilter] = useState<AulaFilter>("todas");
+    const [pisoFilter, setPisoFilter] = useState<PisoFilter>("todos");
+    const [teacherFilter, setTeacherFilter] = useState<string>("todos");
     const [statusFilter, setStatusFilter] = useState<FilterStatus>("todas");
+    const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
     useEffect(() => {
         const loadData = async () => {
@@ -27,9 +158,41 @@ export function useAllBookings() {
                 setLoading(true);
                 setError(null);
 
-                const [reservasData, roomsData] = await Promise.all([getReservas(), getRooms()]);
+                const secretaria = getUsuarioFromLocalStorage();
 
-                setReservations(reservasData.map((item) => mapReservaToView(item, roomsData)));
+                const [reservasData, roomsData, usuariosData] = await Promise.all([
+                    getReservas(),
+                    getRooms(),
+                    getUsuarios(),
+                ]);
+
+                setUsers(usuariosData);
+
+                const secretariaIdFacultad = secretaria?.id_facultad;
+
+                const usuariosMismaFacultad = usuariosData.filter((user) => {
+                    if (!secretariaIdFacultad) return false;
+
+                    return String(user.id_facultad) === String(secretariaIdFacultad);
+                });
+
+                setTeachers(usuariosMismaFacultad);
+
+                const reservasMismaFacultad = reservasData.filter((reserva) => {
+                    if (!secretariaIdFacultad) return false;
+
+                    const usuarioQueReservo = usuariosData.find(
+                        (user) => String(user.id_usuario) === String(reserva.id_usuario)
+                    );
+
+                    return String(usuarioQueReservo?.id_facultad) === String(secretariaIdFacultad);
+                });
+
+                setReservations(
+                    reservasMismaFacultad
+                        .map((item) => mapReservaToView(item, roomsData))
+                        .sort(sortReservationsByMostRecent)
+                );
             } catch (err) {
                 console.error("Error cargando reservas:", err);
                 setError("No se pudieron cargar las reservas.");
@@ -42,23 +205,84 @@ export function useAllBookings() {
     }, []);
 
     const filteredReservations = useMemo(() => {
-        return reservations.filter((reservation) => {
-            const search = searchTerm.toLowerCase().trim();
+        return reservations
+            .filter((reservation) => {
+                const { aula, piso } = getAulaYPisoFromLocation(
+                    reservation.location || ""
+                );
 
-            const matchesSearch =
-                reservation.roomName.toLowerCase().includes(search) ||
-                reservation.location.toLowerCase().includes(search);
+                const matchesAula =
+                    aulaFilter === "todas" || aula === aulaFilter;
 
-            const matchesStatus =
-                statusFilter === "todas"
-                    ? true
-                    : statusFilter === "activas"
-                        ? reservation.status === "activa"
-                        : reservation.status === "cancelada";
+                const matchesPiso =
+                    pisoFilter === "todos" || piso === pisoFilter;
 
-            return matchesSearch && matchesStatus;
-        });
-    }, [reservations, searchTerm, statusFilter]);
+                const matchesTeacher =
+                    teacherFilter === "todos" ||
+                    String(reservation.raw.id_usuario) ===
+                    String(teacherFilter) ||
+                    String(reservation.userId) === String(teacherFilter);
+
+                const matchesStatus =
+                    statusFilter === "todas"
+                        ? true
+                        : statusFilter === "activas"
+                            ? reservation.status === "activa"
+                            : reservation.status === "cancelada";
+
+                const reservationDate = new Date(reservation.start);
+
+                const matchesDate = (() => {
+                    if (!dateRange?.from) return true;
+
+                    if (dateRange.from && !dateRange.to) {
+                        return (
+                            isSameOrAfter(reservationDate, dateRange.from) &&
+                            isSameOrBefore(reservationDate, dateRange.from)
+                        );
+                    }
+
+                    if (dateRange.from && dateRange.to) {
+                        return (
+                            isSameOrAfter(reservationDate, dateRange.from) &&
+                            isSameOrBefore(reservationDate, dateRange.to)
+                        );
+                    }
+
+                    return true;
+                })();
+
+                return (
+                    matchesAula &&
+                    matchesPiso &&
+                    matchesTeacher &&
+                    matchesStatus &&
+                    matchesDate
+                );
+            })
+            .sort(sortReservationsByMostRecent);
+    }, [
+        reservations,
+        aulaFilter,
+        pisoFilter,
+        teacherFilter,
+        statusFilter,
+        dateRange,
+    ]);
+
+    const getUserNameById = (idUsuario: string | number) => {
+        const user = users.find(
+            (item) => String(item.id_usuario) === String(idUsuario)
+        );
+
+        if (!user) return `Usuario ${idUsuario}`;
+
+        return getNombreUsuario(user);
+    };
+
+    const clearDateRange = () => {
+        setDateRange(undefined);
+    };
 
     const openDeleteModal = (reservation: ReservationView) => {
         setReservationToDelete(reservation);
@@ -78,18 +302,20 @@ export function useAllBookings() {
             await cancelarReserva(reservationToDelete.raw);
 
             setReservations((prev) =>
-                prev.map((item) =>
-                    item.id === reservationToDelete.id
-                        ? {
-                            ...item,
-                            status: "cancelada",
-                            raw: {
-                                ...item.raw,
-                                estado: false,
-                            },
-                        }
-                        : item
-                )
+                prev
+                    .map((item): ReservationView =>
+                        item.id === reservationToDelete.id
+                            ? {
+                                ...item,
+                                status: "cancelada" as ReservationView["status"],
+                                raw: {
+                                    ...item.raw,
+                                    estado: false,
+                                },
+                            }
+                            : item
+                    )
+                    .sort(sortReservationsByMostRecent)
             );
 
             toast.success("Operación exitosa", {
@@ -99,6 +325,23 @@ export function useAllBookings() {
             setReservationToDelete(null);
         } catch (error) {
             console.error("Error cancelando reserva:", error);
+
+            const message = error instanceof Error ? error.message : "";
+
+            const isConnectionError =
+                error instanceof TypeError ||
+                message.includes("Failed to fetch") ||
+                message.includes("NetworkError") ||
+                message.includes("ERR_CONNECTION_REFUSED") ||
+                message.includes("ECONNREFUSED");
+
+            if (isConnectionError) {
+                toast.error("No se pudo conectar con el servidor", {
+                    description:
+                        "Verifica que el backend esté encendido e intenta nuevamente.",
+                });
+                return;
+            }
 
             toast.error("La operación no fue exitosa", {
                 description: "No se pudo cancelar la reserva.",
@@ -112,13 +355,27 @@ export function useAllBookings() {
         reservations,
         filteredReservations,
         reservationToDelete,
+        teachers,
         loading,
         error,
         deletingReservationId,
-        searchTerm,
+
+        aulaFilter,
+        pisoFilter,
+        teacherFilter,
         statusFilter,
-        setSearchTerm,
+        dateRange,
+
+        setAulaFilter,
+        setPisoFilter,
+        setTeacherFilter,
         setStatusFilter,
+        setDateRange,
+        clearDateRange,
+
+        getNombreUsuario,
+        getUserNameById,
+
         openDeleteModal,
         closeDeleteModal,
         handleDelete,
