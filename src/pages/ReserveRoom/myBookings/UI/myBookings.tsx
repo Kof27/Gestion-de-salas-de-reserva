@@ -93,7 +93,7 @@ export default function MyReservationsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#f5f6f8] pt-[60px] text-slate-900">
+        <div className="min-h-screen bg-[#f5f6f8] pt-15 text-slate-900">
             <NavbarBookingRoom />
 
             <main className="mx-auto max-w-7xl px-6 pb-16 pt-10 lg:px-8">
@@ -175,7 +175,7 @@ export default function MyReservationsPage() {
 
                     {/* Table */}
                     <div className="overflow-x-auto">
-                        <table className="w-full min-w-[700px]">
+                        <table className="w-full min-w-175">
                             <thead>
                                 <tr className="border-b border-slate-100">
                                     {["#", "Fecha", "Sala", "Horario", "Ubicación", "Motivo", "Estado", ""].map(
@@ -227,7 +227,7 @@ export default function MyReservationsPage() {
                                                 {r.fecha}
                                             </td>
                                             <td className="px-5 py-4 text-sm font-semibold text-slate-800">
-                                                <span className="block max-w-[160px] truncate">
+                                                <span className="block max-w-40 truncate">
                                                     {r.title}
                                                 </span>
                                             </td>
@@ -235,12 +235,12 @@ export default function MyReservationsPage() {
                                                 {r.horaInicio} — {r.horaFin}
                                             </td>
                                             <td className="px-5 py-4 text-sm text-slate-500">
-                                                <span className="block max-w-[140px] truncate">
+                                                <span className="block max-w-35 truncate">
                                                     {r.location}
                                                 </span>
                                             </td>
                                             <td className="px-5 py-4 text-sm text-slate-500">
-                                                <span className="block max-w-[180px] truncate">
+                                                <span className="block max-w-45 truncate">
                                                     {r.motivo}
                                                 </span>
                                             </td>
@@ -288,7 +288,7 @@ export default function MyReservationsPage() {
                                 >
                                     <ChevronLeft className="h-4 w-4" />
                                 </Button>
-                                <span className="min-w-[3rem] text-center text-sm text-slate-600">
+                                <span className="min-w-12 text-center text-sm text-slate-600">
                                     {page} / {totalPages}
                                 </span>
                                 <Button
