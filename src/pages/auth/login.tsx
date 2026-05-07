@@ -45,9 +45,9 @@ function LoginPage() {
             localStorage.setItem('token', data.token);
             console.log('Usuario:', data.usuario);
             if (Number(data.usuario.id_rol) === 1) {
-                router.push('/booking');
-            } else {
                 router.push('/salas');
+            } else {
+                router.push('/booking');
             }
         } catch (err) {
             console.error('Error:', err);
