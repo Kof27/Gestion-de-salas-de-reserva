@@ -124,7 +124,7 @@ export default function ReservationModal({
                             alt={reservation.title}
                             className="h-full w-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                        <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
                         <button
                             onClick={onClose}
                             className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-sm transition-colors hover:bg-black/50"

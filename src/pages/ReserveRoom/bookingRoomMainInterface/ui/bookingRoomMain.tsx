@@ -48,7 +48,7 @@ export default function RoomBookingPage() {
     const salasNoDisponibles = rooms.filter((r) => !r.estado).length;
 
     return (
-        <div className="min-h-screen bg-[#f5f6f8] pt-[60px] text-slate-900">
+        <div className="min-h-screen bg-[#f5f6f8] pt-15 text-slate-900">
             <NavbarBookingRoom />
 
             <main className="mx-auto max-w-7xl px-6 py-8 lg:px-8">

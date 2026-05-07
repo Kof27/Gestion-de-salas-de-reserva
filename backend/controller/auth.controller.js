@@ -110,12 +110,7 @@ const register = async (req, res) => {
             });
         }
 
-        // 🔁 Confirmar contraseña
-        if (contrasena !== confirmarContrasena) {
-            return res.status(400).json({
-                msg: 'Las contraseñas no coinciden'
-            });
-        }
+
 
         // 👤 Verificar usuario existente
         const usuarioExistente = await Usuario.findOne({

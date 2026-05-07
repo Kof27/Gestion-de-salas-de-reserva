@@ -1,39 +1,78 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Loader2, CalendarDays, MapPin, User, Pencil, Trash2 } from "lucide-react";
+import {
+    Loader2,
+    CalendarDays,
+    CalendarIcon,
+    MapPin,
+    User,
+    Pencil,
+    Trash2,
+} from "lucide-react";
 
-import { Navbar } from "@/src/widgets/navbar/ui/Navbar";
+import  Navbar  from "@/src/widgets/navbar/ui/Navbar";
 import { Sidebar } from "@/src/widgets/sidebar/ui/Sidebar";
 import { useAllBookings } from "../hook/useAllBookings";
 import { formatReservationDate } from "../lib/bookingMapper";
 
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+
 export function AllBookingsPage() {
     const {
+        reservations,
         filteredReservations,
         reservationToDelete,
         loading,
         error,
         deletingReservationId,
-        searchTerm,
+
+        aulaFilter,
+        pisoFilter,
         statusFilter,
-        setSearchTerm,
+
+        setAulaFilter,
+        setPisoFilter,
         setStatusFilter,
+
         openDeleteModal,
         closeDeleteModal,
         handleDelete,
+
+        teachers,
+        teacherFilter,
+        setTeacherFilter,
+        getNombreUsuario,
+        getUserNameById,
+
+        dateRange,
+        setDateRange,
+        clearDateRange,
     } = useAllBookings();
 
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar />
+
             <div className="flex">
                 <Sidebar />
 
                 <main className="flex-1 p-8">
                     <div className="mb-6 flex items-start justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900">Gestión de Reservas</h1>
+                            <h1 className="text-3xl font-bold text-gray-900">
+                                Gestión de Reservas
+                            </h1>
+
                             <p className="mt-1 text-sm text-gray-500">
                                 Administrar y consultar todas las reservas de salas
                             </p>
@@ -47,31 +86,149 @@ export function AllBookingsPage() {
                         </Link>
                     </div>
 
-                    <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
                         <div className="rounded-xl border border-gray-200 bg-white p-4">
                             <label className="mb-2 block text-sm font-medium text-gray-700">
-                                Buscar por sala o ubicación
+                                Filtrar por aula
                             </label>
-                            <div className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2">
-                                <Search className="h-4 w-4 text-gray-400" />
-                                <input
-                                    type="text"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    placeholder="Buscar por sala o ubicación..."
-                                    className="w-full bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400"
-                                />
-                            </div>
+
+                            <select
+                                value={aulaFilter}
+                                onChange={(e) =>
+                                    setAulaFilter(
+                                        e.target.value as "todas" | "1" | "2" | "3" | "4"
+                                    )
+                                }
+                                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none"
+                            >
+                                <option value="todas">Todas las aulas</option>
+                                <option value="1">Aula 1</option>
+                                <option value="2">Aula 2</option>
+                                <option value="3">Aula 3</option>
+                                <option value="4">Aula 4</option>
+                            </select>
+                        </div>
+
+                        <div className="rounded-xl border border-gray-200 bg-white p-4">
+                            <label className="mb-2 block text-sm font-medium text-gray-700">
+                                Filtrar por piso
+                            </label>
+
+                            <select
+                                value={pisoFilter}
+                                onChange={(e) =>
+                                    setPisoFilter(
+                                        e.target.value as "todos" | "1" | "2" | "3" | "4"
+                                    )
+                                }
+                                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none"
+                            >
+                                <option value="todos">Todos los pisos</option>
+                                <option value="1">Piso 1</option>
+                                <option value="2">Piso 2</option>
+                                <option value="3">Piso 3</option>
+                                <option value="4">Piso 4</option>
+                            </select>
+                        </div>
+
+                        <div className="rounded-xl border border-gray-200 bg-white p-4">
+                            <label className="mb-2 block text-sm font-medium text-gray-700">
+                                Filtrar por profesor
+                            </label>
+
+                            <select
+                                value={teacherFilter}
+                                onChange={(e) => setTeacherFilter(e.target.value)}
+                                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none"
+                            >
+                                <option value="todos">Todos los profesores</option>
+
+                                {teachers.map((teacher) => (
+                                    <option
+                                        key={teacher.id_usuario}
+                                        value={String(teacher.id_usuario)}
+                                    >
+                                        {getNombreUsuario(teacher)}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="rounded-xl border border-gray-200 bg-white p-4">
+                            <label className="mb-2 block text-sm font-medium text-gray-700">
+                                Filtrar por fecha
+                            </label>
+
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="w-full justify-start px-3 py-2 text-left text-sm font-normal text-gray-700"
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+
+                                        {dateRange?.from ? (
+                                            dateRange.to ? (
+                                                <>
+                                                    {format(dateRange.from, "dd MMM yyyy", {
+                                                        locale: es,
+                                                    })}{" "}
+                                                    -{" "}
+                                                    {format(dateRange.to, "dd MMM yyyy", {
+                                                        locale: es,
+                                                    })}
+                                                </>
+                                            ) : (
+                                                format(dateRange.from, "dd MMM yyyy", {
+                                                    locale: es,
+                                                })
+                                            )
+                                        ) : (
+                                            <span>Seleccionar fecha</span>
+                                        )}
+                                    </Button>
+                                </PopoverTrigger>
+
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                        mode="range"
+                                        selected={dateRange}
+                                        onSelect={setDateRange}
+                                        numberOfMonths={2}
+                                        locale={es}
+                                    />
+
+                                    {dateRange?.from && (
+                                        <div className="border-t border-gray-100 p-3">
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={clearDateRange}
+                                                className="w-full"
+                                            >
+                                                Limpiar fecha
+                                            </Button>
+                                        </div>
+                                    )}
+                                </PopoverContent>
+                            </Popover>
                         </div>
 
                         <div className="rounded-xl border border-gray-200 bg-white p-4">
                             <label className="mb-2 block text-sm font-medium text-gray-700">
                                 Filtrar por estado
                             </label>
+
                             <select
                                 value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value as "todas" | "activas" | "canceladas")}
-                                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 outline-none"
+                                onChange={(e) =>
+                                    setStatusFilter(
+                                        e.target.value as "todas" | "activas" | "canceladas"
+                                    )
+                                }
+                                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none"
                             >
                                 <option value="todas">Todas</option>
                                 <option value="activas">Activas</option>
@@ -88,6 +245,10 @@ export function AllBookingsPage() {
                         <div className="rounded-xl border border-red-200 bg-red-50 p-8 text-center text-red-600">
                             {error}
                         </div>
+                    ) : reservations.length === 0 ? (
+                        <div className="rounded-xl border border-gray-200 bg-white p-8 text-center text-gray-500">
+                            Aún no hay reservas realizadas.
+                        </div>
                     ) : filteredReservations.length === 0 ? (
                         <div className="rounded-xl border border-gray-200 bg-white p-8 text-center text-gray-500">
                             No hay reservas que coincidan con los filtros.
@@ -97,14 +258,30 @@ export function AllBookingsPage() {
                             <table className="w-full">
                                 <thead>
                                     <tr className="border-b border-gray-200">
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Sala</th>
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Ubicación</th>
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Usuario</th>
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Inicio</th>
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Fin</th>
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Motivo</th>
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Estado</th>
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Acciones</th>
+                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                                            Sala
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                                            Ubicación
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                                            Usuario
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                                            Inicio
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                                            Fin
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                                            Motivo
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                                            Estado
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                                            Acciones
+                                        </th>
                                     </tr>
                                 </thead>
 
@@ -119,6 +296,7 @@ export function AllBookingsPage() {
                                                     <div className="flex h-8 w-8 items-center justify-center rounded bg-red-50">
                                                         <CalendarDays className="h-4 w-4 text-red-400" />
                                                     </div>
+
                                                     <span className="text-sm font-medium text-gray-800">
                                                         {reservation.roomName}
                                                     </span>
@@ -135,7 +313,7 @@ export function AllBookingsPage() {
                                             <td className="px-4 py-4">
                                                 <div className="flex items-center gap-1.5 text-sm text-gray-500">
                                                     <User className="h-4 w-4" />
-                                                    {reservation.userId}
+                                                    {getUserNameById(reservation.userId)}
                                                 </div>
                                             </td>
 
@@ -154,11 +332,13 @@ export function AllBookingsPage() {
                                             <td className="px-4 py-4">
                                                 <span
                                                     className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${reservation.status === "activa"
-                                                            ? "bg-green-100 text-green-700"
-                                                            : "bg-gray-200 text-gray-600"
+                                                        ? "bg-green-100 text-green-700"
+                                                        : "bg-gray-200 text-gray-600"
                                                         }`}
                                                 >
-                                                    {reservation.status === "activa" ? "Activa" : "Cancelada"}
+                                                    {reservation.status === "activa"
+                                                        ? "Activa"
+                                                        : "Cancelada"}
                                                 </span>
                                             </td>
 
@@ -166,7 +346,10 @@ export function AllBookingsPage() {
                                                 <div className="flex items-center gap-1">
                                                     <button
                                                         onClick={() => openDeleteModal(reservation)}
-                                                        disabled={reservation.status === "cancelada" || !!deletingReservationId}
+                                                        disabled={
+                                                            reservation.status === "cancelada" ||
+                                                            !!deletingReservationId
+                                                        }
                                                         className="p-1.5 text-gray-400 transition-colors hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
                                                         title="Cancelar reserva"
                                                     >
@@ -217,8 +400,10 @@ export function AllBookingsPage() {
 
                         <p className="mb-7 text-sm leading-relaxed text-gray-500">
                             ¿Está seguro de que desea cancelar la reserva de la sala{" "}
-                            <span className="font-bold text-gray-800">"{reservationToDelete.roomName}"</span>?
-                            Esta acción cambiará el estado de la reserva a cancelada.
+                            <span className="font-bold text-gray-800">
+                                "{reservationToDelete.roomName}"
+                            </span>
+                            ? Esta acción cambiará el estado de la reserva a cancelada.
                         </p>
 
                         <div className="flex gap-3">
@@ -229,6 +414,7 @@ export function AllBookingsPage() {
                             >
                                 Volver
                             </button>
+
                             <button
                                 onClick={handleDelete}
                                 disabled={!!deletingReservationId}

@@ -6,19 +6,21 @@ import { toast } from "sonner";
 
 import type { reserva } from "@/src/entities/reserva";
 import { editarReserva, getReservaById, getReservas } from "@/src/shared/api/getReservas";
-
 import {
     buildEditedReservaPayload,
     generateTimeOptions,
     getAvailableEndTimes,
     getDateInputValue,
     getTimeInputValue,
-    isEndTimeValid,
     hasReservaScheduleConflict,
-} from "@/src/pages/dashboard/editReserva/lib/editbooking";
-
+    isEndTimeValid,
+    rangesOverlap,
+} from "../lib/editbooking";
 import type { usuario } from "@/src/entities/usuario";
 import { getUsuarioById } from "@/src/shared/api/getUsuario";
+
+import { getRooms } from "@/src/shared/api/getRooms";
+
 
 
 
@@ -121,7 +123,10 @@ export function useEditBooking() {
     }, [startTime, endTime, availableEndTimes]);
 
     const handleSave = async () => {
-        if (!reservaId || !reservaActual) return;
+        if (!reservaId || !reservaActual) {
+            toast.error("No se encontró la reserva que deseas editar.");
+            return;
+        }
 
         if (!canSubmit) {
             toast.error("Completa todos los campos correctamente.");
@@ -131,30 +136,6 @@ export function useEditBooking() {
         try {
             setSaving(true);
 
-            // 1. Obtener todas las reservas para validar conflictos
-            const allReservas = await getReservas();
-
-            // 2. Verificar si existe una reserva activa
-            // en la misma sala, misma fecha y con cruce de horario
-            const hasConflict = hasReservaScheduleConflict({
-                reservas: allReservas,
-                reservaActual,
-                fecha,
-                startTime,
-                endTime,
-            });
-
-            // 3. Si hay conflicto, no se actualiza la reserva
-            if (hasConflict) {
-                toast.error("Conflicto de horario", {
-                    description:
-                        "Ya existe una reserva activa para esta sala en el horario seleccionado.",
-                });
-
-                return;
-            }
-
-            // 4. Construir el payload de actualización
             const payload = buildEditedReservaPayload({
                 reservaActual,
                 fecha,
@@ -164,18 +145,56 @@ export function useEditBooking() {
                 estado,
             });
 
-            // 5. Enviar actualización
-            await editarReserva(String(reservaId), payload);
+            const [reservas, rooms] = await Promise.all([
+                getReservas(),
+                getRooms(),
+            ]);
 
-            toast.success("Reserva actualizada", {
-                description: "Los cambios fueron guardados correctamente.",
+            const existeConflicto = hasReservaScheduleConflict({
+                reservas,
+                rooms,
+                reservaActual,
+                fecha,
+                startTime,
+                endTime,
             });
 
-        } catch (error) {
-            console.error("Error editando reserva:", error);
+            if (existeConflicto) {
+                toast.error("Horario no disponible", {
+                    description:
+                        "Ya existe una reserva activa para este mismo espacio en la fecha y franja horaria seleccionada.",
+                });
+                return;
+            }
 
-            toast.error("No se pudo editar la reserva", {
-                description: "Intenta nuevamente más tarde.",
+            await editarReserva(String(reservaId), payload);
+
+            toast.success("Reserva actualizada correctamente.", {
+                description: "Los cambios fueron guardados exitosamente.",
+            });
+
+            router.push("/reservas");
+        } catch (error) {
+            console.error("Error actualizando reserva:", error);
+
+            const message = error instanceof Error ? error.message : "";
+
+            const isConnectionError =
+                error instanceof TypeError ||
+                message.includes("Failed to fetch") ||
+                message.includes("NetworkError") ||
+                message.includes("ERR_CONNECTION_REFUSED") ||
+                message.includes("ECONNREFUSED");
+
+            if (isConnectionError) {
+                toast.error("No se pudo conectar con el servidor", {
+                    description: "Verifica que el backend esté encendido e intenta nuevamente.",
+                });
+                return;
+            }
+
+            toast.error("No se pudo actualizar la reserva", {
+                description: "Ocurrió un error al intentar guardar los cambios.",
             });
         } finally {
             setSaving(false);

@@ -10,6 +10,7 @@ import type { reserva } from "@/src/entities/reserva";
 import type { Sala } from "@/src/entities/room";
 import type { Resource } from "@/src/entities/recurso";
 import type { ReservationView } from "../model/reservationView";
+import { toast } from "sonner";
 
 import {
     getReservationStatus,
@@ -17,6 +18,7 @@ import {
     formatDateOnly,
     formatTimeOnly,
 } from "../lib/myBookingLib";
+
 
 function sortReservasFromNewestToOldest(reservas: reserva[]) {
     return [...reservas].sort((a, b) => {
@@ -110,23 +112,26 @@ export function useMyReservations() {
     }, [loadReservas]);
 
     const handleCancelReservation = React.useCallback(
-        async (id: string) => {
+        async (id: string | number) => {
             try {
-                setCancellingId(id);
+                const idReserva = String(id);
+
+                setCancellingId(idReserva);
 
                 const reservaOriginal = rawReservations.find(
-                    (item) => item.id_reserva === id
+                    (item) => String(item.id_reserva) === idReserva
                 );
 
                 if (!reservaOriginal) {
-                    throw new Error("No se encontró la reserva a cancelar.");
+                    toast.error("No se encontró la reserva seleccionada.");
+                    return;
                 }
 
                 const updatedReserva = await cancelarReserva(reservaOriginal);
 
                 setRawReservations((prev) =>
                     prev.map((item) =>
-                        item.id_reserva === updatedReserva.id_reserva
+                        String(item.id_reserva) === String(updatedReserva.id_reserva)
                             ? updatedReserva
                             : item
                     )
@@ -134,12 +139,31 @@ export function useMyReservations() {
 
                 setReservations((prev) =>
                     prev.map((item) =>
-                        item.id === id ? { ...item, status: "cancelled" } : item
+                        String(item.id) === idReserva
+                            ? { ...item, status: "cancelled" }
+                            : item
                     )
                 );
+
+                toast.success("Reserva cancelada exitosamente.");
             } catch (error) {
                 console.error("Error cancelando reserva:", error);
-                alert("No se pudo cancelar la reserva.");
+
+                const message = error instanceof Error ? error.message : "";
+
+                const isConnectionError =
+                    error instanceof TypeError ||
+                    message.includes("Failed to fetch") ||
+                    message.includes("NetworkError") ||
+                    message.includes("ERR_CONNECTION_REFUSED") ||
+                    message.includes("ECONNREFUSED");
+
+                if (isConnectionError) {
+                    toast.error("No se pudo conectar con el servidor. Verifica que el backend esté encendido.");
+                    return;
+                }
+
+                toast.error("No se pudo cancelar la reserva. Intenta nuevamente.");
             } finally {
                 setCancellingId(null);
             }
