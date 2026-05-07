@@ -64,8 +64,8 @@ const createReservation = async (req, res) => {
 
 const updateReservation = async (req, res) => {
   try {
-    const actorId = req.usuarioAuth.id_usuario;
-    const reserva = await reservationService.updateReservation(req.params.id, req.body, actorId);
+    const { id_usuario: actorId, id_rol: actorRole } = req.usuarioAuth;
+    const reserva = await reservationService.updateReservation(req.params.id, req.body, actorId, actorRole);
     res.json({
       msg: 'Reserva actualizada correctamente',
       reserva: buildReservationResponse(reserva),

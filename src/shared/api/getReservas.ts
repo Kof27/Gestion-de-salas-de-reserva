@@ -72,7 +72,8 @@ async function createReserva(
         });
 
         if (!response.ok) {
-            console.error("Payload que falló:", nuevaReserva);
+            console.error("Error en createReserva - Status:", response.status);
+            console.error("Payload que falló:", JSON.stringify(nuevaReserva, null, 2));
             throw new Error(await getErrorMessage(response));
         }
 
@@ -100,7 +101,9 @@ async function editarReserva(
         });
 
         if (!response.ok) {
-            console.error("Payload que falló:", reservaActualizada);
+            console.error("Error en editarReserva - Status:", response.status);
+            console.error("ID Reserva:", id_reserva);
+            console.error("Payload que falló:", JSON.stringify(reservaActualizada, null, 2));
             throw new Error(await getErrorMessage(response));
         }
 

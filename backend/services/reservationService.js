@@ -106,7 +106,7 @@ const getReservationById = async (id) => {
   return reservation;
 };
 
-const updateReservation = async (id, payload, actorId) => {
+const updateReservation = async (id, payload, actorId, actorRole = 1) => {
   const reservation = await reservationRepository.findReservationById(id);
   if (!reservation) {
     const error = new Error("Reserva no encontrada");
@@ -114,8 +114,11 @@ const updateReservation = async (id, payload, actorId) => {
     throw error;
   }
 
-  if (reservation.id_usuario !== actorId) {
-    const error = new Error("Solo el creador de la reserva puede modificarla");
+  // Permitir edición si:
+  // 1. Es el creador de la reserva (docente)
+  // 2. Es secretaria (id_rol = 2)
+  if (actorRole !== 2 && reservation.id_usuario !== actorId) {
+    const error = new Error("Solo el creador de la reserva o una secretaria pueden modificarla");
     error.status = 403;
     throw error;
   }
