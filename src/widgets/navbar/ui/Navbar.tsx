@@ -91,14 +91,6 @@ export default function Navbar() {
 
       {/* Avatar + logout */}
       <div className="flex items-center gap-2">
-        <Avatar
-          className="h-9 w-9 border border-slate-200 bg-red-500 text-white shadow-sm cursor-default"
-          title={usuario?.nombre}
-        >
-          <AvatarFallback className="bg-red-500 text-sm font-bold text-white">
-            {inicialCorreo}
-          </AvatarFallback>
-        </Avatar>
 
         <button
           onClick={handleLogout}

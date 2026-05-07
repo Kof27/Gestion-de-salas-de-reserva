@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PlusCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 
-import { createRoom } from "@/src/shared/api/getRooms";
+import { createRoom, getRooms } from "@/src/shared/api/getRooms";
 import { getResources, updateResource } from "@/src/shared/api/getRecursos";
 import { RoomResourcesManager } from "@/src/widgets/room_resource/roomResource";
 import CreateRoomSkeleton from "../ui/skeletons/createRoomSkeleton";
@@ -18,16 +18,44 @@ import CreateRoomSkeleton from "../ui/skeletons/createRoomSkeleton";
 import type { Sala } from "@/src/entities/room";
 import type { Resource } from "@/src/entities/recurso";
 
-export function NewRoomPage() {
+type UsuarioSesion = {
+    id_usuario?: number | string;
+    id_facultad?: number | string;
+    id_rol?: number | string;
+    nombre?: string;
+    correo?: string;
+};
 
-    const Usuario = JSON.parse(localStorage.getItem("usuario") || "{}");
+function getUsuarioFromLocalStorage(): UsuarioSesion {
+    if (typeof window === "undefined") return {};
+
+    try {
+        return JSON.parse(localStorage.getItem("usuario") || "{}") as UsuarioSesion;
+    } catch (error) {
+        console.error("Error leyendo usuario desde localStorage:", error);
+        return {};
+    }
+}
+
+function normalizeText(value: string) {
+    return value.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function normalizeLocation(value: string) {
+    return normalizeText(value);
+}
+
+export function NewRoomPage() {
     const router = useRouter();
+
+    const [existingLocations, setExistingLocations] = useState<string[]>([]);
+    const [existingRoomNames, setExistingRoomNames] = useState<string[]>([]);
+    const [usuario, setUsuario] = useState<UsuarioSesion>({});
 
     const [roomName, setRoomName] = useState("");
     const [location, setLocation] = useState("");
     const [description, setDescription] = useState("");
     const [imageUrl, setImageUrl] = useState("");
-    const [faculty] = useState(Usuario.id_facultad ? String(Usuario.id_facultad) : "Facultad de Ingeniería");
     const [capacity, setCapacity] = useState<number[]>([20]);
 
     const [resources, setResources] = useState<Resource[]>([]);
@@ -44,16 +72,36 @@ export function NewRoomPage() {
 
     const [submitAttempted, setSubmitAttempted] = useState(false);
 
+    const faculty = usuario.id_facultad
+        ? String(usuario.id_facultad)
+        : "Facultad";
+
     const buildUbicacion = () => `A${aula}. Salón ${aula}${piso}${salon.trim()}`;
 
+    const hasNameConflict = useMemo(() => {
+        if (!roomName.trim()) return false;
+
+        return existingRoomNames.includes(normalizeText(roomName));
+    }, [existingRoomNames, roomName]);
+
+    const hasLocationConflict = useMemo(() => {
+        if (!salon.trim()) return false;
+
+        return existingLocations.includes(normalizeLocation(buildUbicacion()));
+    }, [existingLocations, aula, piso, salon]);
+
     const isRoomNameInvalid = submitAttempted && !roomName.trim();
+    const isRoomNameDuplicate = hasNameConflict;
     const isSalonInvalid = submitAttempted && !salon.trim();
     const isDescriptionInvalid = submitAttempted && !description.trim();
+    const isLocationInvalid = submitAttempted && hasLocationConflict;
 
     const isFormValid =
         roomName.trim() &&
         salon.trim() &&
-        description.trim();
+        description.trim() &&
+        !hasNameConflict &&
+        !hasLocationConflict;
 
     const requiredInputClass = (hasError: boolean) =>
         `h-10 rounded-lg text-sm ${hasError
@@ -67,22 +115,45 @@ export function NewRoomPage() {
             : "border-gray-200"
         }`;
 
-    const loadResources = useCallback(async () => {
+    const loadInitialData = useCallback(async () => {
         try {
             setLoadingResources(true);
-            const backendResources = await getResources();
+
+            const currentUser = getUsuarioFromLocalStorage();
+            setUsuario(currentUser);
+
+            const [backendResources, backendRooms] = await Promise.all([
+                getResources(),
+                getRooms(),
+            ]);
+
+            const locations = backendRooms
+                .map((room) => normalizeLocation(room.ubicacion || ""))
+                .filter(Boolean);
+
+            const roomNames = backendRooms
+                .filter((room) => {
+                    if (!currentUser.id_facultad) return false;
+
+                    return String(room.id_facultad) === String(currentUser.id_facultad);
+                })
+                .map((room) => normalizeText(room.nombre || ""))
+                .filter(Boolean);
+
+            setExistingLocations(locations);
+            setExistingRoomNames(roomNames);
             setAllResources(backendResources);
         } catch (error) {
-            console.error("Error cargando recursos:", error);
-            toast.error("No se pudieron cargar los recursos disponibles.");
+            console.error("Error cargando datos iniciales:", error);
+            toast.error("No se pudieron cargar los datos iniciales.");
         } finally {
             setLoadingResources(false);
         }
     }, []);
 
     useEffect(() => {
-        loadResources();
-    }, [loadResources]);
+        loadInitialData();
+    }, [loadInitialData]);
 
     useEffect(() => {
         setLocation(buildUbicacion());
@@ -114,7 +185,9 @@ export function NewRoomPage() {
         setResources((prev) => [...prev, localResource]);
 
         setPendingAssignedResourceIds((prev) =>
-            prev.includes(selectedResourceId) ? prev : [...prev, selectedResourceId]
+            prev.includes(selectedResourceId)
+                ? prev
+                : [...prev, selectedResourceId]
         );
 
         setSelectedResourceId("");
@@ -135,7 +208,26 @@ export function NewRoomPage() {
     const handleSubmit = async () => {
         setSubmitAttempted(true);
 
+        if (hasNameConflict) {
+            toast.error("No se puede crear la sala", {
+                description: "Ya existe una sala con este nombre.",
+            });
+            return;
+        }
+
+        if (hasLocationConflict) {
+            toast.error("No se puede crear la sala", {
+                description: "Ya existe una sala en esta ubicación.",
+            });
+            return;
+        }
+
         if (!isFormValid) {
+            return;
+        }
+
+        if (!usuario.id_facultad) {
+            toast.error("No se pudo identificar la facultad del usuario.");
             return;
         }
 
@@ -143,7 +235,7 @@ export function NewRoomPage() {
             setSubmitting(true);
 
             const payload: Omit<Sala, "id_sala"> = {
-                id_facultad: Usuario.id_facultad,
+                id_facultad: Number(usuario.id_facultad),
                 capacidad: capacity[0],
                 estado: true,
                 fecha_creacion: new Date().toISOString(),
@@ -180,7 +272,7 @@ export function NewRoomPage() {
                 description: `Se registró ${result.nombre} y se asignaron sus recursos.`,
             });
 
-            await loadResources();
+            await loadInitialData();
 
             setRoomName("");
             setLocation("");
@@ -241,12 +333,20 @@ export function NewRoomPage() {
                                         value={roomName}
                                         onChange={(e) => setRoomName(e.target.value)}
                                         placeholder="ej. Sala de Juntas 1"
-                                        className={requiredInputClass(isRoomNameInvalid)}
+                                        className={requiredInputClass(
+                                            isRoomNameInvalid || isRoomNameDuplicate
+                                        )}
                                     />
 
                                     {isRoomNameInvalid && (
                                         <p className="mt-1 text-xs text-red-500">
                                             El nombre de la sala es obligatorio.
+                                        </p>
+                                    )}
+
+                                    {!isRoomNameInvalid && isRoomNameDuplicate && (
+                                        <p className="mt-1 text-xs font-medium text-red-500">
+                                            Ya existe una sala con este nombre.
                                         </p>
                                     )}
                                 </div>
@@ -289,7 +389,9 @@ export function NewRoomPage() {
                                                 setSalon(e.target.value.replace(/\D/g, ""))
                                             }
                                             placeholder="Salón"
-                                            className={requiredInputClass(isSalonInvalid)}
+                                            className={requiredInputClass(
+                                                isSalonInvalid || isLocationInvalid
+                                            )}
                                         />
                                     </div>
 
@@ -302,8 +404,17 @@ export function NewRoomPage() {
                                     <Input
                                         value={location}
                                         readOnly
-                                        className="mt-2 h-10 rounded-lg border-gray-200 bg-gray-50 text-sm text-gray-500"
+                                        className={`mt-2 h-10 rounded-lg bg-gray-50 text-sm ${hasLocationConflict
+                                            ? "border-red-500 text-red-600 focus-visible:ring-red-500"
+                                            : "border-gray-200 text-gray-500"
+                                            }`}
                                     />
+
+                                    {hasLocationConflict && (
+                                        <p className="mt-1 text-xs font-medium text-red-500">
+                                            Ya existe una sala en esta ubicación.
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>
@@ -365,7 +476,8 @@ export function NewRoomPage() {
                                 <div>
                                     <div className="mb-3 flex items-center justify-between">
                                         <Label className="text-sm font-medium text-gray-700">
-                                            Capacidad (2-100) <span className="text-red-500">*</span>
+                                            Capacidad (2-100){" "}
+                                            <span className="text-red-500">*</span>
                                         </Label>
 
                                         <span className="text-xl font-bold text-red-500">
@@ -412,7 +524,12 @@ export function NewRoomPage() {
                             <button
                                 type="button"
                                 onClick={handleSubmit}
-                                disabled={submitting || loadingResources}
+                                disabled={
+                                    submitting ||
+                                    loadingResources ||
+                                    hasLocationConflict ||
+                                    hasNameConflict
+                                }
                                 className="flex items-center gap-2 rounded-lg bg-red-500 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70"
                             >
                                 <PlusCircle className="h-4 w-4" />
