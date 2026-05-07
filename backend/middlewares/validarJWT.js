@@ -3,6 +3,9 @@ const { obtenerSecreto } = require('../helpers/generarJWT');
 
 /**
  * Exige cabecera Authorization: Bearer <token> y adjunta el payload en req.usuarioAuth.
+ * 
+ * Payload esperado: { id_usuario, correo, id_rol, id_facultad }
+ * Disponible en: req.usuarioAuth
  */
 const validarJWT = (req, res, next) => {
     const authHeader = req.header('Authorization') || req.header('authorization');
@@ -18,7 +21,7 @@ const validarJWT = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, obtenerSecreto());
-        req.usuario = decoded;
+        req.usuarioAuth = decoded; // Mantener consistencia con el resto del código
         next();
     } catch (error) {
         if (error.name === 'TokenExpiredError') {

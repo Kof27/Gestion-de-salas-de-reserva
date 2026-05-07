@@ -1,5 +1,8 @@
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../../.env') });
+
+// Intentar cargar .env desde múltiples ubicaciones
+require('dotenv').config({ path: path.join(__dirname, '../.env') }); // /backend/.env
+require('dotenv').config({ path: path.join(__dirname, '../../.env') }); // Raíz del proyecto
 
 const { Sequelize } = require('sequelize');
 
@@ -10,14 +13,22 @@ const host = process.env.DB_HOST || 'localhost';
 const port = process.env.DB_PORT || '3306';
 
 const useSsl = process.env.DB_SSL !== 'false';
-console.log('HOST BD:', process.env.DB_HOST);
-console.log('PORT BD:', process.env.DB_PORT);
-console.log('DB NAME:', process.env.DB_NAME);
+
+// Logging mejorado
+console.log('═══════════════════════════════════════════════════');
+console.log('📊 CONFIGURACIÓN DE BASE DE DATOS');
+console.log('═══════════════════════════════════════════════════');
+console.log('HOST BD:', host);
+console.log('PORT BD:', port);
+console.log('DB NAME:', database);
+console.log('DB USER:', username);
+console.log('SSL ENABLED:', useSsl);
+console.log('═══════════════════════════════════════════════════');
+
 const dialectOptions = useSsl
     ? {
           ssl: {
               require: true,
-              // Aiven / muchos proveedores cloud: sin CA explícita suele fallar con rejectUnauthorized true
               rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true',
           },
       }

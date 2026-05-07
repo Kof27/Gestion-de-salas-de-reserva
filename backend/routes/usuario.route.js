@@ -1,10 +1,18 @@
 const { Router } = require('express');
 const Usuario = require('../models/usuario');
+const { esSecretaria } = require('../middlewares/autorizarRol');
 
 const router = Router();
 
-// Listar todos los usuarios
-router.get('/', async (req, res) => {
+/**
+ * RUTAS DE USUARIOS - SOLO SECRETARIAS
+ * 
+ * Las secretarias (id_rol = 2) pueden gestionar todos los usuarios.
+ * Los docentes (id_rol = 1) no tienen acceso.
+ */
+
+// GET /api/usuarios - Listar todos los usuarios
+router.get('/', esSecretaria, async (req, res) => {
   try {
     const usuarios = await Usuario.findAll();
     res.json(usuarios);
@@ -14,8 +22,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Obtener usuario por ID
-router.get('/:id', async (req, res) => {
+// GET /api/usuarios/:id - Obtener usuario por ID
+router.get('/:id', esSecretaria, async (req, res) => {
   try {
     const usuario = await Usuario.findByPk(req.params.id);
     if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado' });
@@ -26,8 +34,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Crear usuario
-router.post('/', async (req, res) => {
+// POST /api/usuarios - Crear usuario
+router.post('/', esSecretaria, async (req, res) => {
   try {
     const usuario = await Usuario.create(req.body);
     res.status(201).json(usuario);
@@ -37,8 +45,8 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Actualizar usuario
-router.put('/:id', async (req, res) => {
+// PUT /api/usuarios/:id - Actualizar usuario
+router.put('/:id', esSecretaria, async (req, res) => {
   try {
     const [updatedCount] = await Usuario.update(req.body, {
       where: { id_usuario: req.params.id },
@@ -53,7 +61,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Eliminar usuario
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', esSecretaria, async (req, res) => {
   try {
     const deletedCount = await Usuario.destroy({ where: { id_usuario: req.params.id } });
     if (!deletedCount) return res.status(404).json({ message: 'Usuario no encontrado' });
