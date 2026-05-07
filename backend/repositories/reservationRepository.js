@@ -42,6 +42,13 @@ const findReservations = async () => {
   return Reserva.findAll();
 };
 
+const findReservationsByUserId = async (id_usuario) => {
+  return Reserva.findAll({
+    where: { id_usuario },
+    order: [['fecha', 'DESC'], ['hora_inicio', 'DESC']],
+  });
+};
+
 module.exports = {
   findReservationById,
   findActiveOverlap,
@@ -49,4 +56,5 @@ module.exports = {
   updateReservation,
   cancelReservation,
   findReservations,
+  findReservationsByUserId,
 };
