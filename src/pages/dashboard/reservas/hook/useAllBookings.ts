@@ -167,15 +167,11 @@ export function useAllBookings() {
                 ]);
 
                 setUsers(usuariosData);
-
+                console.log("Usuarios cargados:", usuariosData);
                 const secretariaIdFacultad = secretaria?.id_facultad;
-
-                const usuariosMismaFacultad = usuariosData.filter((user) => {
-                    if (!secretariaIdFacultad) return false;
-
-                    return String(user.id_facultad) === String(secretariaIdFacultad);
-                });
-
+                console.log("Secretaria ID Facultad:", secretariaIdFacultad);
+                const usuariosMismaFacultad = usuariosData.filter((user) => user.id_facultad === secretariaIdFacultad);
+                console.log("Usuarios de la misma facultad:", usuariosMismaFacultad);
                 setTeachers(usuariosMismaFacultad);
 
                 const reservasMismaFacultad = reservasData.filter((reserva) => {
