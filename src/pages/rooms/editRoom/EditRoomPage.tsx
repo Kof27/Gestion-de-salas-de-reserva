@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Navbar2 } from "@/src/widgets/navbar2/ui/Navbar2";
+import  Navbar2  from "@/src/widgets/navbar2/ui/Navbar2";
 import { getRoomById, updateRoom } from "@/src/shared/api/getRooms";
 import { getResources, updateResource } from "@/src/shared/api/getRecursos";
 import { RoomResourcesManager } from "@/src/widgets/room_resource/roomResource";
