@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
 import Image from "next/image"
+import { toast } from "sonner";
 
 function RegisterPage() {
     const [name, setName] = useState("")
@@ -66,7 +67,7 @@ function RegisterPage() {
             const data = await response.json()
 
             if (response.ok) {
-                alert('Usuario registrado exitosamente')
+                toast.success("Registro exitoso. Redirigiendo a login...")
                 window.location.href = '/login'
             } else {
                 setError(data.msg || 'Error al registrar')
