@@ -19,13 +19,15 @@ import type { Sala } from "@/src/entities/room";
 import type { Resource } from "@/src/entities/recurso";
 
 export function NewRoomPage() {
+
+    const Usuario = JSON.parse(localStorage.getItem("usuario") || "{}");
     const router = useRouter();
 
     const [roomName, setRoomName] = useState("");
     const [location, setLocation] = useState("");
     const [description, setDescription] = useState("");
     const [imageUrl, setImageUrl] = useState("");
-    const [faculty] = useState("Facultad de Ingeniería");
+    const [faculty] = useState(Usuario.id_facultad ? String(Usuario.id_facultad) : "Facultad de Ingeniería");
     const [capacity, setCapacity] = useState<number[]>([20]);
 
     const [resources, setResources] = useState<Resource[]>([]);
@@ -141,7 +143,7 @@ export function NewRoomPage() {
             setSubmitting(true);
 
             const payload: Omit<Sala, "id_sala"> = {
-                id_facultad: 1,
+                id_facultad: Usuario.id_facultad,
                 capacidad: capacity[0],
                 estado: true,
                 fecha_creacion: new Date().toISOString(),
@@ -214,7 +216,7 @@ export function NewRoomPage() {
                                 Crear Nueva Sala
                             </h1>
                             <p className="mt-1 text-sm text-gray-400">
-                                Agregar un nuevo espacio para la Facultad de Ingeniería.
+                                Agregar un nuevo espacio tu facultad.
                             </p>
                         </div>
 

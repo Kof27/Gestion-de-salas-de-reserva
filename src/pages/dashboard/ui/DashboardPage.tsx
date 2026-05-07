@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Navbar } from "@/src/widgets/navbar/ui/Navbar";
+import  Navbar  from "@/src/widgets/navbar/ui/Navbar";
 import { Sidebar } from "@/src/widgets/sidebar/ui/Sidebar";
 import { getRooms, updateRoom, deleteRoom } from "@/src/shared/api/getRooms";
 import { getResources, updateResource } from "@/src/shared/api/getRecursos";

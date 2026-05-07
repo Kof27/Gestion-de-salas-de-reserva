@@ -7,6 +7,29 @@ import type { Sala } from "@/src/entities/room";
 
 export type RoomStatusFilter = "all" | "available" | "unavailable";
 
+type UsuarioSesion = {
+    id_usuario: number | string;
+    id_facultad: number | string;
+    id_rol?: number | string;
+    nombre?: string;
+    correo?: string;
+};
+
+function getUsuarioFromLocalStorage(): UsuarioSesion | null {
+    if (typeof window === "undefined") return null;
+
+    const storedUser = localStorage.getItem("usuario");
+
+    if (!storedUser) return null;
+
+    try {
+        return JSON.parse(storedUser) as UsuarioSesion;
+    } catch (error) {
+        console.error("Error leyendo usuario desde localStorage:", error);
+        return null;
+    }
+}
+
 export function useRoomBooking() {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<RoomStatusFilter>("all");
@@ -21,8 +44,21 @@ export function useRoomBooking() {
             setLoading(true);
             setError(null);
 
+            const usuario = getUsuarioFromLocalStorage();
+
+            if (!usuario?.id_facultad) {
+                setRooms([]);
+                setError("No se pudo identificar la facultad del usuario.");
+                return;
+            }
+
             const data = await getRooms();
-            setRooms(data);
+
+            const roomsMismaFacultad = data.filter((room) => {
+                return String(room.id_facultad) === String(usuario.id_facultad);
+            });
+
+            setRooms(roomsMismaFacultad);
         } catch (err) {
             console.error("Error al cargar las salas:", err);
             setError("Error al cargar las salas");
@@ -39,11 +75,16 @@ export function useRoomBooking() {
         const normalizedSearch = search.trim().toLowerCase();
 
         return rooms.filter((room) => {
-            const matchesSearch = !normalizedSearch || room.nombre.toLowerCase().includes(normalizedSearch);
+            const matchesSearch =
+                !normalizedSearch ||
+                room.nombre.toLowerCase().includes(normalizedSearch) ||
+                room.ubicacion.toLowerCase().includes(normalizedSearch);
+
             const matchesStatus =
                 statusFilter === "all" ||
                 (statusFilter === "available" && room.estado) ||
                 (statusFilter === "unavailable" && !room.estado);
+
             return matchesSearch && matchesStatus;
         });
     }, [search, statusFilter, rooms]);

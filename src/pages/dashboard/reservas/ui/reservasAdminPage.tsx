@@ -11,7 +11,7 @@ import {
     Trash2,
 } from "lucide-react";
 
-import { Navbar } from "@/src/widgets/navbar/ui/Navbar";
+import  Navbar  from "@/src/widgets/navbar/ui/Navbar";
 import { Sidebar } from "@/src/widgets/sidebar/ui/Sidebar";
 import { useAllBookings } from "../hook/useAllBookings";
 import { formatReservationDate } from "../lib/bookingMapper";
