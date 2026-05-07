@@ -114,7 +114,7 @@ const updateReservation = async (id, payload, actorId) => {
   return updatedReservation;
 };
 
-const cancelReservation = async (id, actorId) => {
+const cancelReservation = async (id, actorId, actorRole = 1) => {
   const reservation = await reservationRepository.findReservationById(id);
   if (!reservation) {
     const error = new Error('Reserva no encontrada');
@@ -122,8 +122,11 @@ const cancelReservation = async (id, actorId) => {
     throw error;
   }
 
-  if (reservation.id_usuario !== actorId) {
-    const error = new Error('Solo el creador de la reserva puede cancelarla');
+  // Permitir cancelación si:
+  // 1. Es el creador de la reserva (docente)
+  // 2. Es secretaria (id_rol = 2)
+  if (actorRole !== 2 && reservation.id_usuario !== actorId) {
+    const error = new Error('Solo el creador de la reserva o una secretaria pueden cancelarla');
     error.status = 403;
     throw error;
   }
@@ -139,10 +142,23 @@ const cancelReservation = async (id, actorId) => {
   return canceledReservation;
 };
 
+const getTeacherReservationHistory = async (userId) => {
+  const user = await Usuario.findByPk(userId);
+  if (!user) {
+    const error = new Error('Usuario no encontrado');
+    error.status = 404;
+    throw error;
+  }
+
+  const reservations = await reservationRepository.findReservationsByUserId(userId);
+  return reservations;
+};
+
 module.exports = {
   createReservation,
   getAllReservations,
   getReservationById,
   updateReservation,
   cancelReservation,
+  getTeacherReservationHistory,
 };

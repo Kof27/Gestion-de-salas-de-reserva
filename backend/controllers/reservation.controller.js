@@ -12,9 +12,24 @@ const handleError = (res, error) => {
   return res.status(status).json(payload);
 };
 
+/**
+ * GET /api/reservas
+ * - Docente (id_rol=1): obtiene solo sus reservas
+ * - Secretaria (id_rol=2): obtiene todas las reservas
+ */
 const getReservations = async (req, res) => {
   try {
-    const reservas = await reservationService.getAllReservations();
+    const { id_rol, id_usuario } = req.usuarioAuth;
+    
+    let reservas;
+    if (id_rol === 1) {
+      // Docente: solo sus reservas
+      reservas = await reservationService.getTeacherReservationHistory(id_usuario);
+    } else {
+      // Secretaria u otro: todas las reservas
+      reservas = await reservationService.getAllReservations();
+    }
+    
     res.json(reservas.map(buildReservationResponse));
   } catch (error) {
     console.error('Error getReservations:', error);
@@ -63,8 +78,8 @@ const updateReservation = async (req, res) => {
 
 const cancelReservation = async (req, res) => {
   try {
-    const actorId = req.usuarioAuth.id_usuario;
-    const reserva = await reservationService.cancelReservation(req.params.id, actorId);
+    const { id_usuario: actorId, id_rol: actorRole } = req.usuarioAuth;
+    const reserva = await reservationService.cancelReservation(req.params.id, actorId, actorRole);
     res.json({
       msg: 'Reserva cancelada correctamente',
       reserva: buildReservationResponse(reserva),
@@ -75,10 +90,22 @@ const cancelReservation = async (req, res) => {
   }
 };
 
+const getTeacherHistory = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const reservas = await reservationService.getTeacherReservationHistory(userId);
+    res.json(reservas.map(buildReservationResponse));
+  } catch (error) {
+    console.error('Error getTeacherHistory:', error);
+    handleError(res, error);
+  }
+};
+
 module.exports = {
   getReservations,
   getReservationById,
   createReservation,
   updateReservation,
   cancelReservation,
+  getTeacherHistory,
 };
