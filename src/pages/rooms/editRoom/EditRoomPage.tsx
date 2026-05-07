@@ -266,11 +266,10 @@ export function EditRoomPage() {
     try {
       setSaving(true);
 
-      const roomPayload: Omit<Sala, "id_sala"> = {
+      const roomPayload: Omit<Sala, "id_sala" | "fecha_creacion"> = {
         id_facultad: roomData.id_facultad,
         capacidad: Number(capacity),
         estado: enabled,
-        fecha_creacion: roomData.fecha_creacion,
         imagen_sala: roomData.imagen_sala,
         nombre: name.trim(),
         ubicacion: buildUbicacion(),
@@ -557,7 +556,7 @@ export function EditRoomPage() {
 
           <div className="mt-8 flex justify-end gap-3 border-t border-gray-100 pt-6">
             <button
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push("/salas")}
               disabled={saving}
               className="rounded-lg border border-gray-200 px-6 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
             >

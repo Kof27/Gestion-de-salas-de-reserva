@@ -15,7 +15,8 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const sala = await SalaReunion.findByPk(req.params.id);
+    const id = parseInt(req.params.id);
+    const sala = await SalaReunion.findByPk(id);
     if (!sala) return res.status(404).json({ message: 'Sala no encontrada' });
     res.json(sala);
   } catch (error) {
@@ -36,9 +37,10 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const [updatedCount] = await SalaReunion.update(req.body, { where: { id_sala: req.params.id } });
+    const id = parseInt(req.params.id);
+    const [updatedCount] = await SalaReunion.update(req.body, { where: { id_sala: id } });
     if (!updatedCount) return res.status(404).json({ message: 'Sala no encontrada' });
-    const updated = await SalaReunion.findByPk(req.params.id);
+    const updated = await SalaReunion.findByPk(id);
     res.json(updated);
   } catch (error) {
     console.error(error);
@@ -48,7 +50,8 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    const deletedCount = await SalaReunion.destroy({ where: { id_sala: req.params.id } });
+    const id = parseInt(req.params.id);
+    const deletedCount = await SalaReunion.destroy({ where: { id_sala: id } });
     if (!deletedCount) return res.status(404).json({ message: 'Sala no encontrada' });
     res.json({ message: 'Sala eliminada' });
   } catch (error) {
