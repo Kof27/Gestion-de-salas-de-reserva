@@ -60,7 +60,7 @@ export default function BookingRoomWindows({ roomId, onClose }: BookingRoomWindo
 
     if (loading) {
         return (
-            <div className="w-[95vw] max-w-[1100px] h-[85vh] bg-white rounded-2xl flex items-center justify-center">
+            <div className="w-[95vw] max-w-275 h-[85vh] bg-white rounded-2xl flex items-center justify-center">
                 <p className="text-sm text-slate-400">Cargando sala...</p>
             </div>
         );
@@ -68,14 +68,14 @@ export default function BookingRoomWindows({ roomId, onClose }: BookingRoomWindo
 
     if (error || !room) {
         return (
-            <div className="w-[95vw] max-w-[1100px] h-[85vh] bg-white rounded-2xl flex items-center justify-center">
+            <div className="w-[95vw] max-w-275 h-[85vh] bg-white rounded-2xl flex items-center justify-center">
                 <p className="text-sm text-red-500">{error || "No se pudo cargar la sala"}</p>
             </div>
         );
     }
 
     return (
-        <div className="w-[95vw] max-w-[1100px] h-[85vh] bg-white rounded-2xl flex flex-col overflow-hidden shadow-2xl">
+        <div className="w-[95vw] max-w-275 h-[85vh] bg-white rounded-2xl flex flex-col overflow-hidden shadow-2xl">
 
             {/* ── Header ── */}
             <div className="shrink-0 border-b border-slate-100 px-6 py-4 flex items-center gap-4">

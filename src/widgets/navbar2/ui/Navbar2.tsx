@@ -1,16 +1,17 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const links = [
-  { label: 'Salas',    href: '/salas' },
-  { label: 'Reservas', href: '/reservas'  },
-  { label: 'Reportes', href: '/reportes'  },
+  { label: 'Salas', href: '/salas' },
+  { label: 'Reservas', href: '/reservas' },
+  { label: 'Reportes', href: '/reportes' },
 ]
 
-export const Navbar2 = () => {
+export default function Navbar2() {
   const pathname = usePathname() ?? ''
-
+  const usuario = JSON.parse(localStorage.getItem('usuario') || 'null')
   return (
     <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-8">
       <div className="flex items-center gap-2">
@@ -29,11 +30,10 @@ export const Navbar2 = () => {
             <Link
               key={link.href}
               href={link.href}
-              className={`text-sm font-medium pb-0.5 transition-colors ${
-                active
+              className={`text-sm font-medium pb-0.5 transition-colors ${active
                   ? 'text-red-500 border-b-2 border-red-500'
                   : 'text-gray-500 hover:text-gray-800'
-              }`}
+                }`}
             >
               {link.label}
             </Link>
@@ -41,8 +41,16 @@ export const Navbar2 = () => {
         })}
       </nav>
 
-      <div className="w-9 h-9 rounded-full bg-orange-200 flex items-center justify-center text-orange-600 text-sm font-medium">
-        U
+      <div className="flex items-center gap-2">
+        <Avatar
+          className="h-9 w-9 border border-slate-200 bg-red-500 text-white shadow-sm cursor-default"
+          title={usuario?.nombre}
+        >
+          <AvatarFallback className="bg-red-500 text-sm font-bold text-white">
+            {usuario?.correo?.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+
       </div>
     </header>
   )

@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { usuario } from "@/src/entities/usuario";
 
 type NavKey = "salas" | "reservas" | "admin";
 
@@ -14,15 +15,6 @@ interface NavbarBookingRoomProps {
     activeTab?: NavKey;
 }
 
-interface Usuario {
-    id_usuario: number;
-    id_facultad: number;
-    id_rol: number;
-    nombre: string;
-    correo: string;
-    estado: boolean;
-    fecha_registro: string;
-}
 
 const navItems = [
     { key: "salas", label: "Salas disponibles", href: "/booking" },
@@ -33,11 +25,11 @@ const navItems = [
 export default function NavbarBookingRoom({ activeTab }: NavbarBookingRoomProps) {
     const pathname = usePathname();
     const router = useRouter();
-    const [usuario] = useState<Usuario | null>(() => {
+    const [usuario] = useState<usuario | null>(() => {
         if (typeof window === "undefined") return null;
         try {
             const raw = localStorage.getItem("usuario");
-            return raw ? (JSON.parse(raw) as Usuario) : null;
+            return raw ? (JSON.parse(raw) as usuario) : null;
         } catch {
             return null;
         }

@@ -3,10 +3,39 @@ import { apiFetch } from "./apiClient";
 
 const BASE = "/api/reservas";
 
+type ReservaApiResponse = {
+    msg?: string;
+    reserva: reserva;
+};
+
+async function getErrorMessage(response: Response) {
+    const text = await response.text().catch(() => "");
+
+    if (!text) {
+        return `Error ${response.status}: ${response.statusText}`;
+    }
+
+    try {
+        const data = JSON.parse(text);
+
+        if (Array.isArray(data.errors)) {
+            return `${data.msg || "Error de validación"}: ${data.errors.join(" ")}`;
+        }
+
+        return data.msg || data.message || text;
+    } catch {
+        return text;
+    }
+}
+
 async function getReservas(): Promise<reserva[]> {
     try {
         const response = await apiFetch(BASE);
-        if (!response.ok) throw new Error(`Error fetching reservas: ${response.statusText}`);
+
+        if (!response.ok) {
+            throw new Error(await getErrorMessage(response));
+        }
+
         return response.json();
     } catch (error) {
         console.error("Error fetching reservas:", error);
@@ -14,10 +43,18 @@ async function getReservas(): Promise<reserva[]> {
     }
 }
 
-async function getReservaById(id_reserva: string): Promise<reserva> {
+async function getReservaById(id_reserva: string | number): Promise<reserva> {
     try {
+        if (!id_reserva) {
+            throw new Error("El id_reserva es obligatorio.");
+        }
+
         const response = await apiFetch(`${BASE}/${id_reserva}`);
-        if (!response.ok) throw new Error(`Error fetching reserva: ${response.statusText}`);
+
+        if (!response.ok) {
+            throw new Error(await getErrorMessage(response));
+        }
+
         return response.json();
     } catch (error) {
         console.error("Error fetching reserva:", error);
@@ -26,15 +63,23 @@ async function getReservaById(id_reserva: string): Promise<reserva> {
 }
 
 async function createReserva(
-    reserva: Omit<reserva, "id_reserva" | "fecha_creacion">
+    nuevaReserva: Omit<reserva, "id_reserva" | "fecha_creacion">
 ): Promise<reserva> {
     try {
         const response = await apiFetch(BASE, {
             method: "POST",
-            body: JSON.stringify(reserva),
+            body: JSON.stringify(nuevaReserva),
         });
-        if (!response.ok) throw new Error(`Error creating reserva: ${response.statusText}`);
-        return response.json();
+
+        if (!response.ok) {
+            console.error("Error en createReserva - Status:", response.status);
+            console.error("Payload que falló:", JSON.stringify(nuevaReserva, null, 2));
+            throw new Error(await getErrorMessage(response));
+        }
+
+        const data: ReservaApiResponse = await response.json();
+
+        return data.reserva;
     } catch (error) {
         console.error("Error creating reserva:", error);
         throw error;
@@ -42,16 +87,29 @@ async function createReserva(
 }
 
 async function editarReserva(
-    id_reserva: string,
+    id_reserva: string | number,
     reservaActualizada: Omit<reserva, "id_reserva" | "fecha_creacion">
 ): Promise<reserva> {
     try {
+        if (!id_reserva) {
+            throw new Error("El id_reserva es obligatorio.");
+        }
+
         const response = await apiFetch(`${BASE}/${id_reserva}`, {
             method: "PUT",
             body: JSON.stringify(reservaActualizada),
         });
-        if (!response.ok) throw new Error(`Error editando reserva: ${response.statusText}`);
-        return response.json();
+
+        if (!response.ok) {
+            console.error("Error en editarReserva - Status:", response.status);
+            console.error("ID Reserva:", id_reserva);
+            console.error("Payload que falló:", JSON.stringify(reservaActualizada, null, 2));
+            throw new Error(await getErrorMessage(response));
+        }
+
+        const data: ReservaApiResponse = await response.json();
+
+        return data.reserva;
     } catch (error) {
         console.error("Error editando reserva:", error);
         throw error;
@@ -64,27 +122,27 @@ async function cancelarReserva(reservaActual: reserva): Promise<reserva> {
             throw new Error("La reserva no tiene un id_reserva válido.");
         }
 
-        const payload: Omit<reserva, "id_reserva"> = {
-            id_sala: reservaActual.id_sala,
-            id_usuario: reservaActual.id_usuario,
-            fecha: reservaActual.fecha,
-            hora_inicio: reservaActual.hora_inicio,
-            hora_fin: reservaActual.hora_fin,
-            motivo: reservaActual.motivo,
-            estado: false,
-            fecha_creacion: reservaActual.fecha_creacion,
-        };
-
         const response = await apiFetch(`${BASE}/${reservaActual.id_reserva}`, {
-            method: "PUT",
-            body: JSON.stringify(payload),
+            method: "DELETE",
         });
-        if (!response.ok) throw new Error(`Error cancelando reserva: ${response.statusText}`);
-        return response.json();
+
+        if (!response.ok) {
+            throw new Error(await getErrorMessage(response));
+        }
+
+        const data: ReservaApiResponse = await response.json();
+
+        return data.reserva;
     } catch (error) {
         console.error("Error cancelando reserva:", error);
         throw error;
     }
 }
 
-export { getReservas, getReservaById, createReserva, editarReserva, cancelarReserva };
+export {
+    getReservas,
+    getReservaById,
+    createReserva,
+    editarReserva,
+    cancelarReserva,
+};

@@ -2,7 +2,7 @@
 
 import { CalendarDays, Clock, FileText, Loader2, Save, X } from "lucide-react";
 
-import { Navbar2 } from "@/src/widgets/navbar2/ui/Navbar2";
+import Navbar2  from "@/src/widgets/navbar2/ui/Navbar2";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 

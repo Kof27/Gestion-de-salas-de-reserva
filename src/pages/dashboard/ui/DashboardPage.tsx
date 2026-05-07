@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Navbar } from "@/src/widgets/navbar/ui/Navbar";
+import  Navbar  from "@/src/widgets/navbar/ui/Navbar";
 import { Sidebar } from "@/src/widgets/sidebar/ui/Sidebar";
 import { getRooms, updateRoom, deleteRoom } from "@/src/shared/api/getRooms";
 import { getResources, updateResource } from "@/src/shared/api/getRecursos";
@@ -21,6 +21,27 @@ type RoomView = {
     status: RoomStatus;
     raw: Sala;
 };
+
+function getUsuarioFromLocalStorage() {
+    if (typeof window === "undefined") return null;
+
+    const storedUser = localStorage.getItem("usuario");
+
+    if (!storedUser) return null;
+
+    try {
+        return JSON.parse(storedUser) as {
+            id_usuario: number;
+            id_facultad: number;
+            id_rol: number;
+            nombre: string;
+            correo: string;
+        };
+    } catch (error) {
+        console.error("Error leyendo usuario desde localStorage:", error);
+        return null;
+    }
+}
 
 export const DashboardPage = () => {
     const [rooms, setRooms] = useState<RoomView[]>([]);
@@ -45,8 +66,21 @@ export const DashboardPage = () => {
                 setLoading(true);
                 setError(null);
 
+                const usuario = getUsuarioFromLocalStorage();
+
+                if (!usuario?.id_facultad) {
+                    setRooms([]);
+                    setError("No se pudo identificar la facultad del usuario.");
+                    return;
+                }
+
                 const data = await getRooms();
-                setRooms(data.map(mapSalaToRoomView));
+
+                const roomsMismaFacultad = data.filter(
+                    (room) => String(room.id_facultad) === String(usuario.id_facultad)
+                );
+
+                setRooms(roomsMismaFacultad.map(mapSalaToRoomView));
             } catch (err) {
                 console.error("Error cargando salas:", err);
                 setError("No se pudieron cargar las salas.");
@@ -218,7 +252,7 @@ export const DashboardPage = () => {
                                 Gestión de Salas de Reuniones
                             </h1>
                             <p className="mt-1 text-sm text-gray-500">
-                                Administrar espacios para la Facultad de Ingeniería
+                                Administrar espacios disponibles para tu facultad
                             </p>
                         </div>
 

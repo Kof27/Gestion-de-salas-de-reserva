@@ -88,7 +88,7 @@ export default function ReservationCard({
                     <Button
                         variant="ghost"
                         disabled={isCancelled || isCancelling || isPast}
-                        onClick={() => onCancel(reservation.id)}
+                        onClick={() => onCancel(String(reservation.id))}
                         className={cn(
                             "h-16 w-full rounded-2xl text-[1.15rem] font-bold",
                             isCancelled
