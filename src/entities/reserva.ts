@@ -1,10 +1,11 @@
 export interface reserva {
-    id_reserva: string; // normalmente el backend lo genera
-    id_sala: string;
-    id_usuario: string;
-    hora_inicio: Date; 
-    hora_fin: Date;
-    estado:boolean
-    fecha_creacion?: Date
+    id_reserva: number | string;
+    id_sala: number | string;
+    id_usuario: number | string;
+    fecha: string;
+    hora_inicio: string;
+    hora_fin: string;
+    estado: boolean;
+    fecha_creacion?: string;
     motivo: string;
 }
