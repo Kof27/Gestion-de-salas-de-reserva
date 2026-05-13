@@ -48,46 +48,6 @@ export default function Navbar() {
         <span className="text-sm font-semibold text-gray-800">UAO - Secretaria</span>
       </div>
 
-      <div className="flex items-center gap-3 flex-1 max-w-md mx-8">
-        <div className="flex items-center gap-2 w-full bg-gray-100 rounded-lg px-3 py-2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-4 h-4 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-          <input
-            type="text"
-            placeholder="Buscar sala..."
-            className="bg-transparent text-sm text-gray-600 outline-none w-full placeholder-gray-400"
-          />
-        </div>
-
-        <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-5 h-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"
-            />
-          </svg>
-        </button>
-      </div>
 
       {/* Avatar + logout */}
       <div className="flex items-center gap-2">
