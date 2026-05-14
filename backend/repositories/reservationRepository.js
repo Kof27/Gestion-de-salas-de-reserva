@@ -1,7 +1,6 @@
 const { Op } = require('sequelize');
-const { SalaReunion } = require('../models/sala_reunion');
 const Reserva = require('../models/reserva');
-
+const SalaReunion = require('../models/sala_reunion');
 const findReservationById = async (id) => {
   return Reserva.findByPk(id);
 };
@@ -44,6 +43,24 @@ const findActiveOverlapExcludingReservation = async (
 };
 
 const createReservation = async (payload) => {
+
+  // 🔍 Verificar que la sala exista y esté habilitada
+  const sala = await SalaReunion.findOne({
+    where: {
+      id_sala: payload.id_sala,
+      estado: 'activo',
+    },
+  });
+
+  if (!sala) {
+    const error = new Error(
+      'La sala no existe o se encuentra deshabilitada'
+    );
+    error.status = 400;
+    throw error;
+  }
+
+  // ✅ Crear reserva
   return Reserva.create(payload);
 };
 
@@ -66,12 +83,6 @@ const cancelReservation = async (id) => {
 
 const findReservations = async () => {
   return Reserva.findAll({
-    include: [
-      {
-        model: SalaReunion,
-        required: true,
-      },
-    ],
     order: [
       ['fecha', 'DESC'],
       ['hora_inicio', 'DESC'],
