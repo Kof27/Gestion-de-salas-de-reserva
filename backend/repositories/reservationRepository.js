@@ -1,4 +1,5 @@
 const { Op } = require('sequelize');
+const { SalaReunion } = require('../models/sala_reunion');
 const Reserva = require('../models/reserva');
 
 const findReservationById = async (id) => {
@@ -65,6 +66,12 @@ const cancelReservation = async (id) => {
 
 const findReservations = async () => {
   return Reserva.findAll({
+    include: [
+      {
+        model: SalaReunion,
+        required: true,
+      },
+    ],
     order: [
       ['fecha', 'DESC'],
       ['hora_inicio', 'DESC'],
