@@ -1,6 +1,6 @@
 import { Log } from "@/src/entities/log";
 import { apiFetch } from "./apiClient";
-const API_BASE = "/api/logs";
+const API_BASE = "/api/auditoria";
 
 async function getErrorMessage(response: Response) {
     const text = await response.text().catch(() => "");
