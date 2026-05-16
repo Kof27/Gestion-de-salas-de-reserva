@@ -1,5 +1,5 @@
 export interface Sala {
-    id_sala?: string;
+    id_sala?: number;
     id_facultad: number;
     capacidad: number;
     estado: boolean;
