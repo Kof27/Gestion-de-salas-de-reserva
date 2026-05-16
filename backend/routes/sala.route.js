@@ -1,5 +1,7 @@
 const { Router } = require('express');
 const SalaReunion = require('../models/sala_reunion');
+const roomService = require('../services/roomService');
+const { authorizeRoleById } = require('../middlewares/authorizeRole');
 
 const router = Router();
 
@@ -48,15 +50,20 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authorizeRoleById([2]), async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const deletedCount = await SalaReunion.destroy({ where: { id_sala: id } });
-    if (!deletedCount) return res.status(404).json({ message: 'Sala no encontrada' });
-    res.json({ message: 'Sala eliminada' });
+    const actorId = req.usuarioAuth.id_usuario;
+
+    const result = await roomService.deleteRoom(id, actorId);
+    res.json(result);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al eliminar la sala', error: error.message });
+    console.error('Error deleteRoom:', error);
+    const status = error.status || 500;
+    res.status(status).json({
+      message: error.message || 'Error al eliminar la sala',
+      error: error.message,
+    });
   }
 });
 

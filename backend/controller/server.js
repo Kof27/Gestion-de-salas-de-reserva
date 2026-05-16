@@ -70,8 +70,10 @@ class Server {
             await bdmysql.authenticate();
             console.log('✅ Conectado a MySQL');
             console.log('Cargando modelos...');
+            
             // Sincronizar modelos
             await bdmysql.sync({ alter: true });
+            
             console.log('✅ Modelos sincronizados');
         } catch (error) {
             console.error('❌ Error conexión BD:', error);

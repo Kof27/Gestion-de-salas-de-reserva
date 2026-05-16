@@ -52,4 +52,14 @@ const SalaReunion = bdmysql.define(
   }
 );
 
+// Definir asociaciones
+SalaReunion.associate = (models) => {
+  SalaReunion.hasMany(models.reserva, {
+    foreignKey: 'id_sala',
+    as: 'reservas',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  });
+};
+
 module.exports = SalaReunion;
