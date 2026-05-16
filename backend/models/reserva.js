@@ -48,4 +48,16 @@ const Reserva = bdmysql.define(
   }
 );
 
+// Definir asociaciones
+Reserva.associate = (models) => {
+  Reserva.belongsTo(models.sala_reunion, {
+    foreignKey: 'id_sala',
+    as: 'sala',
+  });
+  Reserva.belongsTo(models.usuario, {
+    foreignKey: 'id_usuario',
+    as: 'usuario',
+  });
+};
+
 module.exports = Reserva;
