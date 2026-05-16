@@ -2,7 +2,12 @@ const { Op } = require('sequelize');
 const Reserva = require('../models/reserva');
 const SalaReunion = require('../models/sala_reunion');
 const findReservationById = async (id) => {
-  return Reserva.findByPk(id);
+  return Reserva.findByPk(id, {
+    include: [
+      { association: 'sala', attributes: ['id_sala', 'nombre', 'ubicacion', 'capacidad'] },
+      { association: 'usuario', attributes: ['id_usuario', 'nombre', 'correo'] },
+    ],
+  });
 };
 
 const findActiveOverlap = async (id_sala, fecha, hora_inicio, hora_fin) => {
@@ -83,6 +88,10 @@ const cancelReservation = async (id) => {
 
 const findReservations = async () => {
   return Reserva.findAll({
+    include: [
+      { association: 'sala', attributes: ['id_sala', 'nombre', 'ubicacion', 'capacidad'] },
+      { association: 'usuario', attributes: ['id_usuario', 'nombre', 'correo'] },
+    ],
     order: [
       ['fecha', 'DESC'],
       ['hora_inicio', 'DESC'],
@@ -93,6 +102,10 @@ const findReservations = async () => {
 const findReservationsByUserId = async (id_usuario) => {
   return Reserva.findAll({
     where: { id_usuario },
+    include: [
+      { association: 'sala', attributes: ['id_sala', 'nombre', 'ubicacion', 'capacidad'] },
+      { association: 'usuario', attributes: ['id_usuario', 'nombre', 'correo'] },
+    ],
     order: [
       ['fecha', 'DESC'],
       ['hora_inicio', 'DESC'],
