@@ -1,9 +1,10 @@
 import type { Log } from "@/src/entities/log";
 import type { reserva } from "@/src/entities/reserva";
-
+import type { Sala } from "@/src/entities/room";
 export interface ReservaNotification {
     id: number;
     id_reserva: number | string;
+    id_sala: number | string;
     tipo: "cancelada" | "actualizada";
     titulo: string;
     descripcion: string;
@@ -49,9 +50,10 @@ export function isReservaNotificationLog(log: Log) {
 export function buildReservaNotifications(params: {
     logs: Log[];
     reservas: reserva[];
+    salas: Sala[];
     idUsuarioActual: number | string;
 }): ReservaNotification[] {
-    const { logs, reservas, idUsuarioActual } = params;
+    const { logs, reservas, salas, idUsuarioActual } = params;
 
     return logs
         .filter(isReservaNotificationLog)
@@ -71,6 +73,15 @@ export function buildReservaNotifications(params: {
 
             if (!perteneceAlUsuario) return null;
 
+            const salaEncontrada = salas.find(
+                (salaItem) => String(salaItem.id_sala) === String(reservaEncontrada.id_sala)
+            );
+
+            const nombreSalon =
+                salaEncontrada?.nombre ||
+                salaEncontrada?.ubicacion ||
+                `Sala ${reservaEncontrada.id_sala}`;
+
             const detalleNormalizado = normalizeText(log.detalle ?? "");
             const accionNormalizada = normalizeText(log.accion ?? "");
 
@@ -86,11 +97,12 @@ export function buildReservaNotifications(params: {
             return {
                 id: log.id_log,
                 id_reserva: reservaEncontrada.id_reserva,
+                id_sala: reservaEncontrada.id_sala,
                 tipo,
                 titulo: esCancelada ? "Reserva cancelada" : "Reserva actualizada",
                 descripcion: esCancelada
-                    ? `Tu reserva #${reservaEncontrada.id_reserva} fue cancelada.`
-                    : `Tu reserva #${reservaEncontrada.id_reserva} fue actualizada.`,
+                    ? `Tu reserva en el salón ${nombreSalon} fue cancelada.`
+                    : `Tu reserva en el salón ${nombreSalon} fue actualizada.`,
                 fecha_hora: String(log.fecha_hora),
             };
         })

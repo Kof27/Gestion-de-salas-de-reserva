@@ -8,6 +8,14 @@ import type { ReservaNotification } from "@/src/widgets/navbarBookingRoom/Notifi
 import { getLogs } from "@/src/shared/api/apiGetLogs";
 import { getReservas } from "@/src/shared/api/getReservas";
 import { buildReservaNotifications } from "@/src/widgets/navbarBookingRoom/NotificationBooking/lib/bookingNotifications";
+import { getRooms } from "@/src/shared/api/getRooms";
+
+
+const [logs, reservas, salas] = await Promise.all([
+    getLogs(),
+    getReservas(),
+    getRooms(),
+]);
 
 export function useReservaNotifications(usuarioActual: usuario | null) {
     const [notifications, setNotifications] = useState<ReservaNotification[]>([]);
@@ -21,14 +29,16 @@ export function useReservaNotifications(usuarioActual: usuario | null) {
             setLoading(true);
             setError(null);
 
-            const [logs, reservas] = await Promise.all([
+            const [logs, reservas, salas] = await Promise.all([
                 getLogs(),
                 getReservas(),
+                getRooms(),
             ]);
 
             const result = buildReservaNotifications({
                 logs,
                 reservas,
+                salas,
                 idUsuarioActual: usuarioActual.id_usuario,
             });
 
