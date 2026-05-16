@@ -42,6 +42,21 @@ const findRooms = async () => {
   return SalaReunion.findAll();
 };
 
+const deleteRoom = async (id) => {
+  // Obtener datos de la sala antes de eliminarla (para auditoría)
+  const room = await findRoomById(id);
+  if (!room) {
+    return null;
+  }
+
+  // Eliminar la sala (Sequelize eliminará en cascada las reservas)
+  await SalaReunion.destroy({
+    where: { id_sala: id },
+  });
+
+  return room;
+};
+
 module.exports = {
   findRoomById,
   findRoomByNameAndFaculty,
@@ -49,4 +64,5 @@ module.exports = {
   updateRoom,
   updateRoomStatus,
   findRooms,
+  deleteRoom,
 };

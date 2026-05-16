@@ -53,6 +53,8 @@ Reserva.associate = (models) => {
   Reserva.belongsTo(models.sala_reunion, {
     foreignKey: 'id_sala',
     as: 'sala',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
   });
   Reserva.belongsTo(models.usuario, {
     foreignKey: 'id_usuario',

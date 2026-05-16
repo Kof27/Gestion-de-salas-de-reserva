@@ -126,10 +126,32 @@ const getRoomById = async (id) => {
   return room;
 };
 
+const deleteRoom = async (id, actorId) => {
+  const room = await roomRepository.findRoomById(id);
+  if (!room) {
+    const error = new Error('Sala no encontrada');
+    error.status = 404;
+    throw error;
+  }
+
+  // Eliminar la sala y sus reservas asociadas (cascada)
+  await roomRepository.deleteRoom(id);
+
+  await auditRepository.createAuditLog({
+    id_usuario: actorId,
+    accion: 'Eliminar sala',
+    entidad: 'Sala',
+    detalle: `Sala eliminada: ${room.nombre} (id_sala=${room.id_sala}). Se eliminaron también todas las reservas asociadas.`,
+  });
+
+  return { message: 'Sala eliminada exitosamente junto con sus reservas' };
+};
+
 module.exports = {
   createRoom,
   updateRoom,
   setRoomStatus,
   getRooms,
   getRoomById,
+  deleteRoom,
 };

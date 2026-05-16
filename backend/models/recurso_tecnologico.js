@@ -11,7 +11,7 @@ const RecursoTecnologico = bdmysql.define(
     },
     id_sala: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,  // Permitir recursos sin sala asignada
     },
     nombre: {
       type: DataTypes.STRING,
@@ -27,6 +27,16 @@ const RecursoTecnologico = bdmysql.define(
     timestamps: false,
   }
 );
+
+// Definir asociaciones
+RecursoTecnologico.associate = (models) => {
+  RecursoTecnologico.belongsTo(models.sala_reunion, {
+    foreignKey: 'id_sala',
+    as: 'sala',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  });
+};
 
 module.exports = RecursoTecnologico;
 
