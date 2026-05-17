@@ -22,8 +22,14 @@ import {
 
 function sortReservasFromNewestToOldest(reservas: reserva[]) {
     return [...reservas].sort((a, b) => {
-        const dateA = new Date(a.hora_inicio).getTime();
-        const dateB = new Date(b.hora_inicio).getTime();
+        const dateA = a.fecha_creacion
+            ? new Date(a.fecha_creacion).getTime()
+            : 0;
+
+        const dateB = b.fecha_creacion
+            ? new Date(b.fecha_creacion).getTime()
+            : 0;
+
         return dateB - dateA;
     });
 }
@@ -34,24 +40,32 @@ function mapReservasToView(
     recursosData: Resource[]
 ): ReservationView[] {
     const roomsMap = new Map<string, Sala>();
+
     roomsData.forEach((room) => {
-        if (room.id_sala) roomsMap.set(String(room.id_sala), room);
+        if (room.id_sala) {
+            roomsMap.set(String(room.id_sala), room);
+        }
     });
 
-    const recursosBySala = new Map<number, Resource[]>();
-    recursosData.forEach((r) => {
-        const list = recursosBySala.get(r.id_sala) ?? [];
-        list.push(r);
-        recursosBySala.set(r.id_sala, list);
+    const recursosBySala = new Map<string, Resource[]>();
+
+    recursosData.forEach((resource) => {
+        if (resource.id_sala === null || resource.id_sala === undefined) return;
+
+        const idSala = String(resource.id_sala);
+        const list = recursosBySala.get(idSala) ?? [];
+
+        list.push(resource);
+        recursosBySala.set(idSala, list);
     });
 
     return reservasData.map((item) => {
-        const room = roomsMap.get(String(item.id_sala));
-        const salaId = Number(item.id_sala);
+        const salaId = String(item.id_sala);
+        const room = roomsMap.get(salaId);
 
         return {
             id: item.id_reserva ?? "",
-            id_sala: salaId,
+            id_sala: Number(item.id_sala),
             title: room?.nombre ?? `Sala ${item.id_sala}`,
             location: room?.ubicacion ?? "",
             dateLabel: formatReservationDate(item.hora_inicio, item.hora_fin),

@@ -125,13 +125,15 @@ function isSameOrBefore(date: Date, comparison: Date) {
     return normalizedDate <= normalizedComparison;
 }
 
-function sortReservationsByMostRecent(a: ReservationView, b: ReservationView) {
-    const dateA = new Date(a.start).getTime();
-    const dateB = new Date(b.start).getTime();
-
-    return dateB - dateA;
+function getReservationCreationTime(reservation: ReservationView) {
+    return new Date(
+        reservation.raw.fecha_creacion ?? reservation.raw.hora_inicio
+    ).getTime();
 }
 
+function sortReservationsByMostRecent(a: ReservationView, b: ReservationView) {
+    return getReservationCreationTime(b) - getReservationCreationTime(a);
+}
 export function useAllBookings() {
     const [reservations, setReservations] = useState<ReservationView[]>([]);
     const [reservationToDelete, setReservationToDelete] =

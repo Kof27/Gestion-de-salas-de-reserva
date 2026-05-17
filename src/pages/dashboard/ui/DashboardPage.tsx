@@ -14,7 +14,7 @@ import type { Sala } from "@/src/entities/room";
 type RoomStatus = "habilitada" | "inhabilitada";
 
 type RoomView = {
-    id: string;
+    id: number;
     name: string;
     location: string;
     capacity: number;
@@ -48,11 +48,11 @@ export const DashboardPage = () => {
     const [roomToDelete, setRoomToDelete] = useState<RoomView | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [updatingRoomId, setUpdatingRoomId] = useState<string | null>(null);
-    const [deletingRoomId, setDeletingRoomId] = useState<string | null>(null);
+    const [updatingRoomId, setUpdatingRoomId] = useState<number | null>(null);
+    const [deletingRoomId, setDeletingRoomId] = useState<number | null>(null);
 
     const mapSalaToRoomView = (room: Sala): RoomView => ({
-        id: room.id_sala ?? "",
+        id: room.id_sala ?? 0,
         name: room.nombre,
         location: room.ubicacion,
         capacity: room.capacidad,
@@ -92,7 +92,7 @@ export const DashboardPage = () => {
         loadRooms();
     }, []);
 
-    const toggleStatus = async (id: string) => {
+    const toggleStatus = async (id: number) => {
         const currentRoom = rooms.find((room) => room.id === id);
         if (!currentRoom || !currentRoom.raw.id_sala) return;
         if (updatingRoomId) return;

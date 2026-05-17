@@ -12,7 +12,7 @@ async function getRooms(): Promise<Sala[]> {
         }
 
         const data = await response.json();
-
+        console.log("Datos recibidos desde el backend:", data);
         return data.map((room: any) => ({
             ...room,
             estado: room.estado === "activo",
@@ -42,7 +42,7 @@ async function getRoomById(id: string | number): Promise<Sala> {
         throw error;
     }
 }
-async function createRoom(room: Omit<Sala, "id_sala">): Promise<Sala> {
+async function createRoom(room: Omit<Sala, "id_sala" | "estado">): Promise<Sala> {
     try {
         const response = await apiFetch(BASE, {
             method: "POST",
@@ -56,7 +56,7 @@ async function createRoom(room: Omit<Sala, "id_sala">): Promise<Sala> {
     }
 }
 
-async function updateRoom(id: string | number, room: Omit<Sala, "id_sala">): Promise<Sala> {
+async function updateRoom(id: number | string, room: Omit<Sala, "id_sala">): Promise<Sala> {
     try {
         console.log("ID enviado al backend:", id);
         console.log("URL:", `${BASE}/${id}`);
@@ -92,7 +92,7 @@ async function updateRoom(id: string | number, room: Omit<Sala, "id_sala">): Pro
     }
 }
 
-async function deleteRoom(id: string): Promise<void> {
+async function deleteRoom(id: number): Promise<void> {
     try {
         const response = await apiFetch(`${BASE}/${id}`, { method: "DELETE" });
         if (!response.ok) throw new Error(`Error deleting room: ${response.statusText}`);

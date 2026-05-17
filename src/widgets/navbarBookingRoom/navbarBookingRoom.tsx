@@ -8,13 +8,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { usuario } from "@/src/entities/usuario";
+import { ReservaNotificationsButton } from "@/src/widgets/navbarBookingRoom/NotificationBooking/UI/ReservaNotificationsButton";
 
 type NavKey = "salas" | "reservas" | "admin";
 
 interface NavbarBookingRoomProps {
     activeTab?: NavKey;
 }
-
 
 const navItems = [
     { key: "salas", label: "Salas disponibles", href: "/booking" },
@@ -25,8 +25,10 @@ const navItems = [
 export default function NavbarBookingRoom({ activeTab }: NavbarBookingRoomProps) {
     const pathname = usePathname();
     const router = useRouter();
+
     const [usuario] = useState<usuario | null>(() => {
         if (typeof window === "undefined") return null;
+
         try {
             const raw = localStorage.getItem("usuario");
             return raw ? (JSON.parse(raw) as usuario) : null;
@@ -69,13 +71,16 @@ export default function NavbarBookingRoom({ activeTab }: NavbarBookingRoomProps)
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500 text-white shadow-sm">
                         <Building2 className="h-4 w-4" />
                     </div>
-                    <span className="text-sm font-bold tracking-tight text-slate-900">UAO</span>
+                    <span className="text-sm font-bold tracking-tight text-slate-900">
+                        UAO
+                    </span>
                 </div>
 
                 {/* Nav links */}
                 <nav className="hidden items-center gap-6 md:flex">
                     {navItemsFiltrados.map((item) => {
                         const active = resolvedActiveTab === item.key;
+
                         return (
                             <Link
                                 key={item.key}
@@ -93,8 +98,10 @@ export default function NavbarBookingRoom({ activeTab }: NavbarBookingRoomProps)
                     })}
                 </nav>
 
-                {/* Avatar + logout */}
+                {/* Notifications + Avatar + logout */}
                 <div className="flex items-center gap-2">
+                    <ReservaNotificationsButton usuarioActual={usuario} />
+
                     <Avatar
                         className="h-9 w-9 border border-slate-200 bg-red-500 text-white shadow-sm cursor-default"
                         title={usuario?.nombre}
