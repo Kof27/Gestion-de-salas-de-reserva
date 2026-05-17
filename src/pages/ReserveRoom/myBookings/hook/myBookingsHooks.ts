@@ -22,8 +22,14 @@ import {
 
 function sortReservasFromNewestToOldest(reservas: reserva[]) {
     return [...reservas].sort((a, b) => {
-        const dateA = new Date(a.hora_inicio).getTime();
-        const dateB = new Date(b.hora_inicio).getTime();
+        const dateA = a.fecha_creacion
+            ? new Date(a.fecha_creacion).getTime()
+            : 0;
+
+        const dateB = b.fecha_creacion
+            ? new Date(b.fecha_creacion).getTime()
+            : 0;
+
         return dateB - dateA;
     });
 }
