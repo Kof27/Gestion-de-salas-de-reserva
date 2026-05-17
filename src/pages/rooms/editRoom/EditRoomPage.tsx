@@ -265,28 +265,52 @@ export function EditRoomPage() {
     try {
       setSaving(true);
 
+      const realRoomId = roomData.id_sala ?? roomId;
+
+      if (!realRoomId) {
+        throw new Error("No se encontró un id_sala válido para actualizar.");
+      }
+
+      const nextUbicacion = buildUbicacion();
+
       const roomPayload: Omit<Sala, "id_sala" | "fecha_creacion"> = {
         id_facultad: roomData.id_facultad,
         capacidad: Number(capacity),
         estado: enabled,
         imagen_sala: roomData.imagen_sala,
         nombre: name.trim(),
-        ubicacion: buildUbicacion(),
+        ubicacion: nextUbicacion,
         descripcion: description.trim(),
       };
 
-      await updateRoom(String(roomId), roomPayload);
+      const roomHasChanges =
+        String(roomData.nombre ?? "").trim() !== name.trim() ||
+        String(roomData.ubicacion ?? "").trim() !== nextUbicacion.trim() ||
+        Number(roomData.capacidad) !== Number(capacity) ||
+        Boolean(roomData.estado) !== Boolean(enabled) ||
+        String(roomData.descripcion ?? "").trim() !== description.trim();
 
+      /*
+        Solo actualiza la sala si realmente cambió algún dato de la sala.
+        Si solo agregaste recursos, no llama updateRoom.
+      */
+      if (roomHasChanges) {
+        await updateRoom(String(realRoomId), roomPayload);
+      }
+
+      /*
+        Aquí se asocian los recursos agregados a esta sala.
+      */
       await Promise.all(
         pendingAssignedResourceIds.map((resourceId) => {
           const resource = allResources.find(
-            (item) => String(item.id_recurso) === resourceId
+            (item) => String(item.id_recurso) === String(resourceId)
           );
 
           if (!resource) return Promise.resolve();
 
           return updateResource(String(resource.id_recurso), {
-            id_sala: Number(roomId),
+            id_sala: Number(realRoomId),
             nombre: resource.nombre,
             descripcion: resource.descripcion,
           });
@@ -300,8 +324,12 @@ export function EditRoomPage() {
       });
     } catch (error) {
       console.error("Error actualizando sala y recursos:", error);
+
       toast.error("La operación no fue exitosa", {
-        description: "No se pudieron guardar los cambios.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "No se pudieron guardar los cambios.",
       });
     } finally {
       setSaving(false);
@@ -435,8 +463,8 @@ export function EditRoomPage() {
                     onChange={(e) => setName(e.target.value)}
                     disabled={saving}
                     className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${hasNameConflict
-                        ? "border-red-400 text-red-600 focus:border-red-500"
-                        : "border-gray-200 text-gray-800 focus:border-red-400"
+                      ? "border-red-400 text-red-600 focus:border-red-500"
+                      : "border-gray-200 text-gray-800 focus:border-red-400"
                       }`}
                   />
 
@@ -483,8 +511,8 @@ export function EditRoomPage() {
                       disabled={saving}
                       placeholder="Salón"
                       className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${hasLocationConflict
-                          ? "border-red-400 text-red-600 focus:border-red-500"
-                          : "border-gray-200 text-gray-800 focus:border-red-400"
+                        ? "border-red-400 text-red-600 focus:border-red-500"
+                        : "border-gray-200 text-gray-800 focus:border-red-400"
                         }`}
                     />
                   </div>
@@ -494,8 +522,8 @@ export function EditRoomPage() {
                     readOnly
                     disabled={saving}
                     className={`mt-2 w-full rounded-lg border bg-gray-50 px-3 py-2.5 text-sm outline-none ${hasLocationConflict
-                        ? "border-red-400 text-red-600"
-                        : "border-gray-200 text-gray-500"
+                      ? "border-red-400 text-red-600"
+                      : "border-gray-200 text-gray-500"
                       }`}
                   />
 
