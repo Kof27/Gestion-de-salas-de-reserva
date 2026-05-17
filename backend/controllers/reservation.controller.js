@@ -21,8 +21,7 @@ const getReservations = async (req, res) => {
   try {
     
     
-    let reservas = reservas = await reservationService.getAllReservations();
-    
+    let reservas = await reservationService.getAllReservations();
     
     res.json(reservas.map(buildReservationResponse));
   } catch (error) {
