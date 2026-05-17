@@ -56,7 +56,7 @@ async function createRoom(room: Omit<Sala, "id_sala" | "estado">): Promise<Sala>
     }
 }
 
-async function updateRoom(id: number, room: Omit<Sala, "id_sala">): Promise<Sala> {
+async function updateRoom(id: number | string, room: Omit<Sala, "id_sala">): Promise<Sala> {
     try {
         console.log("ID enviado al backend:", id);
         console.log("URL:", `${BASE}/${id}`);
