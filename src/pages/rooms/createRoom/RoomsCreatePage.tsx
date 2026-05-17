@@ -234,10 +234,10 @@ export function NewRoomPage() {
         try {
             setSubmitting(true);
 
-            const payload: Omit<Sala, "id_sala"> = {
+            const payload: Omit<Sala, "id_sala" | "estado"> = {
                 id_facultad: Number(usuario.id_facultad),
                 capacidad: capacity[0],
-                estado: true,
+
                 fecha_creacion: new Date().toISOString(),
                 imagen_sala:
                     imageUrl.trim() ||
@@ -262,7 +262,6 @@ export function NewRoomPage() {
                             id_sala: newRoomId,
                             nombre: resource.nombre,
                             descripcion: resource.descripcion,
-                            tipo: resource.tipo,
                         })
                     )
                 );

@@ -6,7 +6,9 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 const links = [
   { label: 'Salas', href: '/salas' },
   { label: 'Reservas', href: '/reservas' },
+  { label: 'Recursos', href: '/recursos' },
   { label: 'Reportes', href: '/reportes' },
+
 ]
 
 export default function Navbar2() {

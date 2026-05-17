@@ -119,9 +119,6 @@ export function RoomResourcesManager({
                                             </p>
 
                                             <div className="mt-2 space-y-1">
-                                                <p className="text-[11px] text-gray-400">
-                                                    Tipo: {resource.tipo}
-                                                </p>
 
                                                 <p className="text-[11px] text-gray-400">
                                                     Pertenece a: {roomName || `Sala ${roomId}`}
