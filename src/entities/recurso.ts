@@ -3,5 +3,4 @@ export interface Resource {
     id_sala: number | null;
     nombre: string;
     descripcion: string;
-    tipo: string;
 }

@@ -298,9 +298,6 @@ export default function BookingRoomWindows({ roomId, onClose }: BookingRoomWindo
                             <div className="flex flex-col gap-2">
                                 {resources.map((r) => (
                                     <div key={r.id_recurso} className="flex items-start gap-2">
-                                        <span className="mt-0.5 shrink-0 rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
-                                            {r.tipo}
-                                        </span>
                                         <div className="min-w-0">
                                             <p className="text-sm font-semibold text-slate-700 leading-tight">
                                                 {r.nombre}

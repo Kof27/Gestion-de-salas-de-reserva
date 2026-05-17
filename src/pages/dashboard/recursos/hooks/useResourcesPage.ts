@@ -16,7 +16,6 @@ import {
 
 import {
     filterResources,
-    getUniqueResourceTypes,
     mapResourceToView,
     validateResourceForm,
     type ResourceFormValues,
@@ -27,10 +26,17 @@ const EMPTY_FORM: ResourceFormValues = {
     id_sala: "",
     nombre: "",
     descripcion: "",
-    tipo: "",
 };
 
-function getUsuarioFromLocalStorage() {
+type UsuarioSesion = {
+    id_usuario: number | string;
+    id_facultad: number | string;
+    id_rol: number | string;
+    nombre: string;
+    correo: string;
+};
+
+function getUsuarioFromLocalStorage(): UsuarioSesion | null {
     if (typeof window === "undefined") return null;
 
     const storedUser = localStorage.getItem("usuario");
@@ -38,13 +44,7 @@ function getUsuarioFromLocalStorage() {
     if (!storedUser) return null;
 
     try {
-        return JSON.parse(storedUser) as {
-            id_usuario: number;
-            id_facultad: number;
-            id_rol: number;
-            nombre: string;
-            correo: string;
-        };
+        return JSON.parse(storedUser) as UsuarioSesion;
     } catch (error) {
         console.error("Error leyendo usuario desde localStorage:", error);
         return null;
@@ -61,11 +61,11 @@ export function useResourcesPage() {
     const [error, setError] = useState<string | null>(null);
 
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedType, setSelectedType] = useState("todos");
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingResource, setEditingResource] = useState<ResourceView | null>(null);
     const [resourceToDelete, setResourceToDelete] = useState<ResourceView | null>(null);
+
     const [formValues, setFormValues] = useState<ResourceFormValues>(EMPTY_FORM);
 
     const loadData = useCallback(async () => {
@@ -95,7 +95,7 @@ export function useResourcesPage() {
                 roomsMismaFacultad.map((room) => String(room.id_sala))
             );
 
-            const resourcesMismaFacultad = resourcesData.filter((resource) => {
+            const resourcesFiltrados = resourcesData.filter((resource) => {
                 if (resource.id_sala === null || resource.id_sala === undefined) {
                     return true;
                 }
@@ -104,8 +104,9 @@ export function useResourcesPage() {
             });
 
             setRooms(roomsMismaFacultad);
+
             setResources(
-                resourcesMismaFacultad.map((resource) =>
+                resourcesFiltrados.map((resource) =>
                     mapResourceToView(resource, roomsMismaFacultad)
                 )
             );
@@ -121,17 +122,12 @@ export function useResourcesPage() {
         loadData();
     }, [loadData]);
 
-    const resourceTypes = useMemo(() => {
-        return getUniqueResourceTypes(resources);
-    }, [resources]);
-
     const filteredResources = useMemo(() => {
         return filterResources({
             resources,
             searchTerm,
-            selectedType,
         });
-    }, [resources, searchTerm, selectedType]);
+    }, [resources, searchTerm]);
 
     const openCreateForm = () => {
         setEditingResource(null);
@@ -140,15 +136,12 @@ export function useResourcesPage() {
     };
 
     const openEditForm = (resource: ResourceView) => {
-        console.log("Recurso seleccionado para editar:", resource);
-
         setEditingResource(resource);
 
         setFormValues({
             id_sala: resource.raw.id_sala ? String(resource.raw.id_sala) : "",
             nombre: String(resource.raw.nombre ?? ""),
             descripcion: String(resource.raw.descripcion ?? ""),
-            tipo: String(resource.raw.tipo ?? ""),
         });
 
         setIsFormOpen(true);
@@ -184,18 +177,15 @@ export function useResourcesPage() {
 
         try {
             setSaving(true);
+
             const payload: Omit<Resource, "id_recurso"> = {
                 id_sala: formValues.id_sala ? Number(formValues.id_sala) : null,
                 nombre: String(formValues.nombre ?? "").trim(),
                 descripcion: String(formValues.descripcion ?? "").trim(),
-                tipo: String(formValues.tipo ?? "").trim(),
             };
 
             if (editingResource) {
                 const resourceId = editingResource.raw.id_recurso ?? editingResource.id;
-
-                console.log("ID usado para actualizar recurso:", resourceId);
-                console.log("Payload enviado:", payload);
 
                 const updated = await updateResource(String(resourceId), payload);
 
@@ -223,7 +213,9 @@ export function useResourcesPage() {
                 });
             }
 
-            closeForm();
+            setIsFormOpen(false);
+            setEditingResource(null);
+            setFormValues(EMPTY_FORM);
         } catch (error) {
             console.error("Error guardando recurso:", error);
 
@@ -244,6 +236,7 @@ export function useResourcesPage() {
 
     const closeDeleteModal = () => {
         if (deletingResourceId) return;
+
         setResourceToDelete(null);
     };
 
@@ -253,7 +246,10 @@ export function useResourcesPage() {
         try {
             setDeletingResourceId(resourceToDelete.id);
 
-            await deleteResource(resourceToDelete.id);
+            const resourceId =
+                resourceToDelete.raw.id_recurso ?? resourceToDelete.id;
+
+            await deleteResource(resourceId);
 
             setResources((prev) =>
                 prev.filter((resource) => resource.id !== resourceToDelete.id)
@@ -282,15 +278,13 @@ export function useResourcesPage() {
         resources,
         filteredResources,
         rooms,
+
         loading,
         saving,
         error,
 
         searchTerm,
         setSearchTerm,
-        selectedType,
-        setSelectedType,
-        resourceTypes,
 
         isFormOpen,
         editingResource,
