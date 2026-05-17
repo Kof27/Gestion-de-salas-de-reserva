@@ -8,7 +8,6 @@ export type ResourceView = {
     roomLocation: string;
     nombre: string;
     descripcion: string;
-    tipo: string;
     raw: Resource;
 };
 
@@ -16,7 +15,6 @@ export type ResourceFormValues = {
     id_sala: string;
     nombre: string;
     descripcion: string;
-    tipo: string;
 };
 
 export function mapResourceToView(
@@ -34,53 +32,36 @@ export function mapResourceToView(
         roomLocation: room?.ubicacion ?? "No asociado a una sala",
         nombre: String(resource.nombre ?? "Sin nombre"),
         descripcion: String(resource.descripcion ?? "Sin descripción"),
-        tipo: String(resource.tipo ?? "Sin tipo"),
         raw: resource,
     };
-}
-
-export function getUniqueResourceTypes(resources: ResourceView[]) {
-    const types = resources
-        .map((resource) => resource.tipo.trim())
-        .filter(Boolean);
-
-    return Array.from(new Set(types)).sort((a, b) => a.localeCompare(b));
 }
 
 export function filterResources(params: {
     resources: ResourceView[];
     searchTerm: string;
-    selectedType: string;
 }) {
-    const { resources, searchTerm, selectedType } = params;
+    const { resources, searchTerm } = params;
 
-    const normalizedSearch = searchTerm.toLowerCase().trim();
+    const normalizedSearch = String(searchTerm ?? "").toLowerCase().trim();
 
     return resources.filter((resource) => {
-        const matchesType =
-            selectedType === "todos" || resource.tipo === selectedType;
-
         const searchableText = [
             resource.nombre,
             resource.descripcion,
-            resource.tipo,
             resource.roomName,
             resource.roomLocation,
         ]
+            .map((value) => String(value ?? ""))
             .join(" ")
             .toLowerCase();
 
-        const matchesSearch =
-            !normalizedSearch || searchableText.includes(normalizedSearch);
-
-        return matchesType && matchesSearch;
+        return !normalizedSearch || searchableText.includes(normalizedSearch);
     });
 }
 
 export function validateResourceForm(values: ResourceFormValues) {
     const nombre = String(values.nombre ?? "").trim();
     const descripcion = String(values.descripcion ?? "").trim();
-    const tipo = String(values.tipo ?? "").trim();
 
     if (!nombre) {
         return "El nombre del recurso es obligatorio.";
@@ -88,10 +69,6 @@ export function validateResourceForm(values: ResourceFormValues) {
 
     if (!descripcion) {
         return "La descripción del recurso es obligatoria.";
-    }
-
-    if (!tipo) {
-        return "El tipo del recurso es obligatorio.";
     }
 
     return null;

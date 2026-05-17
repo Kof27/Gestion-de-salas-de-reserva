@@ -262,7 +262,6 @@ export function NewRoomPage() {
                             id_sala: newRoomId,
                             nombre: resource.nombre,
                             descripcion: resource.descripcion,
-                            tipo: resource.tipo,
                         })
                     )
                 );

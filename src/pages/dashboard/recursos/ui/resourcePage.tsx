@@ -24,9 +24,6 @@ export function ResourcesPage() {
 
         searchTerm,
         setSearchTerm,
-        selectedType,
-        setSelectedType,
-        resourceTypes,
 
         isFormOpen,
         editingResource,
@@ -79,24 +76,10 @@ export function ResourcesPage() {
                             <input
                                 value={searchTerm}
                                 onChange={(event) => setSearchTerm(event.target.value)}
-                                placeholder="Buscar por nombre, descripción, tipo o sala..."
+                                placeholder="Buscar por nombre, descripción o sala..."
                                 className="h-11 w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 text-sm outline-none transition-colors focus:border-red-400"
                             />
                         </div>
-
-                        <select
-                            value={selectedType}
-                            onChange={(event) => setSelectedType(event.target.value)}
-                            className="h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none transition-colors focus:border-red-400"
-                        >
-                            <option value="todos">Todos los tipos</option>
-
-                            {resourceTypes.map((type) => (
-                                <option key={type} value={type}>
-                                    {type}
-                                </option>
-                            ))}
-                        </select>
                     </div>
 
                     {loading ? (
@@ -118,10 +101,6 @@ export function ResourcesPage() {
                                     <tr className="border-b border-gray-200">
                                         <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
                                             Recurso
-                                        </th>
-
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                                            Tipo
                                         </th>
 
                                         <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
@@ -160,12 +139,6 @@ export function ResourcesPage() {
                                                         </p>
                                                     </div>
                                                 </div>
-                                            </td>
-
-                                            <td className="px-4 py-4">
-                                                <span className="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
-                                                    {resource.tipo}
-                                                </span>
                                             </td>
 
                                             <td className="px-4 py-4">
@@ -244,20 +217,6 @@ export function ResourcesPage() {
                                 />
                             </div>
 
-                            <div>
-                                <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                                    Tipo
-                                </label>
-
-                                <input
-                                    value={formValues.tipo}
-                                    onChange={(event) =>
-                                        updateFormValue("tipo", event.target.value)
-                                    }
-                                    placeholder="Ej: audiovisual, cómputo, mobiliario"
-                                    className="h-11 w-full rounded-xl border border-gray-200 px-3 text-sm outline-none transition-colors focus:border-red-400"
-                                />
-                            </div>
 
                             <div>
                                 <label className="mb-1.5 block text-sm font-medium text-gray-700">

@@ -221,7 +221,6 @@ export function EditRoomPage() {
       id_sala: 0,
       nombre: resource.nombre,
       descripcion: resource.descripcion,
-      tipo: resource.tipo,
     });
 
     setResources((prev) =>
@@ -290,7 +289,6 @@ export function EditRoomPage() {
             id_sala: Number(roomId),
             nombre: resource.nombre,
             descripcion: resource.descripcion,
-            tipo: resource.tipo,
           });
         })
       );
