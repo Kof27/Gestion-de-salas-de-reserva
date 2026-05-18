@@ -28,6 +28,8 @@ export function ReservaNotificationsButton({
     usuarioActual,
 }: ReservaNotificationsButtonProps) {
     const [open, setOpen] = useState(false);
+    const [shouldRender, setShouldRender] = useState(false);
+    const [closing, setClosing] = useState(false);
     const containerRef = useRef<HTMLDivElement | null>(null);
 
     const {
@@ -37,6 +39,20 @@ export function ReservaNotificationsButton({
         hasNotifications,
         reloadNotifications,
     } = useReservaNotifications(usuarioActual);
+
+    useEffect(() => {
+        if (open) {
+            setShouldRender(true);
+            setClosing(false);
+        } else if (shouldRender) {
+            setClosing(true);
+            const t = setTimeout(() => {
+                setShouldRender(false);
+                setClosing(false);
+            }, 180);
+            return () => clearTimeout(t);
+        }
+    }, [open, shouldRender]);
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -77,14 +93,21 @@ export function ReservaNotificationsButton({
                 )}
             </button>
 
-            {open && (
-                <div className="absolute right-0 top-11 z-50 w-80 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+            {shouldRender && (
+                <div
+                    className={cn(
+                        "fixed inset-x-2 top-16 z-50 mx-auto max-w-sm overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-11 sm:mx-0 sm:w-80 sm:max-w-none",
+                        closing
+                            ? "animate-out fade-out slide-out-to-top-2 duration-200"
+                            : "animate-in fade-in slide-in-from-top-2 duration-200"
+                    )}
+                >
                     <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-                        <div>
+                        <div className="min-w-0 flex-1">
                             <h3 className="text-sm font-bold text-slate-900">
                                 Notificaciones
                             </h3>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-slate-500 truncate">
                                 Cambios recientes en tus reservas
                             </p>
                         </div>
@@ -94,7 +117,7 @@ export function ReservaNotificationsButton({
                             onClick={reloadNotifications}
                             disabled={loading}
                             title="Actualizar notificaciones"
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+                            className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
                         >
                             <RefreshCcw
                                 className={cn("h-4 w-4", loading && "animate-spin")}
@@ -102,7 +125,7 @@ export function ReservaNotificationsButton({
                         </button>
                     </div>
 
-                    <div className="max-h-96 overflow-y-auto">
+                    <div className="max-h-[70vh] overflow-y-auto sm:max-h-96">
                         {loading && (
                             <div className="px-4 py-6 text-center text-sm text-slate-500">
                                 Cargando notificaciones...

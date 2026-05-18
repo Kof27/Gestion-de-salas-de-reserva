@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
     X,
     MapPin,
@@ -86,6 +86,23 @@ export default function ReservationModal({
     onCancel,
     cancellingId,
 }: ReservationModalProps) {
+    const [internalReservation, setInternalReservation] = useState<ReservationView | null>(reservation);
+    const [closing, setClosing] = useState(false);
+
+    useEffect(() => {
+        if (reservation) {
+            setInternalReservation(reservation);
+            setClosing(false);
+        } else if (internalReservation) {
+            setClosing(true);
+            const timeout = setTimeout(() => {
+                setInternalReservation(null);
+                setClosing(false);
+            }, 200);
+            return () => clearTimeout(timeout);
+        }
+    }, [reservation, internalReservation]);
+
     useEffect(() => {
         if (!reservation) return;
         const handler = (e: KeyboardEvent) => {
@@ -95,33 +112,46 @@ export default function ReservationModal({
         return () => window.removeEventListener("keydown", handler);
     }, [reservation, onClose]);
 
-    if (!reservation) return null;
+    if (!internalReservation) return null;
 
-    const isCancelling = cancellingId === String(reservation.id);
-    const canCancel = reservation.status === "active";
-    const cfg = statusConfig[reservation.status];
+    const isCancelling = cancellingId === String(internalReservation.id);
+    const canCancel = internalReservation.status === "active";
+    const cfg = statusConfig[internalReservation.status];
+    const data = internalReservation;
 
     const handleCancel = async () => {
-        await onCancel(String(reservation.id));
+        await onCancel(String(data.id));
         onClose();
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
             {/* Overlay */}
             <div
-                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                className={cn(
+                    "absolute inset-0 bg-black/50 backdrop-blur-sm",
+                    closing
+                        ? "animate-out fade-out duration-200"
+                        : "animate-in fade-in duration-200"
+                )}
                 onClick={onClose}
             />
 
             {/* Modal */}
-            <div className="relative z-10 w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl">
+            <div
+                className={cn(
+                    "relative z-10 w-full max-w-lg max-h-[95vh] overflow-y-auto rounded-2xl bg-white shadow-2xl sm:max-h-[90vh]",
+                    closing
+                        ? "animate-out fade-out zoom-out-95 slide-out-to-bottom-4 duration-200"
+                        : "animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300"
+                )}
+            >
                 {/* Header */}
-                {reservation.imagenSala ? (
-                    <div className="relative h-52 w-full overflow-hidden rounded-t-2xl">
+                {data.imagenSala ? (
+                    <div className="relative h-44 w-full overflow-hidden rounded-t-2xl sm:h-52">
                         <img
-                            src={reservation.imagenSala}
-                            alt={reservation.title}
+                            src={data.imagenSala}
+                            alt={data.title}
                             className="h-full w-full object-cover"
                         />
                         <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
@@ -137,7 +167,7 @@ export default function ReservationModal({
                             className={cn("absolute bottom-4 left-4 border font-bold", cfg.badge)}
                         >
                             <span className={cn("mr-1.5 h-1.5 w-1.5 rounded-full", cfg.dot)} />
-                            {statusLabel(reservation.status)}
+                            {statusLabel(data.status)}
                         </Badge>
                     </div>
                 ) : (
@@ -153,57 +183,57 @@ export default function ReservationModal({
                     </div>
                 )}
 
-                <div className="p-6 space-y-5">
+                <div className="p-4 space-y-4 sm:p-6 sm:space-y-5">
                     {/* Info sala */}
                     <div>
                         <div className="flex items-start justify-between gap-3">
                             <div>
-                                <h2 className="text-xl font-bold text-slate-900">
-                                    {reservation.title}
+                                <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
+                                    {data.title}
                                 </h2>
-                                {!reservation.imagenSala && (
+                                {!data.imagenSala && (
                                     <Badge
                                         variant="outline"
                                         className={cn("mt-1.5 border font-bold text-xs", cfg.badge)}
                                     >
                                         <span className={cn("mr-1.5 h-1.5 w-1.5 rounded-full", cfg.dot)} />
-                                        {statusLabel(reservation.status)}
+                                        {statusLabel(data.status)}
                                     </Badge>
                                 )}
                             </div>
                         </div>
 
                         <div className="mt-3 space-y-2 text-sm text-slate-500">
-                            {reservation.location && (
+                            {data.location && (
                                 <div className="flex items-center gap-2">
                                     <MapPin className="h-4 w-4 shrink-0 text-slate-400" />
-                                    <span>{reservation.location}</span>
+                                    <span>{data.location}</span>
                                 </div>
                             )}
-                            {reservation.capacidad > 0 && (
+                            {data.capacidad > 0 && (
                                 <div className="flex items-center gap-2">
                                     <Users className="h-4 w-4 shrink-0 text-slate-400" />
-                                    <span>Capacidad: {reservation.capacidad} personas</span>
+                                    <span>Capacidad: {data.capacidad} personas</span>
                                 </div>
                             )}
-                            {reservation.descripcion && (
+                            {data.descripcion && (
                                 <p className="pt-1 leading-relaxed text-slate-400">
-                                    {reservation.descripcion}
+                                    {data.descripcion}
                                 </p>
                             )}
                         </div>
                     </div>
 
                     {/* Recursos de la sala */}
-                    {reservation.recursos.length > 0 && (
+                    {data.recursos.length > 0 && (
                         <>
                             <Separator />
                             <div>
                                 <p className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.2em] text-slate-400">
                                     Recursos disponibles
                                 </p>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {reservation.recursos.map((recurso) => {
+                                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                    {data.recursos.map((recurso) => {
                                         const Icon = getRecursoIcon(recurso.tipo);
                                         return (
                                             <div
@@ -240,21 +270,21 @@ export default function ReservationModal({
                         <div className="space-y-2.5 text-sm text-slate-600">
                             <div className="flex items-center gap-2.5">
                                 <CalendarDays className="h-4 w-4 shrink-0 text-slate-400" />
-                                <span>{reservation.fecha}</span>
+                                <span>{data.fecha}</span>
                             </div>
                             <div className="flex items-center gap-2.5">
                                 <Clock className="h-4 w-4 shrink-0 text-slate-400" />
-                                <span>{reservation.horaInicio} — {reservation.horaFin}</span>
+                                <span>{data.horaInicio} — {data.horaFin}</span>
                             </div>
                             <div className="flex items-start gap-2.5">
                                 <MessageSquare className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-                                <span className="leading-relaxed">{reservation.motivo}</span>
+                                <span className="leading-relaxed">{data.motivo}</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Acciones */}
-                    <div className="flex gap-2 pt-1">
+                    <div className="flex flex-col gap-2 pt-1 sm:flex-row">
                         {canCancel && (
                             <Button
                                 variant="ghost"

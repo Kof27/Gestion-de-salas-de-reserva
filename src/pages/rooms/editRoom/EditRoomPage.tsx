@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import Navbar2 from "@/src/widgets/navbar2/ui/Navbar2";
+import { Sidebar } from "@/src/widgets/sidebar/ui/Sidebar";
 import { getRoomById, getRooms, updateRoom } from "@/src/shared/api/getRooms";
 import { getResources, updateResource } from "@/src/shared/api/getRecursos";
 import { RoomResourcesManager } from "@/src/widgets/room_resource/roomResource";
@@ -344,8 +345,9 @@ export function EditRoomPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar2 />
-        <div className="mx-auto max-w-4xl px-6 py-8">
-          <div className="rounded-2xl border border-red-200 bg-white p-8 text-center text-red-600 shadow-sm">
+        <Sidebar alwaysDrawer />
+        <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
+          <div className="rounded-2xl border border-red-200 bg-white p-6 text-center text-red-600 shadow-sm sm:p-8">
             No se pudo cargar la información de la sala.
           </div>
         </div>
@@ -356,9 +358,10 @@ export function EditRoomPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar2 />
+      <Sidebar alwaysDrawer />
 
-      <div className="mx-auto max-w-4xl px-6 py-8">
-        <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
+      <div className="mx-auto max-w-4xl px-3 py-4 sm:px-6 sm:py-8">
+        <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
           <div className="mb-4 flex items-center gap-1.5 text-sm text-gray-400">
             <span
               className="cursor-pointer hover:text-gray-600"
@@ -367,12 +370,12 @@ export function EditRoomPage() {
               Salas
             </span>
             <span>›</span>
-            <span className="text-gray-600">{name || roomId}</span>
+            <span className="truncate text-gray-600">{name || roomId}</span>
           </div>
 
-          <div className="mb-2 flex items-start justify-between">
+          <div className="mb-4 flex flex-col gap-3 sm:mb-2 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
                 Editar Sala y Recursos
               </h1>
               <p className="mt-1 text-sm text-gray-400">
@@ -380,7 +383,7 @@ export function EditRoomPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-4 py-2.5">
+            <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 sm:px-4 sm:py-2.5">
               <span className="text-sm text-gray-600">Estado de la Sala</span>
 
               <button
@@ -420,7 +423,7 @@ export function EditRoomPage() {
             </div>
           </div>
 
-          <div className="mb-8 flex gap-3 rounded-xl border border-orange-200 bg-orange-50 p-4">
+          <div className="mb-6 flex gap-3 rounded-xl border border-orange-200 bg-orange-50 p-3 sm:mb-8 sm:p-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="mt-0.5 h-5 w-5 shrink-0 text-orange-400"
@@ -446,7 +449,7 @@ export function EditRoomPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-10">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-10">
             <div>
               <h2 className="mb-5 text-base font-semibold text-gray-800">
                 Detalles de la Sala
@@ -580,7 +583,7 @@ export function EditRoomPage() {
             </div>
           </div>
 
-          <div className="mt-8 flex justify-end gap-3 border-t border-gray-100 pt-6">
+          <div className="mt-8 flex flex-col-reverse justify-end gap-2 border-t border-gray-100 pt-6 sm:flex-row sm:gap-3">
             <button
               onClick={() => router.push("/salas")}
               disabled={saving}
@@ -592,7 +595,7 @@ export function EditRoomPage() {
             <button
               onClick={handleSave}
               disabled={saving || hasLocationConflict || hasNameConflict}
-              className="flex items-center gap-2 rounded-lg bg-red-500 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70"
+              className="flex items-center justify-center gap-2 rounded-lg bg-red-500 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {saving ? (
                 <>

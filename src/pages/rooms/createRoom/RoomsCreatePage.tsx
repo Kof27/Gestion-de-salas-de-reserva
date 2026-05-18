@@ -13,6 +13,8 @@ import { Slider } from "@/components/ui/slider";
 import { createRoom, getRooms } from "@/src/shared/api/getRooms";
 import { getResources, updateResource } from "@/src/shared/api/getRecursos";
 import { RoomResourcesManager } from "@/src/widgets/room_resource/roomResource";
+import Navbar2 from "@/src/widgets/navbar2/ui/Navbar2";
+import { Sidebar } from "@/src/widgets/sidebar/ui/Sidebar";
 import CreateRoomSkeleton from "../ui/skeletons/createRoomSkeleton";
 
 import type { Sala } from "@/src/entities/room";
@@ -298,12 +300,16 @@ export function NewRoomPage() {
     }
 
     return (
-        <main className="min-h-screen bg-gray-50 px-4 py-8 md:px-8">
+        <div className="min-h-screen bg-gray-50">
+            <Navbar2 />
+            <Sidebar alwaysDrawer />
+
+            <main className="px-3 py-4 sm:px-4 sm:py-8 md:px-8">
             <div className="mx-auto max-w-4xl">
                 <Card className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-                    <CardContent className="p-8">
+                    <CardContent className="p-4 sm:p-6 lg:p-8">
                         <div className="mb-6">
-                            <h1 className="text-2xl font-bold text-gray-900">
+                            <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
                                 Crear Nueva Sala
                             </h1>
                             <p className="mt-1 text-sm text-gray-400">
@@ -313,7 +319,7 @@ export function NewRoomPage() {
 
                         <div className="mb-6 border-t border-gray-100" />
 
-                        <div className="grid grid-cols-2 gap-10">
+                        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-10">
                             <div className="flex flex-col gap-4">
                                 <h2 className="text-base font-semibold text-gray-800">
                                     Detalles de la Sala
@@ -511,7 +517,7 @@ export function NewRoomPage() {
                             </div>
                         </div>
 
-                        <div className="mt-8 flex justify-end gap-3 border-t border-gray-100 pt-6">
+                        <div className="mt-8 flex flex-col-reverse justify-end gap-2 border-t border-gray-100 pt-6 sm:flex-row sm:gap-3">
                             <button
                                 type="button"
                                 className="rounded-lg border border-gray-200 px-6 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
@@ -529,7 +535,7 @@ export function NewRoomPage() {
                                     hasLocationConflict ||
                                     hasNameConflict
                                 }
-                                className="flex items-center gap-2 rounded-lg bg-red-500 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70"
+                                className="flex items-center justify-center gap-2 rounded-lg bg-red-500 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70"
                             >
                                 <PlusCircle className="h-4 w-4" />
                                 Registrar Sala
@@ -538,7 +544,8 @@ export function NewRoomPage() {
                     </CardContent>
                 </Card>
             </div>
-        </main>
+            </main>
+        </div>
     );
 }
 

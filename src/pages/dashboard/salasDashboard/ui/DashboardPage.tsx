@@ -35,10 +35,10 @@ export const DashboardPage = () => {
             <div className="flex">
                 <Sidebar />
 
-                <main className="flex-1 p-8">
-                    <div className="mb-6 flex items-start justify-between">
+                <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
+                    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900">
+                            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
                                 Gestión de Salas de Reuniones
                             </h1>
 
@@ -49,7 +49,7 @@ export const DashboardPage = () => {
 
                         <Link
                             href="/createRoom"
-                            className="flex items-center gap-2 rounded-lg bg-red-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-600"
+                            className="flex items-center justify-center gap-2 rounded-lg bg-red-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-600 sm:self-start"
                         >
                             + Crear Nueva Sala
                         </Link>
@@ -68,8 +68,8 @@ export const DashboardPage = () => {
                             No hay salas registradas.
                         </div>
                     ) : (
-                        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-                            <table className="w-full">
+                        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+                            <table className="w-full min-w-[640px]">
                                 <thead>
                                     <tr className="border-b border-gray-200">
                                         <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
@@ -247,8 +247,8 @@ export const DashboardPage = () => {
             </div>
 
             {roomToDisable && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/60">
-                    <div className="mx-4 w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-xl">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/60 p-4">
+                    <div className="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-xl sm:p-8">
                         <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -306,8 +306,8 @@ export const DashboardPage = () => {
             )}
 
             {roomToDelete && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/60">
-                    <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-xl">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/60 p-4">
+                    <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-xl sm:p-8">
                         <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
