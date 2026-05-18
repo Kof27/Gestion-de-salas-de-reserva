@@ -65,9 +65,9 @@ export default function NavbarBookingRoom({ activeTab }: NavbarBookingRoomProps)
 
     return (
         <header className="fixed top-0 inset-x-0 z-50 border-b border-slate-200 bg-white">
-            <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3 lg:px-8">
+            <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
                 {/* Logo */}
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2.5 shrink-0">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500 text-white shadow-sm">
                         <Building2 className="h-4 w-4" />
                     </div>
@@ -76,7 +76,7 @@ export default function NavbarBookingRoom({ activeTab }: NavbarBookingRoomProps)
                     </span>
                 </div>
 
-                {/* Nav links */}
+                {/* Nav links — Desktop */}
                 <nav className="hidden items-center gap-6 md:flex">
                     {navItemsFiltrados.map((item) => {
                         const active = resolvedActiveTab === item.key;
@@ -99,7 +99,7 @@ export default function NavbarBookingRoom({ activeTab }: NavbarBookingRoomProps)
                 </nav>
 
                 {/* Notifications + Avatar + logout */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     <ReservaNotificationsButton usuarioActual={usuario} />
 
                     <Avatar
@@ -120,6 +120,28 @@ export default function NavbarBookingRoom({ activeTab }: NavbarBookingRoomProps)
                     </button>
                 </div>
             </div>
+
+            {/* Nav links — Mobile (segunda fila) */}
+            <nav className="flex items-center justify-around gap-2 border-t border-slate-100 px-2 py-2 md:hidden overflow-x-auto">
+                {navItemsFiltrados.map((item) => {
+                    const active = resolvedActiveTab === item.key;
+
+                    return (
+                        <Link
+                            key={item.key}
+                            href={item.href}
+                            className={cn(
+                                "rounded-md px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap",
+                                active
+                                    ? "bg-red-50 text-red-600"
+                                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                            )}
+                        >
+                            {item.label}
+                        </Link>
+                    );
+                })}
+            </nav>
         </header>
     );
 }

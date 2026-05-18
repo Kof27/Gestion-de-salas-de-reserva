@@ -93,25 +93,25 @@ export default function MyReservationsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#f5f6f8] pt-15 text-slate-900">
+        <div className="min-h-screen bg-[#f5f6f8] pt-24 text-slate-900 md:pt-15">
             <NavbarBookingRoom />
 
-            <main className="mx-auto max-w-7xl px-6 pb-16 pt-10 lg:px-8">
+            <main className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6 sm:pt-10 lg:px-8">
                 <PageTransition>
                 {/* Page header */}
-                <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                        <p className="mb-1 text-xs font-extrabold uppercase tracking-[0.3em] text-slate-400">
+                        <p className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-400 sm:text-xs sm:tracking-[0.3em]">
                             Gestión de espacios
                         </p>
-                        <h1 className="text-4xl font-black tracking-tight text-slate-900">
+                        <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
                             Mis Reservas
                         </h1>
                     </div>
 
                     {/* Summary chips */}
                     {!loading && (
-                        <div className="flex items-center gap-4 text-sm">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs sm:text-sm">
                             <span className="flex items-center gap-1.5 text-slate-500">
                                 <span className="h-2 w-2 rounded-full bg-emerald-500" />
                                 {activeReservations.length} activas
@@ -131,7 +131,7 @@ export default function MyReservationsPage() {
                 {/* Table card */}
                 <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
                     {/* Filters */}
-                    <div className="flex items-center gap-3 border-b border-slate-100 px-6 py-4">
+                    <div className="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:px-6">
                         <div className="relative flex-1">
                             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                             <Input
@@ -142,7 +142,7 @@ export default function MyReservationsPage() {
                             />
                         </div>
 
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
                             <FilterSelect
                                 value={statusFilter}
                                 onChange={handleFilterChange}
@@ -167,7 +167,7 @@ export default function MyReservationsPage() {
                                 ]}
                             />
 
-                            <span className="text-sm text-slate-400 whitespace-nowrap">
+                            <span className="ml-auto text-xs text-slate-400 whitespace-nowrap sm:ml-0 sm:text-sm">
                                 {filtered.length} resultado{filtered.length !== 1 ? "s" : ""}
                             </span>
                         </div>
@@ -281,8 +281,8 @@ export default function MyReservationsPage() {
 
                     {/* Pagination */}
                     {!loading && filtered.length > 0 && (
-                        <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4">
-                            <span className="text-sm text-slate-400">
+                        <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-100 px-4 py-4 sm:flex-row sm:px-6">
+                            <span className="text-xs text-slate-400 sm:text-sm">
                                 {from}–{to} de {filtered.length}
                             </span>
                             <div className="flex items-center gap-2">

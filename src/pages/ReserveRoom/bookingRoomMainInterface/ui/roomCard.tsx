@@ -9,15 +9,15 @@ export default function RoomCard({ room, onReservar }: { room: Sala; onReservar:
     return (
         <Card className="overflow-hidden rounded-xl  bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
             <CardHeader>
-                <div className="relative w-auto h-52 overflow-hidden">
+                <div className="relative w-auto h-44 overflow-hidden sm:h-52">
                     <img
                         src={room.imagen_sala}
                         alt={room.nombre}
                         className="h-full w-full object-cover rounded-xl"
                     />
 
-                    <Badge className={`absolute right-4 top-4 rounded-full bg-white px-3 py-1 shadow-sm hover:bg-white ${room.estado ? "text-emerald-600" : "text-red-600"}`}>
-                        <span className={`mr-2 inline-block h-2.5 w-2.5 rounded-full ${room.estado ? "bg-emerald-500" : "bg-red-500"}`} />
+                    <Badge className={`absolute right-3 top-3 rounded-full bg-white px-2.5 py-0.5 text-xs shadow-sm hover:bg-white sm:right-4 sm:top-4 sm:px-3 sm:py-1 sm:text-sm ${room.estado ? "text-emerald-600" : "text-red-600"}`}>
+                        <span className={`mr-1.5 inline-block h-2 w-2 rounded-full sm:mr-2 sm:h-2.5 sm:w-2.5 ${room.estado ? "bg-emerald-500" : "bg-red-500"}`} />
                         {room.estado ? "Disponible" : "No disponible"}
                     </Badge>
                 </div>
@@ -26,13 +26,13 @@ export default function RoomCard({ room, onReservar }: { room: Sala; onReservar:
 
             <CardContent className="">
                 <div className="space-y-1.5">
-                    <h3 className="text-[1.05rem] font-extrabold leading-tight text-slate-900 sm:text-xl">
+                    <h3 className="text-base font-extrabold leading-tight text-slate-900 sm:text-lg lg:text-xl">
                         {room.nombre}
                     </h3>
 
                     <div className="flex items-center gap-2 text-slate-600">
-                        <Users className="h-4 w-4" />
-                        <span className="text-sm sm:text-base">Capacidad: {room.capacidad} personas</span>
+                        <Users className="h-4 w-4 shrink-0" />
+                        <span className="text-xs sm:text-sm lg:text-base">Capacidad: {room.capacidad} personas</span>
                     </div>
                 </div>
             </CardContent>
@@ -41,7 +41,7 @@ export default function RoomCard({ room, onReservar }: { room: Sala; onReservar:
                 <Button
                     onClick={() => onReservar(room)}
                     disabled={!room.estado}
-                    className="h-12 w-full rounded-lg bg-red-500 text-base font-semibold text-white hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="h-11 w-full rounded-lg bg-red-500 text-sm font-semibold text-white hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed sm:h-12 sm:text-base"
                 >
                     Reservar
                 </Button>

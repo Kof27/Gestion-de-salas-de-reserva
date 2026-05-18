@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
     Loader2,
     Pencil,
@@ -11,6 +12,7 @@ import {
 
 import Navbar from "@/src/widgets/navbar/ui/Navbar";
 import { Sidebar } from "@/src/widgets/sidebar/ui/Sidebar";
+import { cn } from "@/lib/utils";
 
 import { useResourcesPage } from "../hooks/useResourcesPage";
 
@@ -41,6 +43,42 @@ export function ResourcesPage() {
         handleDelete,
     } = useResourcesPage();
 
+    // Animación modal de crear/editar
+    const [shouldRenderForm, setShouldRenderForm] = useState(false);
+    const [closingForm, setClosingForm] = useState(false);
+
+    useEffect(() => {
+        if (isFormOpen) {
+            setShouldRenderForm(true);
+            setClosingForm(false);
+        } else if (shouldRenderForm) {
+            setClosingForm(true);
+            const t = setTimeout(() => {
+                setShouldRenderForm(false);
+                setClosingForm(false);
+            }, 200);
+            return () => clearTimeout(t);
+        }
+    }, [isFormOpen, shouldRenderForm]);
+
+    // Animación modal de eliminar
+    const [shouldRenderDelete, setShouldRenderDelete] = useState(false);
+    const [closingDelete, setClosingDelete] = useState(false);
+
+    useEffect(() => {
+        if (resourceToDelete) {
+            setShouldRenderDelete(true);
+            setClosingDelete(false);
+        } else if (shouldRenderDelete) {
+            setClosingDelete(true);
+            const t = setTimeout(() => {
+                setShouldRenderDelete(false);
+                setClosingDelete(false);
+            }, 200);
+            return () => clearTimeout(t);
+        }
+    }, [resourceToDelete, shouldRenderDelete]);
+
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar />
@@ -48,8 +86,8 @@ export function ResourcesPage() {
             <div className="flex">
                 <Sidebar />
 
-                <main className="flex-1 p-8">
-                    <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
+                    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:mb-8">
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900">
                                 Recursos
@@ -95,8 +133,8 @@ export function ResourcesPage() {
                             No hay recursos que coincidan con los filtros.
                         </div>
                     ) : (
-                        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-                            <table className="w-full">
+                        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+                            <table className="w-full min-w-[640px]">
                                 <thead>
                                     <tr className="border-b border-gray-200">
                                         <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
@@ -188,9 +226,23 @@ export function ResourcesPage() {
                 </main>
             </div>
 
-            {isFormOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/60">
-                    <div className="mx-4 w-full max-w-lg rounded-2xl bg-white p-8 shadow-xl">
+            {shouldRenderForm && (
+                <div
+                    className={cn(
+                        "fixed inset-0 z-50 flex items-center justify-center bg-gray-500/60 p-4",
+                        closingForm
+                            ? "animate-out fade-out duration-200"
+                            : "animate-in fade-in duration-200"
+                    )}
+                >
+                    <div
+                        className={cn(
+                            "w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl sm:p-8",
+                            closingForm
+                                ? "animate-out fade-out zoom-out-95 slide-out-to-bottom-4 duration-200"
+                                : "animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300"
+                        )}
+                    >
                         <div className="mb-6">
                             <h2 className="text-xl font-bold text-gray-900">
                                 {editingResource ? "Editar recurso" : "Añadir recurso"}
@@ -290,9 +342,23 @@ export function ResourcesPage() {
                 </div>
             )}
 
-            {resourceToDelete && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/60">
-                    <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-xl">
+            {shouldRenderDelete && (
+                <div
+                    className={cn(
+                        "fixed inset-0 z-50 flex items-center justify-center bg-gray-500/60 p-4",
+                        closingDelete
+                            ? "animate-out fade-out duration-200"
+                            : "animate-in fade-in duration-200"
+                    )}
+                >
+                    <div
+                        className={cn(
+                            "w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-xl sm:p-8",
+                            closingDelete
+                                ? "animate-out fade-out zoom-out-95 slide-out-to-bottom-4 duration-200"
+                                : "animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300"
+                        )}
+                    >
                         <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
                             <Trash2 className="h-8 w-8 text-red-500" />
                         </div>
@@ -304,7 +370,7 @@ export function ResourcesPage() {
                         <p className="mb-7 text-sm leading-relaxed text-gray-500">
                             ¿Está seguro de que desea eliminar el recurso{" "}
                             <span className="font-bold text-gray-800">
-                                "{resourceToDelete.nombre}"
+                                "{resourceToDelete?.nombre}"
                             </span>
                             ? Esta acción no se puede deshacer.
                         </p>

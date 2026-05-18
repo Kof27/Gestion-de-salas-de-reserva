@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type UsuarioSesion = {
   id_usuario?: number | string;
@@ -121,10 +123,44 @@ function getFacultyName(idFacultad?: number | string) {
   return FACULTADES[String(idFacultad)] || "Facultad";
 }
 
-export const Sidebar = () => {
+interface SidebarProps {
+  alwaysDrawer?: boolean;
+}
+
+export const Sidebar = ({ alwaysDrawer = false }: SidebarProps = {}) => {
   const pathname = usePathname();
 
   const [usuario, setUsuario] = useState<UsuarioSesion | null>(null);
+  const [isOpenMobile, setIsOpenMobile] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
+  const [closing, setClosing] = useState(false);
+
+  // Animación drawer mobile
+  useEffect(() => {
+    if (isOpenMobile) {
+      setShouldRender(true);
+      setClosing(false);
+    } else if (shouldRender) {
+      setClosing(true);
+      const t = setTimeout(() => {
+        setShouldRender(false);
+        setClosing(false);
+      }, 200);
+      return () => clearTimeout(t);
+    }
+  }, [isOpenMobile, shouldRender]);
+
+  // Escuchar evento toggle desde el Navbar
+  useEffect(() => {
+    const handler = () => setIsOpenMobile((prev) => !prev);
+    window.addEventListener("toggle-sidebar", handler);
+    return () => window.removeEventListener("toggle-sidebar", handler);
+  }, []);
+
+  // Cerrar el drawer al cambiar de ruta
+  useEffect(() => {
+    setIsOpenMobile(false);
+  }, [pathname]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("usuario");
@@ -148,8 +184,8 @@ export const Sidebar = () => {
     return getInitials(usuario?.nombre);
   }, [usuario?.nombre]);
 
-  return (
-    <aside className="w-60 min-h-[calc(100vh-56px)] bg-white border-r border-gray-200 flex flex-col">
+  const sidebarContent = (
+    <>
       <div className="flex items-center gap-3 py-4 px-2">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-700 text-sm font-bold text-white">
           {initials}
@@ -191,6 +227,55 @@ export const Sidebar = () => {
           );
         })}
       </nav>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Sidebar Desktop (oculto en alwaysDrawer) */}
+      {!alwaysDrawer && (
+        <aside className="hidden md:flex w-60 min-h-[calc(100vh-56px)] bg-white border-r border-gray-200 flex-col">
+          {sidebarContent}
+        </aside>
+      )}
+
+      {/* Drawer (mobile siempre; desktop solo si alwaysDrawer) */}
+      {shouldRender && (
+        <div className={cn("fixed inset-0 z-40", !alwaysDrawer && "md:hidden")}>
+          {/* Overlay */}
+          <div
+            className={cn(
+              "absolute inset-0 bg-black/40",
+              closing
+                ? "animate-out fade-out duration-200"
+                : "animate-in fade-in duration-200"
+            )}
+            onClick={() => setIsOpenMobile(false)}
+          />
+
+          {/* Drawer panel */}
+          <aside
+            className={cn(
+              "absolute left-0 top-0 bottom-0 w-72 max-w-[85vw] bg-white border-r border-gray-200 flex flex-col shadow-xl",
+              closing
+                ? "animate-out slide-out-to-left duration-200"
+                : "animate-in slide-in-from-left duration-200"
+            )}
+          >
+            <div className="flex items-center justify-between border-b border-gray-100 px-3 py-3">
+              <span className="text-sm font-semibold text-gray-700">Menú</span>
+              <button
+                onClick={() => setIsOpenMobile(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 transition-colors"
+                aria-label="Cerrar menú"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            {sidebarContent}
+          </aside>
+        </div>
+      )}
+    </>
   );
 };

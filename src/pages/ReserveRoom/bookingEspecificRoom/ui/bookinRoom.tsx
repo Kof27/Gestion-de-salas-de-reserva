@@ -60,7 +60,7 @@ export default function BookingRoomWindows({ roomId, onClose }: BookingRoomWindo
 
     if (loading) {
         return (
-            <div className="w-[95vw] max-w-275 h-[85vh] bg-white rounded-2xl flex items-center justify-center">
+            <div className="w-full h-full sm:w-[95vw] sm:max-w-275 sm:h-[85vh] bg-white sm:rounded-2xl flex items-center justify-center">
                 <p className="text-sm text-slate-400">Cargando sala...</p>
             </div>
         );
@@ -68,32 +68,32 @@ export default function BookingRoomWindows({ roomId, onClose }: BookingRoomWindo
 
     if (error || !room) {
         return (
-            <div className="w-[95vw] max-w-275 h-[85vh] bg-white rounded-2xl flex items-center justify-center">
+            <div className="w-full h-full sm:w-[95vw] sm:max-w-275 sm:h-[85vh] bg-white sm:rounded-2xl flex items-center justify-center">
                 <p className="text-sm text-red-500">{error || "No se pudo cargar la sala"}</p>
             </div>
         );
     }
 
     return (
-        <div className="w-[95vw] max-w-275 h-[85vh] bg-white rounded-2xl flex flex-col overflow-hidden shadow-2xl">
+        <div className="w-full h-full overflow-y-auto bg-white flex flex-col shadow-2xl sm:w-[95vw] sm:max-w-275 sm:h-[85vh] sm:rounded-2xl lg:overflow-hidden">
 
             {/* ── Header ── */}
-            <div className="shrink-0 border-b border-slate-100 px-6 py-4 flex items-center gap-4">
+            <div className="border-b border-slate-100 px-4 py-3 flex items-center gap-3 sm:px-6 sm:py-4 sm:gap-4 lg:shrink-0">
                 {room.imagen_sala ? (
                     <img
                         src={room.imagen_sala}
                         alt={room.nombre}
-                        className="h-14 w-20 rounded-xl object-cover shrink-0"
+                        className="h-12 w-16 rounded-lg object-cover shrink-0 sm:h-14 sm:w-20 sm:rounded-xl"
                     />
                 ) : (
-                    <div className="h-14 w-20 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
+                    <div className="h-12 w-16 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 sm:h-14 sm:w-20 sm:rounded-xl">
                         <Building2 className="h-6 w-6 text-slate-300" />
                     </div>
                 )}
 
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-extrabold text-slate-900 tracking-tight">
+                        <h1 className="text-base font-extrabold text-slate-900 tracking-tight sm:text-lg">
                             {room.nombre}
                         </h1>
                         <Badge className={cn(
@@ -125,14 +125,14 @@ export default function BookingRoomWindows({ roomId, onClose }: BookingRoomWindo
             </div>
 
             {/* ── Body ── */}
-            <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1.65fr_0.85fr]">
+            <div className="grid grid-cols-1 lg:flex-1 lg:min-h-0 lg:grid-cols-[1.65fr_0.85fr]">
 
                 {/* Left — form */}
-                <div className="p-6 border-r border-slate-100 bg-white overflow-y-auto min-h-0">
+                <div className="p-4 border-b border-slate-100 bg-white sm:p-6 lg:border-b-0 lg:border-r lg:overflow-y-auto lg:min-h-0">
                     <div className="flex flex-col gap-5">
 
                         {/* Calendar */}
-                        <div className="rounded-2xl border border-slate-100 bg-white p-4 flex justify-center">
+                        <div className="rounded-2xl border border-slate-100 bg-white p-2 flex justify-center sm:p-4">
                             <Calendar
                                 mode="single"
                                 selected={selectedDate}
@@ -164,13 +164,13 @@ export default function BookingRoomWindows({ roomId, onClose }: BookingRoomWindo
                         </div>
 
                         {/* Time selectors */}
-                        <div className="flex gap-2">
-                            <div className="space-y-1.5">
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1.5 min-w-0">
                                 <label className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
                                     Hora de inicio
                                 </label>
                                 <Select modal={false} value={startTime} onValueChange={setStartTime}>
-                                    <SelectTrigger className="h-10 rounded-xl border-slate-200 bg-slate-50 text-sm">
+                                    <SelectTrigger className="h-10 w-full rounded-xl border-slate-200 bg-slate-50 text-sm">
                                         <div className="flex items-center gap-2">
                                             <Clock3 className="w-4 h-4 text-slate-400" />
                                             <SelectValue placeholder="Hora inicio" />
@@ -186,12 +186,12 @@ export default function BookingRoomWindows({ roomId, onClose }: BookingRoomWindo
                                 </Select>
                             </div>
 
-                            <div className="space-y-1.5">
+                            <div className="space-y-1.5 min-w-0">
                                 <label className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
                                     Hora de fin
                                 </label>
                                 <Select modal={false} value={endTime} onValueChange={setEndTime}>
-                                    <SelectTrigger className="h-10 rounded-xl border-slate-200 bg-slate-50 text-sm">
+                                    <SelectTrigger className="h-10 w-full rounded-xl border-slate-200 bg-slate-50 text-sm">
                                         <div className="flex items-center gap-2">
                                             <Clock3 className="w-4 h-4 text-slate-400" />
                                             <SelectValue placeholder="Hora fin" />
@@ -269,7 +269,7 @@ export default function BookingRoomWindows({ roomId, onClose }: BookingRoomWindo
                 </div>
 
                 {/* Right — room info + availability */}
-                <div className="bg-slate-50 p-6 overflow-y-auto min-h-0 flex flex-col gap-5">
+                <div className="bg-slate-50 p-4 flex flex-col gap-5 sm:p-6 lg:overflow-y-auto lg:min-h-0">
 
                     {/* Room description */}
                     {room.descripcion && (
@@ -376,7 +376,7 @@ export default function BookingRoomWindows({ roomId, onClose }: BookingRoomWindo
             </div>
 
             {/* ── Footer ── */}
-            <div className="shrink-0 border-t border-slate-100 bg-white px-6 py-4 flex items-center justify-end gap-3">
+            <div className="sticky bottom-0 border-t border-slate-100 bg-white px-4 py-3 flex items-center justify-end gap-2 sm:px-6 sm:py-4 sm:gap-3 lg:static lg:shrink-0">
                 <Button
                     variant="ghost"
                     className="text-slate-500 font-semibold text-sm hover:text-slate-700"
@@ -388,7 +388,7 @@ export default function BookingRoomWindows({ roomId, onClose }: BookingRoomWindo
                     onClick={handleConfirmReservation}
                     disabled={hasConflict || submitting}
                     className={cn(
-                        "font-bold text-sm px-6 rounded-xl text-white",
+                        "font-bold text-sm px-4 rounded-xl text-white sm:px-6",
                         hasConflict || submitting
                             ? "bg-slate-300 cursor-not-allowed hover:bg-slate-300"
                             : "bg-red-500 hover:bg-red-600"

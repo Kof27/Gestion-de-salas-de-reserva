@@ -59,24 +59,24 @@ export function ReportesPage() {
       <Navbar />
       <div className="flex">
         <Sidebar />
-        <main className="flex-1 p-8">
+        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
           <div>
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Reportes</h1>
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Reportes</h1>
             <p className="mt-1 text-sm text-gray-500">
               Analiza el uso de salas y reservas en la institución
             </p>
           </div>
 
           {/* Menú horizontal de reportes */}
-          <div className="mb-8 overflow-x-auto">
-            <div className="flex gap-2 border-b border-gray-200">
+          <div className="mb-6 overflow-x-auto sm:mb-8">
+            <div className="flex gap-2 border-b border-gray-200 min-w-max">
               {reportTabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${
+                  className={`px-3 py-3 text-xs font-medium whitespace-nowrap transition-colors border-b-2 sm:px-4 sm:text-sm ${
                     activeTab === tab.id
                       ? "border-red-500 text-red-600"
                       : "border-transparent text-gray-600 hover:text-gray-900"
@@ -89,7 +89,7 @@ export function ReportesPage() {
           </div>
 
           {/* Contenido del reporte */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 lg:p-8">
             {activeTab === "reservas" && <ReporteReservas />}
             {activeTab === "horas" && <ReporteHoras />}
             {activeTab === "usuario" && <ReporteUsuario />}
@@ -268,7 +268,7 @@ function ReporteReservas() {
 
           <button
             onClick={applyFilter}
-            className="h-[42px] px-6 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2 text-sm shadow-sm"
+            className="h-[42px] w-full sm:w-auto px-6 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 text-sm shadow-sm"
           >
             <Filter className="h-4 w-4" />
             Aplicar Filtro
@@ -284,11 +284,11 @@ function ReporteReservas() {
       </div>
 
       {/* Contenido descargable */}
-      <div ref={reportRef} className="space-y-6 bg-white p-4 rounded-xl">
+      <div ref={reportRef} className="space-y-4 bg-white p-3 rounded-xl sm:space-y-6 sm:p-4">
         {/* Header del reporte */}
-        <div className="flex items-start justify-between border-b border-gray-200 pb-4">
+        <div className="flex flex-col gap-3 border-b border-gray-200 pb-4 sm:flex-row sm:items-start sm:justify-between sm:gap-0">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-lg font-bold text-gray-900 sm:text-xl">
               Reporte de uso por número de reservas
             </h2>
             <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
@@ -312,34 +312,34 @@ function ReporteReservas() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
           <div className="flex items-center gap-2 text-gray-500 mb-2">
             <FileBarChart className="h-4 w-4" />
             <p className="text-xs font-medium uppercase tracking-wide">Total Reservas</p>
           </div>
-          <p className="text-3xl font-bold text-gray-900">{stats.totalReservas}</p>
+          <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{stats.totalReservas}</p>
           <p className="text-xs text-gray-500 mt-1">en {stats.daysInRange} días</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
           <div className="flex items-center gap-2 text-gray-500 mb-2">
             <Inbox className="h-4 w-4" />
             <p className="text-xs font-medium uppercase tracking-wide">Salas Utilizadas</p>
           </div>
-          <p className="text-3xl font-bold text-gray-900">{stats.totalSalas}</p>
+          <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{stats.totalSalas}</p>
           <p className="text-xs text-gray-500 mt-1">salas con actividad</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
           <div className="flex items-center gap-2 text-gray-500 mb-2">
             <TrendingUp className="h-4 w-4" />
             <p className="text-xs font-medium uppercase tracking-wide">Promedio Diario</p>
           </div>
-          <p className="text-3xl font-bold text-gray-900">{stats.promedioDiario}</p>
+          <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{stats.promedioDiario}</p>
           <p className="text-xs text-gray-500 mt-1">reservas / día</p>
         </div>
 
-        <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-5 shadow-sm text-white">
+        <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-4 shadow-sm text-white sm:p-5">
           <div className="flex items-center gap-2 text-red-100 mb-2">
             <FileBarChart className="h-4 w-4" />
             <p className="text-xs font-medium uppercase tracking-wide">Top Sala</p>
@@ -365,7 +365,7 @@ function ReporteReservas() {
           {/* Gráficos: Barras + Pie */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Gráfico de barras */}
-            <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
               <h3 className="text-sm font-semibold text-gray-900 mb-1">
                 Reservas por Sala
               </h3>
@@ -396,7 +396,7 @@ function ReporteReservas() {
             </div>
 
             {/* Gráfico de dona (Pie) */}
-            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
               <h3 className="text-sm font-semibold text-gray-900 mb-1">
                 Distribución Porcentual
               </h3>
@@ -438,7 +438,7 @@ function ReporteReservas() {
           </div>
 
           {/* Gráfico de línea: Evolución temporal por sala */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
             <h3 className="text-sm font-semibold text-gray-900 mb-1">
               Evolución de Reservas en el Tiempo
             </h3>
@@ -480,20 +480,21 @@ function ReporteReservas() {
 
           {/* Tabla detallada */}
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-200">
+            <div className="px-4 py-4 border-b border-gray-200 sm:px-5">
               <h3 className="text-sm font-semibold text-gray-900">Detalle por Sala</h3>
               <p className="text-xs text-gray-500 mt-0.5">Listado completo del período seleccionado</p>
             </div>
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[480px]">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
                     Sala
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
                     Reservas
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
                     Porcentaje
                   </th>
                 </tr>
@@ -531,6 +532,7 @@ function ReporteReservas() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </>
       )}
@@ -542,7 +544,7 @@ function ReporteReservas() {
           <button
             onClick={handleDownloadPDF}
             disabled={downloading}
-            className="flex items-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 active:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors text-sm shadow-sm"
+            className="flex w-full items-center justify-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 active:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors text-sm shadow-sm sm:w-auto"
           >
             {downloading ? (
               <>
@@ -724,7 +726,7 @@ function ReporteHoras() {
 
           <button
             onClick={applyFilter}
-            className="h-[42px] px-6 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2 text-sm shadow-sm"
+            className="h-[42px] w-full sm:w-auto px-6 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 text-sm shadow-sm"
           >
             <Filter className="h-4 w-4" />
             Aplicar Filtro
@@ -740,21 +742,21 @@ function ReporteHoras() {
       </div>
 
       {/* Contenido descargable */}
-      <div ref={reportRef} className="space-y-6 bg-white p-4 rounded-xl">
+      <div ref={reportRef} className="space-y-4 bg-white p-3 rounded-xl sm:space-y-6 sm:p-4">
         {/* Header del reporte */}
-        <div className="flex items-start justify-between border-b border-gray-200 pb-4">
+        <div className="flex flex-col gap-3 border-b border-gray-200 pb-4 sm:flex-row sm:items-start sm:justify-between sm:gap-0">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-lg font-bold text-gray-900 sm:text-xl">
               Reporte de uso por horas reservadas
             </h2>
-            <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
-              <Calendar className="h-4 w-4 text-gray-400" />
+            <div className="flex items-center gap-2 mt-2 text-xs text-gray-600 sm:text-sm">
+              <Calendar className="h-4 w-4 text-gray-400 shrink-0" />
               <span>
                 Período: <span className="font-semibold text-gray-800">{formatRange()}</span>
               </span>
             </div>
           </div>
-          <div className="text-right text-xs text-gray-500">
+          <div className="text-left text-xs text-gray-500 sm:text-right">
             <p>Generado el</p>
             <p className="font-medium text-gray-700">
               {new Date().toLocaleDateString("es-CO", {
@@ -768,34 +770,34 @@ function ReporteHoras() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
             <div className="flex items-center gap-2 text-gray-500 mb-2">
               <Clock className="h-4 w-4" />
               <p className="text-xs font-medium uppercase tracking-wide">Total Horas</p>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.totalHoras}h</p>
+            <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{stats.totalHoras}h</p>
             <p className="text-xs text-gray-500 mt-1">en {stats.daysInRange} días</p>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
             <div className="flex items-center gap-2 text-gray-500 mb-2">
               <Inbox className="h-4 w-4" />
               <p className="text-xs font-medium uppercase tracking-wide">Salas Utilizadas</p>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.totalSalas}</p>
+            <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{stats.totalSalas}</p>
             <p className="text-xs text-gray-500 mt-1">salas con actividad</p>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
             <div className="flex items-center gap-2 text-gray-500 mb-2">
               <Timer className="h-4 w-4" />
               <p className="text-xs font-medium uppercase tracking-wide">Prom. por Reserva</p>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.promedioPorReserva}h</p>
+            <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{stats.promedioPorReserva}h</p>
             <p className="text-xs text-gray-500 mt-1">duración media</p>
           </div>
 
-          <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-5 shadow-sm text-white">
+          <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-4 shadow-sm text-white sm:p-5">
             <div className="flex items-center gap-2 text-red-100 mb-2">
               <TrendingUp className="h-4 w-4" />
               <p className="text-xs font-medium uppercase tracking-wide">Top Sala</p>
@@ -820,7 +822,7 @@ function ReporteHoras() {
           <>
             {/* Gráficos: Barras + Pie */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+              <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
                 <h3 className="text-sm font-semibold text-gray-900 mb-1">
                   Horas Reservadas por Sala
                 </h3>
@@ -853,7 +855,7 @@ function ReporteHoras() {
                 </ResponsiveContainer>
               </div>
 
-              <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+              <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
                 <h3 className="text-sm font-semibold text-gray-900 mb-1">
                   Distribución Porcentual
                 </h3>
@@ -895,7 +897,7 @@ function ReporteHoras() {
             </div>
 
             {/* Gráfico de línea: Evolución temporal por sala */}
-            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
               <h3 className="text-sm font-semibold text-gray-900 mb-1">
                 Evolución de Horas en el Tiempo
               </h3>
@@ -940,26 +942,27 @@ function ReporteHoras() {
 
             {/* Tabla detallada */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-200">
+              <div className="px-4 py-4 border-b border-gray-200 sm:px-5">
                 <h3 className="text-sm font-semibold text-gray-900">Detalle por Sala</h3>
                 <p className="text-xs text-gray-500 mt-0.5">Listado completo del período seleccionado</p>
               </div>
-              <table className="w-full">
+              <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px]">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
                       Sala
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
                       Horas
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
                       Reservas
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
                       Prom. / Reserva
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
                       Porcentaje
                     </th>
                   </tr>
@@ -1003,6 +1006,7 @@ function ReporteHoras() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           </>
         )}
@@ -1014,7 +1018,7 @@ function ReporteHoras() {
           <button
             onClick={handleDownloadPDF}
             disabled={downloading}
-            className="flex items-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 active:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors text-sm shadow-sm"
+            className="flex w-full items-center justify-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 active:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors text-sm shadow-sm sm:w-auto"
           >
             {downloading ? (
               <>
@@ -1141,23 +1145,23 @@ function ReporteUsuario() {
         </button>
 
         {/* Contenido descargable */}
-        <div ref={reportRef} className="space-y-6 bg-white p-4 rounded-xl">
+        <div ref={reportRef} className="space-y-4 bg-white p-3 rounded-xl sm:space-y-6 sm:p-4">
           {/* Header del usuario */}
-          <div className="flex items-start justify-between border-b border-gray-200 pb-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white text-lg font-bold shadow-sm">
+          <div className="flex flex-col gap-3 border-b border-gray-200 pb-4 sm:flex-row sm:items-start sm:justify-between sm:gap-0">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white font-bold shadow-sm shrink-0 sm:w-14 sm:h-14 sm:text-lg">
                 {initials}
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">
+              <div className="min-w-0">
+                <h2 className="text-lg font-bold text-gray-900 truncate sm:text-xl">
                   {selectedUserDetail.nombre}
                 </h2>
-                <p className="text-sm text-gray-500 mt-0.5">
+                <p className="text-xs text-gray-500 mt-0.5 truncate sm:text-sm">
                   {selectedUserDetail.correo}
                 </p>
               </div>
             </div>
-            <div className="text-right text-xs text-gray-500">
+            <div className="text-left text-xs text-gray-500 sm:text-right">
               <p>Generado el</p>
               <p className="font-medium text-gray-700">
                 {new Date().toLocaleDateString("es-CO", {
@@ -1171,7 +1175,7 @@ function ReporteUsuario() {
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
               <div className="flex items-center gap-2 text-gray-500 mb-2">
                 <FileBarChart className="h-4 w-4" />
                 <p className="text-xs font-medium uppercase tracking-wide">Total Reservas</p>
@@ -1211,7 +1215,7 @@ function ReporteUsuario() {
               {/* Fila 1: Estado + Top Salas */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Pie chart - Estado de reservas */}
-                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
                   <h3 className="text-sm font-semibold text-gray-900 mb-1">
                     Estado de Reservas
                   </h3>
@@ -1258,7 +1262,7 @@ function ReporteUsuario() {
                 </div>
 
                 {/* Bar chart - Top salas */}
-                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
                   <h3 className="text-sm font-semibold text-gray-900 mb-1">
                     Salas Más Reservadas
                   </h3>
@@ -1305,7 +1309,7 @@ function ReporteUsuario() {
               {/* Fila 2: Día de semana + Evolución mensual */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Reservas por día de la semana */}
-                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
                   <h3 className="text-sm font-semibold text-gray-900 mb-1">
                     Patrón Semanal
                   </h3>
@@ -1338,7 +1342,7 @@ function ReporteUsuario() {
                 </div>
 
                 {/* Evolución mensual */}
-                <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
                   <h3 className="text-sm font-semibold text-gray-900 mb-1">
                     Evolución Mensual
                   </h3>
@@ -1392,7 +1396,7 @@ function ReporteUsuario() {
             </div>
           ) : (
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-200">
+              <div className="px-4 py-4 border-b border-gray-200 sm:px-5">
                 <h3 className="text-sm font-semibold text-gray-900">
                   Historial de Reservas
                 </h3>
@@ -1401,22 +1405,22 @@ function ReporteUsuario() {
                 </p>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[720px]">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
                         Sala
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
                         Ubicación
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
                         Fecha
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
                         Horario
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
                         Estado
                       </th>
                     </tr>
@@ -1470,7 +1474,7 @@ function ReporteUsuario() {
             <button
               onClick={handleDownloadPDF}
               disabled={downloading}
-              className="flex items-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 active:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors text-sm shadow-sm"
+              className="flex w-full items-center justify-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 active:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors text-sm shadow-sm sm:w-auto"
             >
               {downloading ? (
                 <>
@@ -1542,8 +1546,8 @@ function ReporteUsuario() {
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-gray-900">
+          <div className="px-4 py-3 border-b border-gray-200 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-5 sm:py-4">
+            <h3 className="text-sm font-semibold text-gray-900 whitespace-nowrap">
               {filteredUserList.length} {filteredUserList.length === 1 ? "usuario" : "usuarios"}
             </h3>
             <p className="text-xs text-gray-500">
@@ -1565,10 +1569,10 @@ function ReporteUsuario() {
                 >
                   <button
                     onClick={() => selectUser(u.id_usuario)}
-                    className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-gray-50 transition-colors group"
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors group sm:gap-4 sm:px-5 sm:py-4"
                   >
                     <div
-                      className="w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 sm:w-11 sm:h-11"
                       style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }}
                     >
                       {initials || "US"}
@@ -1581,9 +1585,9 @@ function ReporteUsuario() {
                         {u.correo}
                       </p>
                     </div>
-                    <div className="flex items-center gap-6 shrink-0">
+                    <div className="flex items-center gap-3 shrink-0 sm:gap-6">
                       <div className="text-right">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                        <p className="hidden text-xs font-medium text-gray-500 uppercase tracking-wide sm:block">
                           Total
                         </p>
                         <p className="text-lg font-bold text-gray-900">
