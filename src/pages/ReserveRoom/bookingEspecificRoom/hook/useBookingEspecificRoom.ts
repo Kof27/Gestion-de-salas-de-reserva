@@ -33,7 +33,7 @@ type UseBookingRoomParams = {
 };
 
 export function useBookingRoom({ roomId }: UseBookingRoomParams) {
-    const effectiveRoomId = roomId || "1";
+    const effectiveRoomId = roomId;
     const usuarioStorage = typeof window !== "undefined" ? localStorage.getItem("usuario") : null;
     const usuario = usuarioStorage ? JSON.parse(usuarioStorage) : null;
 
@@ -55,6 +55,8 @@ export function useBookingRoom({ roomId }: UseBookingRoomParams) {
     const [submitting, setSubmitting] = React.useState(false);
 
     const loadData = React.useCallback(async () => {
+        if (!effectiveRoomId) return;
+
         try {
             setLoading(true);
             setError(null);
@@ -154,7 +156,7 @@ export function useBookingRoom({ roomId }: UseBookingRoomParams) {
     
 
     const handleConfirmReservation = async () => {
-        if (hasConflict || !selectedDate) return;
+        if (hasConflict || !selectedDate || !effectiveRoomId) return;
 
         try {
             setSubmitting(true);
