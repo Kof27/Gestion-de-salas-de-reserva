@@ -19,16 +19,9 @@ const handleError = (res, error) => {
  */
 const getReservations = async (req, res) => {
   try {
-    const { id_rol, id_usuario } = req.usuarioAuth;
     
-    let reservas;
-    if (id_rol === 1) {
-      // Docente: solo sus reservas
-      reservas = await reservationService.getTeacherReservationHistory(id_usuario);
-    } else {
-      // Secretaria u otro: todas las reservas
-      reservas = await reservationService.getAllReservations();
-    }
+    
+    let reservas = await reservationService.getAllReservations();
     
     res.json(reservas.map(buildReservationResponse));
   } catch (error) {
