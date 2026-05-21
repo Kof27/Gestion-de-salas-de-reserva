@@ -61,39 +61,38 @@ export function ReportesPage() {
         <Sidebar />
         <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
           <div>
-          {/* Header */}
-          <div className="mb-6 sm:mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Reportes</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Analiza el uso de salas y reservas en la institución
-            </p>
-          </div>
+            {/* Header */}
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Reportes</h1>
+              <p className="mt-1 text-sm text-gray-500">
+                Analiza el uso de salas y reservas en la institución
+              </p>
+            </div>
 
-          {/* Menú horizontal de reportes */}
-          <div className="mb-6 overflow-x-auto sm:mb-8">
-            <div className="flex gap-2 border-b border-gray-200 min-w-max">
-              {reportTabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-3 py-3 text-xs font-medium whitespace-nowrap transition-colors border-b-2 sm:px-4 sm:text-sm ${
-                    activeTab === tab.id
+            {/* Menú horizontal de reportes */}
+            <div className="mb-6 overflow-x-auto sm:mb-8">
+              <div className="flex gap-2 border-b border-gray-200 min-w-max">
+                {reportTabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-3 py-3 text-xs font-medium whitespace-nowrap transition-colors border-b-2 sm:px-4 sm:text-sm ${activeTab === tab.id
                       ? "border-red-500 text-red-600"
                       : "border-transparent text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+                      }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Contenido del reporte */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 lg:p-8">
-            {activeTab === "reservas" && <ReporteReservas />}
-            {activeTab === "horas" && <ReporteHoras />}
-            {activeTab === "usuario" && <ReporteUsuario />}
-          </div>
+            {/* Contenido del reporte */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 lg:p-8">
+              {activeTab === "reservas" && <ReporteReservas />}
+              {activeTab === "horas" && <ReporteHoras />}
+              {activeTab === "usuario" && <ReporteUsuario />}
+            </div>
           </div>
         </main>
       </div>
@@ -111,6 +110,9 @@ function ReporteReservas() {
     setPendingStartDate,
     pendingEndDate,
     setPendingEndDate,
+    pendingReservationCount,
+    setPendingReservationCount,
+    appliedReservationCount,
     appliedStartDate,
     appliedEndDate,
     validationError,
@@ -204,11 +206,13 @@ function ReporteReservas() {
   return (
     <div className="space-y-6">
 
-      {/* Filtro de fechas estilizado */}
-      <div className="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 rounded-xl p-5">
+      {/* Filtro de fechas y número de reservas */}
+      <div className="bg-linear-to-br from-slate-50 to-slate-100 border border-slate-200 rounded-xl p-5">
         <div className="flex items-center gap-2 mb-4">
           <Filter className="h-4 w-4 text-slate-600" />
-          <h3 className="text-sm font-semibold text-slate-700">Filtrar por rango de fechas</h3>
+          <h3 className="text-sm font-semibold text-slate-700">
+            Filtrar reporte
+          </h3>
         </div>
 
         <div className="flex flex-col md:flex-row gap-4 md:items-end">
@@ -217,11 +221,10 @@ function ReporteReservas() {
               Fecha Inicio
             </label>
             <div
-              className={`flex items-center gap-2 bg-white rounded-lg border transition-colors px-3 py-2.5 ${
-                validationError.startDate || validationError.range
-                  ? "border-red-300 ring-1 ring-red-200"
-                  : "border-slate-200 hover:border-slate-300 focus-within:border-red-400 focus-within:ring-2 focus-within:ring-red-100"
-              }`}
+              className={`flex items-center gap-2 bg-white rounded-lg border transition-colors px-3 py-2.5 ${validationError.startDate || validationError.range
+                ? "border-red-300 ring-1 ring-red-200"
+                : "border-slate-200 hover:border-slate-300 focus-within:border-red-400 focus-within:ring-2 focus-within:ring-red-100"
+                }`}
             >
               <Calendar className="h-4 w-4 text-slate-400" />
               <input
@@ -244,11 +247,10 @@ function ReporteReservas() {
               Fecha Fin
             </label>
             <div
-              className={`flex items-center gap-2 bg-white rounded-lg border transition-colors px-3 py-2.5 ${
-                validationError.endDate || validationError.range
-                  ? "border-red-300 ring-1 ring-red-200"
-                  : "border-slate-200 hover:border-slate-300 focus-within:border-red-400 focus-within:ring-2 focus-within:ring-red-100"
-              }`}
+              className={`flex items-center gap-2 bg-white rounded-lg border transition-colors px-3 py-2.5 ${validationError.endDate || validationError.range
+                ? "border-red-300 ring-1 ring-red-200"
+                : "border-slate-200 hover:border-slate-300 focus-within:border-red-400 focus-within:ring-2 focus-within:ring-red-100"
+                }`}
             >
               <Calendar className="h-4 w-4 text-slate-400" />
               <input
@@ -266,9 +268,38 @@ function ReporteReservas() {
             )}
           </div>
 
+          <div className="flex-1">
+            <label className="block text-xs font-medium text-slate-600 mb-1.5 uppercase tracking-wide">
+              Número de reservas
+            </label>
+            <div
+              className={`flex items-center gap-2 bg-white rounded-lg border transition-colors px-3 py-2.5 ${validationError.reservationCount
+                ? "border-red-300 ring-1 ring-red-200"
+                : "border-slate-200 hover:border-slate-300 focus-within:border-red-400 focus-within:ring-2 focus-within:ring-red-100"
+                }`}
+            >
+              <FileBarChart className="h-4 w-4 text-slate-400" />
+              <input
+                type="number"
+                min={1}
+                step={1}
+                placeholder="Ej: 3"
+                value={pendingReservationCount}
+                onChange={(e) => setPendingReservationCount(e.target.value)}
+                className="outline-none text-sm text-slate-700 bg-transparent w-full placeholder-slate-400"
+              />
+            </div>
+            {validationError.reservationCount && (
+              <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                {validationError.reservationCount}
+              </p>
+            )}
+          </div>
+
           <button
             onClick={applyFilter}
-            className="h-[42px] w-full sm:w-auto px-6 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 text-sm shadow-sm"
+            className="h-10.5 w-full sm:w-auto px-6 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 text-sm shadow-sm"
           >
             <Filter className="h-4 w-4" />
             Aplicar Filtro
@@ -291,11 +322,26 @@ function ReporteReservas() {
             <h2 className="text-lg font-bold text-gray-900 sm:text-xl">
               Reporte de uso por número de reservas
             </h2>
-            <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
-              <Calendar className="h-4 w-4 text-gray-400" />
-              <span>
-                Período: <span className="font-semibold text-gray-800">{formatRange()}</span>
-              </span>
+            <div className="space-y-1 mt-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-gray-400" />
+                <span>
+                  Período:{" "}
+                  <span className="font-semibold text-gray-800">{formatRange()}</span>
+                </span>
+              </div>
+
+              {appliedReservationCount !== "" && (
+                <div className="flex items-center gap-2">
+                  <FileBarChart className="h-4 w-4 text-gray-400" />
+                  <span>
+                    Número de reservas:{" "}
+                    <span className="font-semibold text-gray-800">
+                      {appliedReservationCount}
+                    </span>
+                  </span>
+                </div>
+              )}
             </div>
           </div>
           <div className="text-right text-xs text-gray-500">
@@ -310,113 +356,146 @@ function ReporteReservas() {
           </div>
         </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
-          <div className="flex items-center gap-2 text-gray-500 mb-2">
-            <FileBarChart className="h-4 w-4" />
-            <p className="text-xs font-medium uppercase tracking-wide">Total Reservas</p>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
+            <div className="flex items-center gap-2 text-gray-500 mb-2">
+              <FileBarChart className="h-4 w-4" />
+              <p className="text-xs font-medium uppercase tracking-wide">Total Reservas</p>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{stats.totalReservas}</p>
+            <p className="text-xs text-gray-500 mt-1">en {stats.daysInRange} días</p>
           </div>
-          <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{stats.totalReservas}</p>
-          <p className="text-xs text-gray-500 mt-1">en {stats.daysInRange} días</p>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
+            <div className="flex items-center gap-2 text-gray-500 mb-2">
+              <Inbox className="h-4 w-4" />
+              <p className="text-xs font-medium uppercase tracking-wide">Salas Utilizadas</p>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{stats.totalSalas}</p>
+            <p className="text-xs text-gray-500 mt-1">salas con actividad</p>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
+            <div className="flex items-center gap-2 text-gray-500 mb-2">
+              <TrendingUp className="h-4 w-4" />
+              <p className="text-xs font-medium uppercase tracking-wide">Promedio Diario</p>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{stats.promedioDiario}</p>
+            <p className="text-xs text-gray-500 mt-1">reservas / día</p>
+          </div>
+
+          <div className="bg-linear-to-br from-red-500 to-red-600 rounded-xl p-4 shadow-sm text-white sm:p-5">
+            <div className="flex items-center gap-2 text-red-100 mb-2">
+              <FileBarChart className="h-4 w-4" />
+              <p className="text-xs font-medium uppercase tracking-wide">Top Sala</p>
+            </div>
+            <p className="text-lg font-bold truncate">
+              {stats.salaConMasReservas || "Sin datos"}
+            </p>
+            <p className="text-xs text-red-100 mt-1">{stats.maxReservas} reservas</p>
+          </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
-          <div className="flex items-center gap-2 text-gray-500 mb-2">
-            <Inbox className="h-4 w-4" />
-            <p className="text-xs font-medium uppercase tracking-wide">Salas Utilizadas</p>
+        {/* Sin datos */}
+        {!hasData ? (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-12 text-center">
+            <Inbox className="h-12 w-12 text-amber-400 mx-auto mb-3" />
+            <h3 className="text-lg font-semibold text-amber-900 mb-1">No existen reservas</h3>
+            <p className="text-sm text-amber-700">
+              {appliedReservationCount !== ""
+                ? `No hay salas con exactamente ${appliedReservationCount} reservas en el rango de fechas seleccionado.`
+                : "No hay reservas registradas en el rango de fechas seleccionado. Intenta con otro período."}
+            </p>
           </div>
-          <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{stats.totalSalas}</p>
-          <p className="text-xs text-gray-500 mt-1">salas con actividad</p>
-        </div>
+        ) : (
+          <>
+            {/* Gráficos: Barras + Pie */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Gráfico de barras */}
+              <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
+                <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                  Reservas por Sala
+                </h3>
+                <p className="text-xs text-gray-500 mb-4">Comparativa de uso de cada sala</p>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={reportData} margin={{ top: 5, right: 10, left: -20, bottom: 60 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                    <XAxis
+                      dataKey="salaNombre"
+                      angle={-30}
+                      textAnchor="end"
+                      height={80}
+                      tick={{ fontSize: 11, fill: "#64748b" }}
+                    />
+                    <YAxis tick={{ fontSize: 11, fill: "#64748b" }} allowDecimals={false} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#fff",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "0.5rem",
+                        fontSize: "12px",
+                      }}
+                      formatter={(value) => [`${value} reservas`, "Total"]}
+                    />
+                    <Bar dataKey="totalReservas" fill="#ef4444" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
-          <div className="flex items-center gap-2 text-gray-500 mb-2">
-            <TrendingUp className="h-4 w-4" />
-            <p className="text-xs font-medium uppercase tracking-wide">Promedio Diario</p>
-          </div>
-          <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{stats.promedioDiario}</p>
-          <p className="text-xs text-gray-500 mt-1">reservas / día</p>
-        </div>
-
-        <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-4 shadow-sm text-white sm:p-5">
-          <div className="flex items-center gap-2 text-red-100 mb-2">
-            <FileBarChart className="h-4 w-4" />
-            <p className="text-xs font-medium uppercase tracking-wide">Top Sala</p>
-          </div>
-          <p className="text-lg font-bold truncate">
-            {stats.salaConMasReservas || "Sin datos"}
-          </p>
-          <p className="text-xs text-red-100 mt-1">{stats.maxReservas} reservas</p>
-        </div>
-      </div>
-
-      {/* Sin datos */}
-      {!hasData ? (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-12 text-center">
-          <Inbox className="h-12 w-12 text-amber-400 mx-auto mb-3" />
-          <h3 className="text-lg font-semibold text-amber-900 mb-1">No existen reservas</h3>
-          <p className="text-sm text-amber-700">
-            No hay reservas registradas en el rango de fechas seleccionado. Intenta con otro período.
-          </p>
-        </div>
-      ) : (
-        <>
-          {/* Gráficos: Barras + Pie */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Gráfico de barras */}
-            <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
-              <h3 className="text-sm font-semibold text-gray-900 mb-1">
-                Reservas por Sala
-              </h3>
-              <p className="text-xs text-gray-500 mb-4">Comparativa de uso de cada sala</p>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={reportData} margin={{ top: 5, right: 10, left: -20, bottom: 60 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                  <XAxis
-                    dataKey="salaNombre"
-                    angle={-30}
-                    textAnchor="end"
-                    height={80}
-                    tick={{ fontSize: 11, fill: "#64748b" }}
-                  />
-                  <YAxis tick={{ fontSize: 11, fill: "#64748b" }} allowDecimals={false} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#fff",
-                      border: "1px solid #e5e7eb",
-                      borderRadius: "0.5rem",
-                      fontSize: "12px",
-                    }}
-                    formatter={(value) => [`${value} reservas`, "Total"]}
-                  />
-                  <Bar dataKey="totalReservas" fill="#ef4444" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              {/* Gráfico de dona (Pie) */}
+              <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
+                <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                  Distribución Porcentual
+                </h3>
+                <p className="text-xs text-gray-500 mb-4">% de uso por sala</p>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={reportData}
+                      dataKey="totalReservas"
+                      nameKey="salaNombre"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={85}
+                      paddingAngle={2}
+                    >
+                      {reportData.map((_, idx) => (
+                        <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#fff",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "0.5rem",
+                        fontSize: "12px",
+                      }}
+                      formatter={(value, name) => [`${value} reservas`, name]}
+                    />
+                    <Legend
+                      verticalAlign="bottom"
+                      height={36}
+                      iconType="circle"
+                      wrapperStyle={{ fontSize: "11px" }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
-            {/* Gráfico de dona (Pie) */}
+            {/* Gráfico de línea: Evolución temporal por sala */}
             <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
               <h3 className="text-sm font-semibold text-gray-900 mb-1">
-                Distribución Porcentual
+                Evolución de Reservas en el Tiempo
               </h3>
-              <p className="text-xs text-gray-500 mb-4">% de uso por sala</p>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={reportData}
-                    dataKey="totalReservas"
-                    nameKey="salaNombre"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={85}
-                    paddingAngle={2}
-                  >
-                    {reportData.map((_, idx) => (
-                      <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
+              <p className="text-xs text-gray-500 mb-4">Reservas diarias por sala durante el período</p>
+              <ResponsiveContainer width="100%" height={320}>
+                <LineChart data={timelineData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#64748b" }} />
+                  <YAxis tick={{ fontSize: 11, fill: "#64748b" }} allowDecimals={false} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "#fff",
@@ -429,113 +508,82 @@ function ReporteReservas() {
                   <Legend
                     verticalAlign="bottom"
                     height={36}
-                    iconType="circle"
-                    wrapperStyle={{ fontSize: "11px" }}
+                    iconType="line"
+                    wrapperStyle={{ fontSize: "11px", paddingTop: "10px" }}
                   />
-                </PieChart>
+                  {reportData.map((sala, idx) => (
+                    <Line
+                      key={sala.salaId}
+                      type="monotone"
+                      dataKey={sala.salaNombre}
+                      stroke={PIE_COLORS[idx % PIE_COLORS.length]}
+                      strokeWidth={2}
+                      dot={{ fill: PIE_COLORS[idx % PIE_COLORS.length], r: 3 }}
+                      activeDot={{ r: 5 }}
+                    />
+                  ))}
+                </LineChart>
               </ResponsiveContainer>
             </div>
-          </div>
 
-          {/* Gráfico de línea: Evolución temporal por sala */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm sm:p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-1">
-              Evolución de Reservas en el Tiempo
-            </h3>
-            <p className="text-xs text-gray-500 mb-4">Reservas diarias por sala durante el período</p>
-            <ResponsiveContainer width="100%" height={320}>
-              <LineChart data={timelineData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#64748b" }} />
-                <YAxis tick={{ fontSize: 11, fill: "#64748b" }} allowDecimals={false} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#fff",
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "0.5rem",
-                    fontSize: "12px",
-                  }}
-                  formatter={(value, name) => [`${value} reservas`, name]}
-                />
-                <Legend
-                  verticalAlign="bottom"
-                  height={36}
-                  iconType="line"
-                  wrapperStyle={{ fontSize: "11px", paddingTop: "10px" }}
-                />
-                {reportData.map((sala, idx) => (
-                  <Line
-                    key={sala.salaId}
-                    type="monotone"
-                    dataKey={sala.salaNombre}
-                    stroke={PIE_COLORS[idx % PIE_COLORS.length]}
-                    strokeWidth={2}
-                    dot={{ fill: PIE_COLORS[idx % PIE_COLORS.length], r: 3 }}
-                    activeDot={{ r: 5 }}
-                  />
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Tabla detallada */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="px-4 py-4 border-b border-gray-200 sm:px-5">
-              <h3 className="text-sm font-semibold text-gray-900">Detalle por Sala</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Listado completo del período seleccionado</p>
+            {/* Tabla detallada */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="px-4 py-4 border-b border-gray-200 sm:px-5">
+                <h3 className="text-sm font-semibold text-gray-900">Detalle por Sala</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Listado completo del período seleccionado</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-120">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
+                        Sala
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
+                        Reservas
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
+                        Porcentaje
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reportData.map((item, idx) => (
+                      <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-3.5 text-sm text-gray-900 font-medium">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-2.5 h-2.5 rounded-full shrink-0"
+                              style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }}
+                            ></div>
+                            {item.salaNombre}
+                          </div>
+                        </td>
+                        <td className="px-6 py-3.5 text-right text-sm font-semibold text-gray-900">
+                          {item.totalReservas}
+                        </td>
+                        <td className="px-6 py-3.5 text-right text-sm text-gray-600">
+                          <div className="flex items-center justify-end gap-2">
+                            <div className="w-20 bg-gray-100 rounded-full h-2 overflow-hidden">
+                              <div
+                                className="h-2 rounded-full transition-all"
+                                style={{
+                                  width: `${item.percentage}%`,
+                                  backgroundColor: PIE_COLORS[idx % PIE_COLORS.length],
+                                }}
+                              ></div>
+                            </div>
+                            <span className="w-10 text-right font-medium">{item.percentage}%</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div className="overflow-x-auto">
-            <table className="w-full min-w-[480px]">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
-                    Sala
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
-                    Reservas
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
-                    Porcentaje
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {reportData.map((item, idx) => (
-                  <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-3.5 text-sm text-gray-900 font-medium">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-2.5 h-2.5 rounded-full shrink-0"
-                          style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }}
-                        ></div>
-                        {item.salaNombre}
-                      </div>
-                    </td>
-                    <td className="px-6 py-3.5 text-right text-sm font-semibold text-gray-900">
-                      {item.totalReservas}
-                    </td>
-                    <td className="px-6 py-3.5 text-right text-sm text-gray-600">
-                      <div className="flex items-center justify-end gap-2">
-                        <div className="w-20 bg-gray-100 rounded-full h-2 overflow-hidden">
-                          <div
-                            className="h-2 rounded-full transition-all"
-                            style={{
-                              width: `${item.percentage}%`,
-                              backgroundColor: PIE_COLORS[idx % PIE_COLORS.length],
-                            }}
-                          ></div>
-                        </div>
-                        <span className="w-10 text-right font-medium">{item.percentage}%</span>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
       </div>
 
       {/* Botón de descarga PDF */}
@@ -663,7 +711,7 @@ function ReporteHoras() {
   return (
     <div className="space-y-6">
       {/* Filtro de fechas estilizado */}
-      <div className="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 rounded-xl p-5">
+      <div className="bg-linear-to-br from-slate-50 to-slate-100 border border-slate-200 rounded-xl p-5">
         <div className="flex items-center gap-2 mb-4">
           <Filter className="h-4 w-4 text-slate-600" />
           <h3 className="text-sm font-semibold text-slate-700">Filtrar por rango de fechas</h3>
@@ -675,11 +723,10 @@ function ReporteHoras() {
               Fecha Inicio
             </label>
             <div
-              className={`flex items-center gap-2 bg-white rounded-lg border transition-colors px-3 py-2.5 ${
-                validationError.startDate || validationError.range
-                  ? "border-red-300 ring-1 ring-red-200"
-                  : "border-slate-200 hover:border-slate-300 focus-within:border-red-400 focus-within:ring-2 focus-within:ring-red-100"
-              }`}
+              className={`flex items-center gap-2 bg-white rounded-lg border transition-colors px-3 py-2.5 ${validationError.startDate || validationError.range
+                ? "border-red-300 ring-1 ring-red-200"
+                : "border-slate-200 hover:border-slate-300 focus-within:border-red-400 focus-within:ring-2 focus-within:ring-red-100"
+                }`}
             >
               <Calendar className="h-4 w-4 text-slate-400" />
               <input
@@ -702,11 +749,10 @@ function ReporteHoras() {
               Fecha Fin
             </label>
             <div
-              className={`flex items-center gap-2 bg-white rounded-lg border transition-colors px-3 py-2.5 ${
-                validationError.endDate || validationError.range
-                  ? "border-red-300 ring-1 ring-red-200"
-                  : "border-slate-200 hover:border-slate-300 focus-within:border-red-400 focus-within:ring-2 focus-within:ring-red-100"
-              }`}
+              className={`flex items-center gap-2 bg-white rounded-lg border transition-colors px-3 py-2.5 ${validationError.endDate || validationError.range
+                ? "border-red-300 ring-1 ring-red-200"
+                : "border-slate-200 hover:border-slate-300 focus-within:border-red-400 focus-within:ring-2 focus-within:ring-red-100"
+                }`}
             >
               <Calendar className="h-4 w-4 text-slate-400" />
               <input
@@ -726,7 +772,7 @@ function ReporteHoras() {
 
           <button
             onClick={applyFilter}
-            className="h-[42px] w-full sm:w-auto px-6 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 text-sm shadow-sm"
+            className="h-10.5 w-full sm:w-auto px-6 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 text-sm shadow-sm"
           >
             <Filter className="h-4 w-4" />
             Aplicar Filtro
@@ -797,7 +843,7 @@ function ReporteHoras() {
             <p className="text-xs text-gray-500 mt-1">duración media</p>
           </div>
 
-          <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-4 shadow-sm text-white sm:p-5">
+          <div className="bg-linear-to-br from-red-500 to-red-600 rounded-xl p-4 shadow-sm text-white sm:p-5">
             <div className="flex items-center gap-2 text-red-100 mb-2">
               <TrendingUp className="h-4 w-4" />
               <p className="text-xs font-medium uppercase tracking-wide">Top Sala</p>
@@ -947,65 +993,65 @@ function ReporteHoras() {
                 <p className="text-xs text-gray-500 mt-0.5">Listado completo del período seleccionado</p>
               </div>
               <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px]">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
-                      Sala
-                    </th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
-                      Horas
-                    </th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
-                      Reservas
-                    </th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
-                      Prom. / Reserva
-                    </th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
-                      Porcentaje
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reportData.map((item, idx) => (
-                    <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-3.5 text-sm text-gray-900 font-medium">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-2.5 h-2.5 rounded-full shrink-0"
-                            style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }}
-                          ></div>
-                          {item.salaNombre}
-                        </div>
-                      </td>
-                      <td className="px-6 py-3.5 text-right text-sm font-semibold text-gray-900">
-                        {item.totalHoras}h
-                      </td>
-                      <td className="px-6 py-3.5 text-right text-sm text-gray-600">
-                        {item.totalReservas}
-                      </td>
-                      <td className="px-6 py-3.5 text-right text-sm text-gray-600">
-                        {item.promedioPorReserva}h
-                      </td>
-                      <td className="px-6 py-3.5 text-right text-sm text-gray-600">
-                        <div className="flex items-center justify-end gap-2">
-                          <div className="w-20 bg-gray-100 rounded-full h-2 overflow-hidden">
-                            <div
-                              className="h-2 rounded-full transition-all"
-                              style={{
-                                width: `${item.percentage}%`,
-                                backgroundColor: PIE_COLORS[idx % PIE_COLORS.length],
-                              }}
-                            ></div>
-                          </div>
-                          <span className="w-10 text-right font-medium">{item.percentage}%</span>
-                        </div>
-                      </td>
+                <table className="w-full min-w-160">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
+                        Sala
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
+                        Horas
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
+                        Reservas
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
+                        Prom. / Reserva
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">
+                        Porcentaje
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {reportData.map((item, idx) => (
+                      <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-3.5 text-sm text-gray-900 font-medium">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-2.5 h-2.5 rounded-full shrink-0"
+                              style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }}
+                            ></div>
+                            {item.salaNombre}
+                          </div>
+                        </td>
+                        <td className="px-6 py-3.5 text-right text-sm font-semibold text-gray-900">
+                          {item.totalHoras}h
+                        </td>
+                        <td className="px-6 py-3.5 text-right text-sm text-gray-600">
+                          {item.totalReservas}
+                        </td>
+                        <td className="px-6 py-3.5 text-right text-sm text-gray-600">
+                          {item.promedioPorReserva}h
+                        </td>
+                        <td className="px-6 py-3.5 text-right text-sm text-gray-600">
+                          <div className="flex items-center justify-end gap-2">
+                            <div className="w-20 bg-gray-100 rounded-full h-2 overflow-hidden">
+                              <div
+                                className="h-2 rounded-full transition-all"
+                                style={{
+                                  width: `${item.percentage}%`,
+                                  backgroundColor: PIE_COLORS[idx % PIE_COLORS.length],
+                                }}
+                              ></div>
+                            </div>
+                            <span className="w-10 text-right font-medium">{item.percentage}%</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </>
@@ -1149,7 +1195,7 @@ function ReporteUsuario() {
           {/* Header del usuario */}
           <div className="flex flex-col gap-3 border-b border-gray-200 pb-4 sm:flex-row sm:items-start sm:justify-between sm:gap-0">
             <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white font-bold shadow-sm shrink-0 sm:w-14 sm:h-14 sm:text-lg">
+              <div className="w-12 h-12 rounded-full bg-linear-to-br from-red-500 to-red-600 flex items-center justify-center text-white font-bold shadow-sm shrink-0 sm:w-14 sm:h-14 sm:text-lg">
                 {initials}
               </div>
               <div className="min-w-0">
@@ -1405,7 +1451,7 @@ function ReporteUsuario() {
                 </p>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[720px]">
+                <table className="w-full min-w-180">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider sm:px-6">

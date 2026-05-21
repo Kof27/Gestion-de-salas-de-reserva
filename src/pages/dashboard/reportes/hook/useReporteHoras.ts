@@ -127,7 +127,7 @@ export function useReporteHoras() {
       const sala = allSalas.find((s) => Number(s.id_sala) === Number(r.id_sala));
       const isSalaFromFacultad = !usuarioFacultad || sala?.id_facultad === usuarioFacultad;
 
-      return isInDateRange && isSalaFromFacultad && r.estado !== "cancelada";
+      return isInDateRange && isSalaFromFacultad && r.estado !== false;
     });
   }, [allReservas, allSalas, appliedStartDate, appliedEndDate, usuarioFacultad]);
 

@@ -39,7 +39,7 @@ export interface UsuarioDetalle {
   estadoChart: { name: string; value: number; color: string }[];
   salasChart: { salaNombre: string; total: number }[];
   diaSemanaChart: { dia: string; total: number }[];
-  mesChart: { mes: string; activas: number; canceladas: number }[];
+  mesChart: { mes: string; realizadas: number; canceladas: number }[];
 }
 
 const DIAS_SEMANA = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
