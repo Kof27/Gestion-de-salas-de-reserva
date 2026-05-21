@@ -280,12 +280,37 @@ function ReporteReservas() {
             >
               <FileBarChart className="h-4 w-4 text-slate-400" />
               <input
-                type="number"
-                min={1}
-                step={1}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={3}
                 placeholder="Ej: 3"
                 value={pendingReservationCount}
                 onChange={(e) => setPendingReservationCount(e.target.value)}
+                onKeyDown={(e) => {
+                  const allowedKeys = [
+                    "Backspace",
+                    "Delete",
+                    "Tab",
+                    "ArrowLeft",
+                    "ArrowRight",
+                    "Home",
+                    "End",
+                  ];
+
+                  if (allowedKeys.includes(e.key)) return;
+
+                  if (!/^\d$/.test(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
+                onPaste={(e) => {
+                  const pastedText = e.clipboardData.getData("text");
+
+                  if (!/^\d+$/.test(pastedText)) {
+                    e.preventDefault();
+                  }
+                }}
                 className="outline-none text-sm text-slate-700 bg-transparent w-full placeholder-slate-400"
               />
             </div>
