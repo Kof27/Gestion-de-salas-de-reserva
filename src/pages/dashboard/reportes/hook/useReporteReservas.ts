@@ -59,6 +59,7 @@ export function useReporteReservas() {
 
   const setPendingReservationCount = useCallback((value: string) => {
     const onlyNumbers = value.replace(/\D/g, "");
+
     setPendingReservationCountState(onlyNumbers);
   }, []);
 
@@ -109,6 +110,14 @@ export function useReporteReservas() {
     ) {
       errors.reservationCount =
         "El número de reservas solo puede contener números";
+    }
+
+    if (
+      pendingReservationCount !== "" &&
+      Number(pendingReservationCount) < 1
+    ) {
+      errors.reservationCount =
+        "No es posible filtrar por 0 reservas. Debe ingresar un valor igual a 1 o más.";
     }
 
     if (
