@@ -1,5 +1,7 @@
 const { Router } = require('express');
 const SalaReunion = require('../models/sala_reunion');
+const roomService = require('../services/roomService');
+const { authorizeRoleById } = require('../middlewares/authorizeRole');
 
 const router = Router();
 
@@ -15,7 +17,8 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const sala = await SalaReunion.findByPk(req.params.id);
+    const id = parseInt(req.params.id);
+    const sala = await SalaReunion.findByPk(id);
     if (!sala) return res.status(404).json({ message: 'Sala no encontrada' });
     res.json(sala);
   } catch (error) {
@@ -36,9 +39,10 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const [updatedCount] = await SalaReunion.update(req.body, { where: { id_sala: req.params.id } });
+    const id = parseInt(req.params.id);
+    const [updatedCount] = await SalaReunion.update(req.body, { where: { id_sala: id } });
     if (!updatedCount) return res.status(404).json({ message: 'Sala no encontrada' });
-    const updated = await SalaReunion.findByPk(req.params.id);
+    const updated = await SalaReunion.findByPk(id);
     res.json(updated);
   } catch (error) {
     console.error(error);
@@ -46,14 +50,20 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authorizeRoleById([2]), async (req, res) => {
   try {
-    const deletedCount = await SalaReunion.destroy({ where: { id_sala: req.params.id } });
-    if (!deletedCount) return res.status(404).json({ message: 'Sala no encontrada' });
-    res.json({ message: 'Sala eliminada' });
+    const id = parseInt(req.params.id);
+    const actorId = req.usuarioAuth.id_usuario;
+
+    const result = await roomService.deleteRoom(id, actorId);
+    res.json(result);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al eliminar la sala', error: error.message });
+    console.error('Error deleteRoom:', error);
+    const status = error.status || 500;
+    res.status(status).json({
+      message: error.message || 'Error al eliminar la sala',
+      error: error.message,
+    });
   }
 });
 

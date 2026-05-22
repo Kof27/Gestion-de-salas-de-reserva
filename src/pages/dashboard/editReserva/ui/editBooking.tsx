@@ -2,7 +2,8 @@
 
 import { CalendarDays, Clock, FileText, Loader2, Save, X } from "lucide-react";
 
-import { Navbar2 } from "@/src/widgets/navbar2/ui/Navbar2";
+import Navbar2  from "@/src/widgets/navbar2/ui/Navbar2";
+import { Sidebar } from "@/src/widgets/sidebar/ui/Sidebar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -46,8 +47,9 @@ export default function EditBooking() {
         return (
             <main className="min-h-screen bg-slate-50">
                 <Navbar2 />
+                <Sidebar alwaysDrawer />
 
-                <section className="mx-auto flex max-w-5xl items-center justify-center px-6 py-20">
+                <section className="mx-auto flex max-w-5xl items-center justify-center px-4 py-20 sm:px-6">
                     <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
                         <Loader2 className="h-5 w-5 animate-spin text-red-500" />
                         <p className="font-semibold text-slate-700">
@@ -63,9 +65,10 @@ export default function EditBooking() {
         return (
             <main className="min-h-screen bg-slate-50">
                 <Navbar2 />
+                <Sidebar alwaysDrawer />
 
-                <section className="mx-auto max-w-5xl px-6 py-12">
-                    <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
+                <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+                    <div className="rounded-2xl border border-red-200 bg-red-50 p-4 sm:p-6">
                         <h1 className="text-xl font-bold text-red-600">
                             No se encontró la reserva
                         </h1>
@@ -89,20 +92,21 @@ export default function EditBooking() {
     return (
         <main className="min-h-screen bg-slate-50">
             <Navbar2 />
+            <Sidebar alwaysDrawer />
 
-            <section className="mx-auto max-w-5xl px-6 py-10">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
+            <section className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
+                <div className="mb-6 sm:mb-8">
+                    <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
                         Editar reserva
                     </h1>
 
-                    <p className="mt-2 text-base text-slate-500">
+                    <p className="mt-2 text-sm text-slate-500 sm:text-base">
                         Actualiza la fecha, el horario, el estado y el motivo de la reserva.
                     </p>
                 </div>
 
                 <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                    <div className="border-b border-slate-200 bg-white px-6 py-5">
+                    <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6 sm:py-5">
                         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                             <div>
                                 <h2 className="text-xl font-bold text-slate-900">
@@ -128,7 +132,7 @@ export default function EditBooking() {
                         </div>
                     </div>
 
-                    <div className="grid gap-6 p-6 md:grid-cols-2">
+                    <div className="grid gap-4 p-4 sm:gap-6 sm:p-6 md:grid-cols-2">
                         <div className="space-y-2">
                             <label className="flex items-center gap-2 text-sm font-bold text-slate-700">
                                 <CalendarDays className="h-4 w-4 text-red-500" />
@@ -243,7 +247,7 @@ export default function EditBooking() {
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+                    <div className="flex flex-col-reverse items-stretch justify-end gap-2 border-t border-slate-200 bg-slate-50 px-4 py-4 sm:flex-row sm:items-center sm:gap-3 sm:px-6">
                         <Button
                             type="button"
                             variant="ghost"

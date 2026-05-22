@@ -1,230 +1,55 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 
-import { Navbar } from "@/src/widgets/navbar/ui/Navbar";
+import Navbar from "@/src/widgets/navbar/ui/Navbar";
 import { Sidebar } from "@/src/widgets/sidebar/ui/Sidebar";
-import { getRooms, updateRoom, deleteRoom } from "@/src/shared/api/getRooms";
-import { getResources, updateResource } from "@/src/shared/api/getRecursos";
-import type { Sala } from "@/src/entities/room";
 
-type RoomStatus = "habilitada" | "inhabilitada";
-
-type RoomView = {
-    id: string;
-    name: string;
-    location: string;
-    capacity: number;
-    status: RoomStatus;
-    raw: Sala;
-};
+import { useDashboardRooms } from "@/src/pages/dashboard/salasDashboard/hook/useDashboardRooms";
 
 export const DashboardPage = () => {
-    const [rooms, setRooms] = useState<RoomView[]>([]);
-    const [roomToDelete, setRoomToDelete] = useState<RoomView | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [updatingRoomId, setUpdatingRoomId] = useState<string | null>(null);
-    const [deletingRoomId, setDeletingRoomId] = useState<string | null>(null);
+    const {
+        rooms,
+        roomToDelete,
+        roomToDisable,
 
-    const mapSalaToRoomView = (room: Sala): RoomView => ({
-        id: room.id_sala ?? "",
-        name: room.nombre,
-        location: room.ubicacion,
-        capacity: room.capacidad,
-        status: room.estado ? "habilitada" : "inhabilitada",
-        raw: room,
-    });
+        loading,
+        error,
+        updatingRoomId,
+        deletingRoomId,
 
-    useEffect(() => {
-        const loadRooms = async () => {
-            try {
-                setLoading(true);
-                setError(null);
+        requestToggleStatus,
+        confirmDisableRoom,
+        cancelDisable,
 
-                const data = await getRooms();
-                setRooms(data.map(mapSalaToRoomView));
-            } catch (err) {
-                console.error("Error cargando salas:", err);
-                setError("No se pudieron cargar las salas.");
-            } finally {
-                setLoading(false);
-            }
-        };
+        confirmDelete,
+        cancelDelete,
+        handleDelete,
+    } = useDashboardRooms();
 
-        loadRooms();
-    }, []);
-
-    const toggleStatus = async (id: string) => {
-        const currentRoom = rooms.find((room) => room.id === id);
-        if (!currentRoom || !currentRoom.raw.id_sala) return;
-        if (updatingRoomId) return;
-
-        const previousStatus = currentRoom.status;
-        const nextStatus: RoomStatus =
-            previousStatus === "habilitada" ? "inhabilitada" : "habilitada";
-
-        const optimisticRooms = rooms.map((room) =>
-            room.id === id
-                ? {
-                    ...room,
-                    status: nextStatus,
-                    raw: {
-                        ...room.raw,
-                        estado: nextStatus === "habilitada",
-                    },
-                }
-                : room
-        );
-
-        setRooms(optimisticRooms);
-        setUpdatingRoomId(id);
-
-        try {
-            const updatedPayload: Omit<Sala, "id_sala"> = {
-                id_facultad: currentRoom.raw.id_facultad,
-                capacidad: currentRoom.raw.capacidad,
-                estado: nextStatus === "habilitada",
-                fecha_creacion: currentRoom.raw.fecha_creacion,
-                imagen_sala: currentRoom.raw.imagen_sala,
-                nombre: currentRoom.raw.nombre,
-                ubicacion: currentRoom.raw.ubicacion,
-                descripcion: currentRoom.raw.descripcion,
-            };
-
-            const updatedRoom = await updateRoom(currentRoom.raw.id_sala, updatedPayload);
-
-            setRooms((prev) =>
-                prev.map((room) =>
-                    room.id === id ? mapSalaToRoomView(updatedRoom) : room
-                )
-            );
-
-            toast.success("Operación exitosa", {
-                description: `La sala "${updatedRoom.nombre}" fue ${updatedRoom.estado ? "habilitada" : "inhabilitada"
-                    } correctamente.`,
-            });
-        } catch (error) {
-            console.error("Error actualizando estado de sala:", error);
-
-            setRooms((prev) =>
-                prev.map((room) =>
-                    room.id === id
-                        ? {
-                            ...room,
-                            status: previousStatus,
-                            raw: {
-                                ...room.raw,
-                                estado: previousStatus === "habilitada",
-                            },
-                        }
-                        : room
-                )
-            );
-
-            toast.error("La operación no fue exitosa", {
-                description: "No se pudo actualizar el estado de la sala.",
-            });
-        } finally {
-            setUpdatingRoomId(null);
-        }
-    };
-
-    const confirmDelete = (room: RoomView) => {
-        setRoomToDelete(room);
-    };
-
-    const handleDelete = async () => {
-        if (!roomToDelete) return;
-        if (deletingRoomId) return;
-
-        try {
-            setDeletingRoomId(roomToDelete.id);
-
-            const allResources = await getResources();
-
-            const resourcesFromRoom = allResources.filter(
-                (resource) => String(resource.id_sala) === String(roomToDelete.id)
-            );
-
-            console.log(
-                "Recursos a desasignar:",
-                resourcesFromRoom.map((r) => ({
-                    id_recurso: r.id_recurso,
-                    nombre: r.nombre,
-                    id_sala: r.id_sala,
-                }))
-            );
-
-            // Desasignar uno por uno
-            for (const resource of resourcesFromRoom) {
-                const updated = await updateResource(String(resource.id_recurso), {
-                    id_sala: 0,
-                    nombre: resource.nombre,
-                    descripcion: resource.descripcion,
-                    tipo: resource.tipo,
-                });
-
-                console.log("Recurso actualizado:", updated);
-            }
-
-            // Verificar después de actualizar
-            const refreshedResources = await getResources();
-            const stillAssigned = refreshedResources.filter(
-                (resource) => String(resource.id_sala) === String(roomToDelete.id)
-            );
-
-            if (stillAssigned.length > 0) {
-                console.error("Recursos que siguen asignados:", stillAssigned);
-                throw new Error(
-                    `Todavía hay ${stillAssigned.length} recurso(s) asociados a la sala.`
-                );
-            }
-
-            await deleteRoom(roomToDelete.id);
-
-            toast.success("Operación exitosa", {
-                description: `La sala "${roomToDelete.name}" fue eliminada correctamente y los dispositivos fueron desasignados.`,
-            });
-
-            setRooms((prev) => prev.filter((room) => room.id !== roomToDelete.id));
-            setRoomToDelete(null);
-        } catch (error) {
-            console.error("Error eliminando sala:", error);
-
-            toast.error("La operación no fue exitosa", {
-                description:
-                    error instanceof Error
-                        ? error.message
-                        : "No se pudo eliminar la sala y desasignar sus dispositivos.",
-            });
-        } finally {
-            setDeletingRoomId(null);
-        }
-    };
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar />
+
             <div className="flex">
                 <Sidebar />
 
-                <main className="flex-1 p-8">
-                    <div className="mb-6 flex items-start justify-between">
+                <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
+                    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900">
+                            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
                                 Gestión de Salas de Reuniones
                             </h1>
+
                             <p className="mt-1 text-sm text-gray-500">
-                                Administrar espacios para la Facultad de Ingeniería
+                                Administrar espacios disponibles para tu facultad
                             </p>
                         </div>
 
                         <Link
                             href="/createRoom"
-                            className="flex items-center gap-2 rounded-lg bg-red-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-600"
+                            className="flex items-center justify-center gap-2 rounded-lg bg-red-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-600 sm:self-start"
                         >
                             + Crear Nueva Sala
                         </Link>
@@ -243,8 +68,8 @@ export const DashboardPage = () => {
                             No hay salas registradas.
                         </div>
                     ) : (
-                        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-                            <table className="w-full">
+                        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+                            <table className="w-full min-w-[640px]">
                                 <thead>
                                     <tr className="border-b border-gray-200">
                                         <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
@@ -292,6 +117,7 @@ export const DashboardPage = () => {
                                                                 />
                                                             </svg>
                                                         </div>
+
                                                         <span className="text-sm font-medium text-gray-800">
                                                             {room.name}
                                                         </span>
@@ -318,6 +144,7 @@ export const DashboardPage = () => {
                                                                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
                                                             />
                                                         </svg>
+
                                                         {room.capacity}
                                                     </div>
                                                 </td>
@@ -326,12 +153,15 @@ export const DashboardPage = () => {
                                                     <div className="flex items-center gap-2">
                                                         <button
                                                             type="button"
-                                                            onClick={() => toggleStatus(room.id)}
+                                                            onClick={() => requestToggleStatus(room)}
                                                             disabled={isUpdating}
                                                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${room.status === "habilitada"
-                                                                ? "bg-red-500"
-                                                                : "bg-gray-300"
-                                                                } ${isUpdating ? "cursor-not-allowed opacity-70" : ""}`}
+                                                                    ? "bg-red-500"
+                                                                    : "bg-gray-300"
+                                                                } ${isUpdating
+                                                                    ? "cursor-not-allowed opacity-70"
+                                                                    : ""
+                                                                }`}
                                                         >
                                                             {isUpdating ? (
                                                                 <span className="flex w-full items-center justify-center">
@@ -340,8 +170,8 @@ export const DashboardPage = () => {
                                                             ) : (
                                                                 <span
                                                                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${room.status === "habilitada"
-                                                                        ? "translate-x-6"
-                                                                        : "translate-x-1"
+                                                                            ? "translate-x-6"
+                                                                            : "translate-x-1"
                                                                         }`}
                                                                 />
                                                             )}
@@ -349,8 +179,8 @@ export const DashboardPage = () => {
 
                                                         <span
                                                             className={`text-sm ${room.status === "habilitada"
-                                                                ? "text-gray-700"
-                                                                : "text-gray-400"
+                                                                    ? "text-gray-700"
+                                                                    : "text-gray-400"
                                                                 }`}
                                                         >
                                                             {room.status === "habilitada"
@@ -366,6 +196,7 @@ export const DashboardPage = () => {
                                                             onClick={() => confirmDelete(room)}
                                                             disabled={!!deletingRoomId}
                                                             className="p-1.5 text-gray-400 transition-colors hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                                                            title="Eliminar sala"
                                                         >
                                                             <svg
                                                                 xmlns="http://www.w3.org/2000/svg"
@@ -386,6 +217,7 @@ export const DashboardPage = () => {
                                                         <Link
                                                             href={`/editRoom/${room.id}`}
                                                             className="p-1.5 text-gray-400 transition-colors hover:text-blue-500"
+                                                            title="Editar sala"
                                                         >
                                                             <svg
                                                                 xmlns="http://www.w3.org/2000/svg"
@@ -414,9 +246,68 @@ export const DashboardPage = () => {
                 </main>
             </div>
 
+            {roomToDisable && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/60 p-4">
+                    <div className="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-xl sm:p-8">
+                        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-8 w-8 text-amber-500"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={1.5}
+                                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+                                />
+                            </svg>
+                        </div>
+
+                        <h2 className="mb-3 text-xl font-bold text-gray-900">
+                            ¿Inhabilitar sala?
+                        </h2>
+
+                        <p className="mb-3 text-sm leading-relaxed text-gray-500">
+                            La sala{" "}
+                            <span className="font-bold text-gray-800">
+                                "{roomToDisable.name}"
+                            </span>{" "}
+                            tiene reservas asociadas.
+                        </p>
+
+                        <p className="mb-7 text-sm leading-relaxed text-gray-500">
+                            Esta sala tiene reservas. Inhabilitarla no las cancelará,
+                            pero no se podrán realizar nuevas reservas a partir de su
+                            inhabilitación.
+                        </p>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={cancelDisable}
+                                disabled={!!updatingRoomId}
+                                className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-70"
+                            >
+                                Cancelar
+                            </button>
+
+                            <button
+                                onClick={confirmDisableRoom}
+                                disabled={!!updatingRoomId}
+                                className="flex-1 rounded-xl bg-red-500 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70"
+                            >
+                                {updatingRoomId ? "Inhabilitando..." : "Inhabilitar"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {roomToDelete && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/60">
-                    <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-xl">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/60 p-4">
+                    <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-xl sm:p-8">
                         <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -443,18 +334,19 @@ export const DashboardPage = () => {
                             <span className="font-bold text-gray-800">
                                 "{roomToDelete.name}"
                             </span>
-                            ? Esta acción no se puede deshacer, se perderá todo el historial
-                            asociado y los dispositivos serán desasignados.
+                            ? Esta acción no se puede deshacer, se perderá todo el
+                            historial asociado y los dispositivos serán desasignados.
                         </p>
 
                         <div className="flex gap-3">
                             <button
-                                onClick={() => setRoomToDelete(null)}
+                                onClick={cancelDelete}
                                 disabled={!!deletingRoomId}
                                 className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-70"
                             >
                                 Cancelar
                             </button>
+
                             <button
                                 onClick={handleDelete}
                                 disabled={!!deletingRoomId}

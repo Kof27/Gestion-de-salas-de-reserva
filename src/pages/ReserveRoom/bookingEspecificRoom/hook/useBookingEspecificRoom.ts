@@ -33,7 +33,7 @@ type UseBookingRoomParams = {
 };
 
 export function useBookingRoom({ roomId }: UseBookingRoomParams) {
-    const effectiveRoomId = roomId || "1";
+    const effectiveRoomId = roomId;
     const usuarioStorage = typeof window !== "undefined" ? localStorage.getItem("usuario") : null;
     const usuario = usuarioStorage ? JSON.parse(usuarioStorage) : null;
 
@@ -55,6 +55,8 @@ export function useBookingRoom({ roomId }: UseBookingRoomParams) {
     const [submitting, setSubmitting] = React.useState(false);
 
     const loadData = React.useCallback(async () => {
+        if (!effectiveRoomId) return;
+
         try {
             setLoading(true);
             setError(null);
@@ -151,8 +153,10 @@ export function useBookingRoom({ roomId }: UseBookingRoomParams) {
         });
     }, [agendaSlots, bookingsForDay, startTime, endTime]);
 
+    
+
     const handleConfirmReservation = async () => {
-        if (hasConflict || !selectedDate) return;
+        if (hasConflict || !selectedDate || !effectiveRoomId) return;
 
         try {
             setSubmitting(true);
@@ -161,19 +165,20 @@ export function useBookingRoom({ roomId }: UseBookingRoomParams) {
             const [horaInicio, minInicio] = startTime.split(":");
             startDateTime.setHours(parseInt(horaInicio), parseInt(minInicio));
 
-            const endDateTime = new Date(selectedDate);
-            const [horaFin, minFin] = endTime.split(":");
-            endDateTime.setHours(parseInt(horaFin), parseInt(minFin));
+            const fecha = format(selectedDate, "yyyy-MM-dd");
 
             const newReserva = {
-                id_sala: effectiveRoomId,
-                id_usuario: String(usuario.id_usuario),
-                fecha: selectedDate.toISOString(),
-                hora_inicio: startDateTime.toISOString(),
-                hora_fin: endDateTime.toISOString(),
-                estado: true,
+                id_sala: Number(effectiveRoomId),
+                id_usuario: Number(usuario.id_usuario),
+                fecha,
+                hora_inicio: startTime,
+                hora_fin: endTime,
                 motivo: meetingReason.trim() || "Reunión",
+                estado: true,
             };
+
+            console.log("Payload enviado para crear reserva:", newReserva);
+
             await createReserva(newReserva);
 
             toast.success("Reserva confirmada exitosamente", {

@@ -13,15 +13,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
 import Link from "next/link"
 import Image from "next/image"
+import { toast } from "sonner";
 
 function RegisterPage() {
     const [name, setName] = useState("")
@@ -73,7 +67,7 @@ function RegisterPage() {
             const data = await response.json()
 
             if (response.ok) {
-                alert('Usuario registrado exitosamente')
+                toast.success("Registro exitoso. Redirigiendo a login...")
                 window.location.href = '/login'
             } else {
                 setError(data.msg || 'Error al registrar')
@@ -154,19 +148,20 @@ function RegisterPage() {
 
                         <div className="grid gap-1.5">
                             <Label htmlFor="faculty" className="font-medium">Facultad</Label>
-                            <Select value={faculty.toString()} onValueChange={(value) => setFaculty(parseInt(value))}>
-                                <SelectTrigger id="faculty" className="h-10 w-full">
-                                    <SelectValue placeholder="Selecciona tu facultad" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="1">Ingeniería</SelectItem>
-                                    <SelectItem value="2">Administración</SelectItem>
-                                    <SelectItem value="3">Comunicación Social, Periodismo y Medios Digitales</SelectItem>
-                                    <SelectItem value="4">Ciencias Humanas y Artes</SelectItem>
-                                    <SelectItem value="5">Arquitectura, Urbanismo y Diseño</SelectItem>
-                                    <SelectItem value="6">Ciencias Básicas</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <select
+                                id="faculty"
+                                value={faculty.toString()}
+                                onChange={(e) => setFaculty(parseInt(e.target.value))}
+                                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-ring"
+                            >
+                                <option value="" disabled>Selecciona tu facultad</option>
+                                <option value="1">Ingeniería</option>
+                                <option value="2">Administración</option>
+                                <option value="3">Comunicación Social, Periodismo y Medios Digitales</option>
+                                <option value="4">Ciencias Humanas y Artes</option>
+                                <option value="5">Arquitectura, Urbanismo y Diseño</option>
+                                <option value="6">Ciencias Básicas</option>
+                            </select>
                         </div>
 
                         <div className="grid gap-1.5">

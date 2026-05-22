@@ -43,11 +43,11 @@ function LoginPage() {
 
             localStorage.setItem('usuario', JSON.stringify(data.usuario));
             localStorage.setItem('token', data.token);
-
-            if (data.usuario.id_rol === 1) {
-                router.push('/booking');
-            } else {
+            console.log('Usuario:', data.usuario);
+            if (Number(data.usuario.id_rol) === 2) {
                 router.push('/salas');
+            } else {
+                router.push('/booking');
             }
         } catch (err) {
             console.error('Error:', err);

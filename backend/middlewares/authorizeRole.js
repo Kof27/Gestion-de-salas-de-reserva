@@ -38,6 +38,32 @@ const authorizeRole = (roleKey) => {
   };
 };
 
+// Middleware para autorizar por ID de rol
+const authorizeRoleById = (allowedRoles) => {
+  return (req, res, next) => {
+    try {
+      // Buscar en req.usuario o req.usuarioAuth (compatibilidad)
+      const userPayload = req.usuario || req.usuarioAuth;
+      if (!userPayload || !userPayload.id_rol) {
+        return res.status(401).json({ msg: 'No autorizado. Token inválido.' });
+      }
+
+      const userRoleId = parseInt(userPayload.id_rol);
+      const isAllowed = allowedRoles.includes(userRoleId);
+
+      if (!isAllowed) {
+        return res.status(403).json({ msg: 'Acceso denegado. No tienes permisos para realizar esta acción.' });
+      }
+
+      next();
+    } catch (error) {
+      console.error('Error en authorizeRoleById:', error);
+      return res.status(500).json({ msg: 'Error en el middleware de autorización.' });
+    }
+  };
+};
+
 module.exports = {
   authorizeRole,
+  authorizeRoleById,
 };

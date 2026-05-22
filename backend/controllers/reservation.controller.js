@@ -12,9 +12,17 @@ const handleError = (res, error) => {
   return res.status(status).json(payload);
 };
 
+/**
+ * GET /api/reservas
+ * - Docente (id_rol=1): obtiene solo sus reservas
+ * - Secretaria (id_rol=2): obtiene todas las reservas
+ */
 const getReservations = async (req, res) => {
   try {
-    const reservas = await reservationService.getAllReservations();
+    
+    
+    let reservas = await reservationService.getAllReservations();
+    
     res.json(reservas.map(buildReservationResponse));
   } catch (error) {
     console.error('Error getReservations:', error);
@@ -49,8 +57,8 @@ const createReservation = async (req, res) => {
 
 const updateReservation = async (req, res) => {
   try {
-    const actorId = req.usuarioAuth.id_usuario;
-    const reserva = await reservationService.updateReservation(req.params.id, req.body, actorId);
+    const { id_usuario: actorId, id_rol: actorRole } = req.usuarioAuth;
+    const reserva = await reservationService.updateReservation(req.params.id, req.body, actorId, actorRole);
     res.json({
       msg: 'Reserva actualizada correctamente',
       reserva: buildReservationResponse(reserva),
@@ -63,8 +71,8 @@ const updateReservation = async (req, res) => {
 
 const cancelReservation = async (req, res) => {
   try {
-    const actorId = req.usuarioAuth.id_usuario;
-    const reserva = await reservationService.cancelReservation(req.params.id, actorId);
+    const { id_usuario: actorId, id_rol: actorRole } = req.usuarioAuth;
+    const reserva = await reservationService.cancelReservation(req.params.id, actorId, actorRole);
     res.json({
       msg: 'Reserva cancelada correctamente',
       reserva: buildReservationResponse(reserva),
@@ -75,10 +83,22 @@ const cancelReservation = async (req, res) => {
   }
 };
 
+const getTeacherHistory = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const reservas = await reservationService.getTeacherReservationHistory(userId);
+    res.json(reservas.map(buildReservationResponse));
+  } catch (error) {
+    console.error('Error getTeacherHistory:', error);
+    handleError(res, error);
+  }
+};
+
 module.exports = {
   getReservations,
   getReservationById,
   createReservation,
   updateReservation,
   cancelReservation,
+  getTeacherHistory,
 };

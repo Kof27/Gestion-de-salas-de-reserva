@@ -1,6 +1,6 @@
 import { format, setHours, setMinutes } from "date-fns";
 import { es } from "date-fns/locale";
-import { addDays, isBefore, isWeekend, startOfDay } from "date-fns";
+import { addDays, isBefore, startOfDay } from "date-fns";
 
 import type { reserva } from "@/src/entities/reserva";
 
@@ -22,17 +22,38 @@ export type AgendaItem = {
     booking?: Booking;
 };
 
+function normalizeDateOnly(value: string) {
+    return String(value).split("T")[0];
+}
+
+function normalizeTime(value: string) {
+    if (!value) return "";
+
+    if (value.includes("T")) {
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) return "";
+
+        return format(date, "HH:mm");
+    }
+
+    return value.slice(0, 5);
+}
+
 export function convertReservaToBooking(reserva: reserva): Booking {
-    const startDate = new Date(reserva.hora_inicio);
-    const endDate = new Date(reserva.hora_fin);
+    const fechaBase = normalizeDateOnly(reserva.fecha);
+    const horaInicio = normalizeTime(reserva.hora_inicio);
+    const horaFin = normalizeTime(reserva.hora_fin);
+
+    const startDate = new Date(`${fechaBase}T${horaInicio}:00`);
 
     return {
         id: String(reserva.id_reserva || ""),
         roomId: String(reserva.id_sala),
         title: reserva.motivo,
         date: startDate,
-        start: format(startDate, "HH:mm"),
-        end: format(endDate, "HH:mm"),
+        start: horaInicio,
+        end: horaFin,
     };
 }
 

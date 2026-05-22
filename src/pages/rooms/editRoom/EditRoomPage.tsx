@@ -1,18 +1,27 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Navbar2 } from "@/src/widgets/navbar2/ui/Navbar2";
-import { getRoomById, updateRoom } from "@/src/shared/api/getRooms";
+import Navbar2 from "@/src/widgets/navbar2/ui/Navbar2";
+import { Sidebar } from "@/src/widgets/sidebar/ui/Sidebar";
+import { getRoomById, getRooms, updateRoom } from "@/src/shared/api/getRooms";
 import { getResources, updateResource } from "@/src/shared/api/getRecursos";
 import { RoomResourcesManager } from "@/src/widgets/room_resource/roomResource";
 import EditRoomSkeleton from "../ui/skeletons/editRoomSkeleton";
 
 import type { Sala } from "@/src/entities/room";
 import type { Resource } from "@/src/entities/recurso";
+
+function normalizeLocation(value: string) {
+  return value.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function normalizeText(value: string) {
+  return value.toLowerCase().replace(/\s+/g, " ").trim();
+}
 
 export function EditRoomPage() {
   const router = useRouter();
@@ -37,6 +46,8 @@ export function EditRoomPage() {
   const [selectedResourceId, setSelectedResourceId] = useState("");
 
   const [pendingAssignedResourceIds, setPendingAssignedResourceIds] = useState<string[]>([]);
+  const [existingLocations, setExistingLocations] = useState<string[]>([]);
+  const [existingRoomNames, setExistingRoomNames] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -64,31 +75,65 @@ export function EditRoomPage() {
     };
   };
 
+  const hasLocationConflict = useMemo(() => {
+    if (!salon.trim()) return false;
+
+    return existingLocations.includes(normalizeLocation(location));
+  }, [existingLocations, location, salon]);
+
+  const hasNameConflict = useMemo(() => {
+    if (!name.trim()) return false;
+
+    return existingRoomNames.includes(normalizeText(name));
+  }, [existingRoomNames, name]);
+
   useEffect(() => {
     setLocation(buildUbicacion());
   }, [aula, piso, salon]);
 
-  const fillForm = useCallback((room: Sala, resourcesForRoom: Resource[], all: Resource[]) => {
-    const { aulaParsed, pisoParsed, salonParsed } = parseUbicacion(room.ubicacion);
+  const fillForm = useCallback(
+    (room: Sala, resourcesForRoom: Resource[], all: Resource[], allRooms: Sala[]) => {
+      const { aulaParsed, pisoParsed, salonParsed } = parseUbicacion(room.ubicacion);
 
-    setRoomData(room);
-    setEnabled(room.estado);
-    setName(room.nombre);
-    setLocation(room.ubicacion);
-    setCapacity(String(room.capacidad));
-    setDescription(room.descripcion);
+      setRoomData(room);
+      setEnabled(room.estado);
+      setName(room.nombre);
+      setLocation(room.ubicacion);
+      setCapacity(String(room.capacidad));
+      setDescription(room.descripcion);
 
-    setAula(aulaParsed);
-    setPiso(pisoParsed);
-    setSalon(salonParsed);
+      setAula(aulaParsed);
+      setPiso(pisoParsed);
+      setSalon(salonParsed);
 
-    setResources(resourcesForRoom);
-    setOriginalResources(resourcesForRoom);
-    setAllResources(all);
+      setResources(resourcesForRoom);
+      setOriginalResources(resourcesForRoom);
+      setAllResources(all);
 
-    setPendingAssignedResourceIds([]);
-    setSelectedResourceId("");
-  }, []);
+      const locations = allRooms
+        .filter((item) => String(item.id_sala) !== String(room.id_sala))
+        .map((item) => normalizeLocation(item.ubicacion || ""))
+        .filter(Boolean);
+
+      setExistingLocations(locations);
+
+      const roomNames = allRooms
+        .filter((item) => {
+          const isCurrentRoom = String(item.id_sala) === String(room.id_sala);
+          const isSameFaculty = String(item.id_facultad) === String(room.id_facultad);
+
+          return !isCurrentRoom && isSameFaculty;
+        })
+        .map((item) => normalizeText(item.nombre || ""))
+        .filter(Boolean);
+
+      setExistingRoomNames(roomNames);
+
+      setPendingAssignedResourceIds([]);
+      setSelectedResourceId("");
+    },
+    []
+  );
 
   const loadData = useCallback(async () => {
     if (!roomId) return;
@@ -96,16 +141,17 @@ export function EditRoomPage() {
     try {
       setLoading(true);
 
-      const [room, allBackendResources] = await Promise.all([
+      const [room, allBackendResources, allRooms] = await Promise.all([
         getRoomById(String(roomId)),
         getResources(),
+        getRooms(),
       ]);
 
       const resourcesForRoom = allBackendResources.filter(
         (resource) => Number(resource.id_sala) === Number(roomId)
       );
 
-      fillForm(room, resourcesForRoom, allBackendResources);
+      fillForm(room, resourcesForRoom, allBackendResources, allRooms);
     } catch (error) {
       console.error("Error cargando datos:", error);
       toast.error("No se pudo cargar la información de la sala.");
@@ -176,7 +222,6 @@ export function EditRoomPage() {
       id_sala: 0,
       nombre: resource.nombre,
       descripcion: resource.descripcion,
-      tipo: resource.tipo,
     });
 
     setResources((prev) =>
@@ -199,35 +244,76 @@ export function EditRoomPage() {
   const handleSave = async () => {
     if (!roomId || !roomData) return;
 
+    if (hasNameConflict) {
+      toast.error("No se puede actualizar la sala", {
+        description: "Ya existe una sala con este nombre en esta facultad.",
+      });
+      return;
+    }
+
+    if (hasLocationConflict) {
+      toast.error("No se puede actualizar la sala", {
+        description: "Ya existe una sala en esta ubicación.",
+      });
+      return;
+    }
+
+    if (!name.trim() || !salon.trim() || !description.trim()) {
+      toast.error("Completa todos los campos obligatorios.");
+      return;
+    }
+
     try {
       setSaving(true);
 
-      const roomPayload: Omit<Sala, "id_sala"> = {
+      const realRoomId = roomData.id_sala ?? roomId;
+
+      if (!realRoomId) {
+        throw new Error("No se encontró un id_sala válido para actualizar.");
+      }
+
+      const nextUbicacion = buildUbicacion();
+
+      const roomPayload: Omit<Sala, "id_sala" | "fecha_creacion"> = {
         id_facultad: roomData.id_facultad,
         capacidad: Number(capacity),
         estado: enabled,
-        fecha_creacion: roomData.fecha_creacion,
         imagen_sala: roomData.imagen_sala,
         nombre: name.trim(),
-        ubicacion: buildUbicacion(),
+        ubicacion: nextUbicacion,
         descripcion: description.trim(),
       };
 
-      await updateRoom(String(roomId), roomPayload);
+      const roomHasChanges =
+        String(roomData.nombre ?? "").trim() !== name.trim() ||
+        String(roomData.ubicacion ?? "").trim() !== nextUbicacion.trim() ||
+        Number(roomData.capacidad) !== Number(capacity) ||
+        Boolean(roomData.estado) !== Boolean(enabled) ||
+        String(roomData.descripcion ?? "").trim() !== description.trim();
 
+      /*
+        Solo actualiza la sala si realmente cambió algún dato de la sala.
+        Si solo agregaste recursos, no llama updateRoom.
+      */
+      if (roomHasChanges) {
+        await updateRoom(String(realRoomId), roomPayload);
+      }
+
+      /*
+        Aquí se asocian los recursos agregados a esta sala.
+      */
       await Promise.all(
         pendingAssignedResourceIds.map((resourceId) => {
           const resource = allResources.find(
-            (item) => String(item.id_recurso) === resourceId
+            (item) => String(item.id_recurso) === String(resourceId)
           );
 
           if (!resource) return Promise.resolve();
 
           return updateResource(String(resource.id_recurso), {
-            id_sala: Number(roomId),
+            id_sala: Number(realRoomId),
             nombre: resource.nombre,
             descripcion: resource.descripcion,
-            tipo: resource.tipo,
           });
         })
       );
@@ -239,8 +325,12 @@ export function EditRoomPage() {
       });
     } catch (error) {
       console.error("Error actualizando sala y recursos:", error);
+
       toast.error("La operación no fue exitosa", {
-        description: "No se pudieron guardar los cambios.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "No se pudieron guardar los cambios.",
       });
     } finally {
       setSaving(false);
@@ -255,8 +345,9 @@ export function EditRoomPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar2 />
-        <div className="mx-auto max-w-4xl px-6 py-8">
-          <div className="rounded-2xl border border-red-200 bg-white p-8 text-center text-red-600 shadow-sm">
+        <Sidebar alwaysDrawer />
+        <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
+          <div className="rounded-2xl border border-red-200 bg-white p-6 text-center text-red-600 shadow-sm sm:p-8">
             No se pudo cargar la información de la sala.
           </div>
         </div>
@@ -267,9 +358,10 @@ export function EditRoomPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar2 />
+      <Sidebar alwaysDrawer />
 
-      <div className="mx-auto max-w-4xl px-6 py-8">
-        <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
+      <div className="mx-auto max-w-4xl px-3 py-4 sm:px-6 sm:py-8">
+        <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
           <div className="mb-4 flex items-center gap-1.5 text-sm text-gray-400">
             <span
               className="cursor-pointer hover:text-gray-600"
@@ -278,12 +370,12 @@ export function EditRoomPage() {
               Salas
             </span>
             <span>›</span>
-            <span className="text-gray-600">{name || roomId}</span>
+            <span className="truncate text-gray-600">{name || roomId}</span>
           </div>
 
-          <div className="mb-2 flex items-start justify-between">
+          <div className="mb-4 flex flex-col gap-3 sm:mb-2 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
                 Editar Sala y Recursos
               </h1>
               <p className="mt-1 text-sm text-gray-400">
@@ -291,8 +383,9 @@ export function EditRoomPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-4 py-2.5">
+            <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-2 sm:px-4 sm:py-2.5">
               <span className="text-sm text-gray-600">Estado de la Sala</span>
+
               <button
                 type="button"
                 onClick={() => setEnabled(!enabled)}
@@ -320,6 +413,7 @@ export function EditRoomPage() {
                   )}
                 </span>
               </button>
+
               <span
                 className={`text-sm font-medium ${enabled ? "text-green-600" : "text-gray-400"
                   }`}
@@ -329,7 +423,7 @@ export function EditRoomPage() {
             </div>
           </div>
 
-          <div className="mb-8 flex gap-3 rounded-xl border border-orange-200 bg-orange-50 p-4">
+          <div className="mb-6 flex gap-3 rounded-xl border border-orange-200 bg-orange-50 p-3 sm:mb-8 sm:p-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="mt-0.5 h-5 w-5 shrink-0 text-orange-400"
@@ -344,6 +438,7 @@ export function EditRoomPage() {
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
               />
             </svg>
+
             <div>
               <p className="text-sm font-semibold text-orange-600">
                 Deshabilitar esta sala afectará las reservas activas
@@ -354,7 +449,7 @@ export function EditRoomPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-10">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-10">
             <div>
               <h2 className="mb-5 text-base font-semibold text-gray-800">
                 Detalles de la Sala
@@ -365,12 +460,22 @@ export function EditRoomPage() {
                   <label className="mb-1.5 block text-sm font-medium text-gray-700">
                     Nombre
                   </label>
+
                   <input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     disabled={saving}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 outline-none transition-colors focus:border-red-400"
+                    className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${hasNameConflict
+                      ? "border-red-400 text-red-600 focus:border-red-500"
+                      : "border-gray-200 text-gray-800 focus:border-red-400"
+                      }`}
                   />
+
+                  {hasNameConflict && (
+                    <p className="mt-1 text-xs font-medium text-red-500">
+                      Ya existe una sala con este nombre en esta facultad.
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -408,7 +513,10 @@ export function EditRoomPage() {
                       onChange={(e) => setSalon(e.target.value.replace(/\D/g, ""))}
                       disabled={saving}
                       placeholder="Salón"
-                      className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm text-gray-800 outline-none transition-colors focus:border-red-400 disabled:cursor-not-allowed disabled:opacity-70"
+                      className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${hasLocationConflict
+                        ? "border-red-400 text-red-600 focus:border-red-500"
+                        : "border-gray-200 text-gray-800 focus:border-red-400"
+                        }`}
                     />
                   </div>
 
@@ -416,14 +524,24 @@ export function EditRoomPage() {
                     value={location}
                     readOnly
                     disabled={saving}
-                    className="mt-2 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-500 outline-none"
+                    className={`mt-2 w-full rounded-lg border bg-gray-50 px-3 py-2.5 text-sm outline-none ${hasLocationConflict
+                      ? "border-red-400 text-red-600"
+                      : "border-gray-200 text-gray-500"
+                      }`}
                   />
+
+                  {hasLocationConflict && (
+                    <p className="mt-1 text-xs font-medium text-red-500">
+                      Ya existe una sala en esta ubicación.
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-gray-700">
                     Capacidad
                   </label>
+
                   <input
                     type="number"
                     value={capacity}
@@ -437,6 +555,7 @@ export function EditRoomPage() {
                   <label className="mb-1.5 block text-sm font-medium text-gray-700">
                     Descripción / Notas
                   </label>
+
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -464,9 +583,9 @@ export function EditRoomPage() {
             </div>
           </div>
 
-          <div className="mt-8 flex justify-end gap-3 border-t border-gray-100 pt-6">
+          <div className="mt-8 flex flex-col-reverse justify-end gap-2 border-t border-gray-100 pt-6 sm:flex-row sm:gap-3">
             <button
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push("/salas")}
               disabled={saving}
               className="rounded-lg border border-gray-200 px-6 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
             >
@@ -475,8 +594,8 @@ export function EditRoomPage() {
 
             <button
               onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-2 rounded-lg bg-red-500 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70"
+              disabled={saving || hasLocationConflict || hasNameConflict}
+              className="flex items-center justify-center gap-2 rounded-lg bg-red-500 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {saving ? (
                 <>

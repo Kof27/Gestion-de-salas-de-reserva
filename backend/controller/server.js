@@ -9,6 +9,7 @@ class Server {
     constructor() {
         this.app = express();
         this.port = process.env.PORT || 4000;
+        
 
         // 🔥 RUTAS DE TU PROYECTO
         this.paths = {
@@ -39,11 +40,40 @@ class Server {
 
     async dbConnection() {
         try {
+            // Cargar modelos
+            const Reserva = require('../models/reserva');
+            const SalaReunion = require('../models/sala_reunion');
+            const Usuario = require('../models/usuario');
+            const Facultad = require('../models/facultad');
+            const Rol = require('../models/rol');
+            const RecursoTecnologico = require('../models/recurso_tecnologico');
+            const LogAuditoria = require('../models/log_auditoria');
+
+            // Crear objeto de modelos para pasar a associate
+            const models = {
+              reserva: Reserva,
+              sala_reunion: SalaReunion,
+              usuario: Usuario,
+              facultad: Facultad,
+              rol: Rol,
+              recurso_tecnologico: RecursoTecnologico,
+              log_auditoria: LogAuditoria,
+            };
+
+            // Inicializar asociaciones
+            Object.keys(models).forEach((modelName) => {
+              if (models[modelName].associate) {
+                models[modelName].associate(models);
+              }
+            });
+
             await bdmysql.authenticate();
             console.log('✅ Conectado a MySQL');
+            console.log('Cargando modelos...');
             
             // Sincronizar modelos
             await bdmysql.sync({ alter: true });
+            
             console.log('✅ Modelos sincronizados');
         } catch (error) {
             console.error('❌ Error conexión BD:', error);

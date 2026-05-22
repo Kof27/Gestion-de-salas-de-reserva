@@ -1,5 +1,6 @@
 import { format, setHours, setMinutes } from "date-fns";
 import { es } from "date-fns/locale";
+import type { Sala } from "@/src/entities/room";
 
 import type { reserva } from "@/src/entities/reserva";
 
@@ -107,31 +108,55 @@ export function getTimeFromIso(dateValue: string) {
     return format(date, "HH:mm");
 }
 
+function normalizeLocation(value?: string | null) {
+    return String(value || "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
 export function hasReservaScheduleConflict(params: {
     reservas: reserva[];
+    rooms: Sala[];
     reservaActual: reserva;
     fecha: string;
     startTime: string;
     endTime: string;
 }) {
-    const { reservas, reservaActual, fecha, startTime, endTime } = params;
+    const { reservas, rooms, reservaActual, fecha, startTime, endTime } = params;
+
+    const roomsById = new Map(
+        rooms.map((room) => [String(room.id_sala), room])
+    );
+
+    const currentRoom = roomsById.get(String(reservaActual.id_sala));
+    const currentLocation = normalizeLocation(currentRoom?.ubicacion);
 
     return reservas.some((reservaItem) => {
         const isSameReserva =
             String(reservaItem.id_reserva) === String(reservaActual.id_reserva);
 
+        if (isSameReserva) return false;
+
+        const isActive = reservaItem.estado === true;
+        if (!isActive) return false;
+
+        const reservaFecha = String(reservaItem.fecha).split("T")[0];
+        const isSameSelectedDay = reservaFecha === fecha;
+        if (!isSameSelectedDay) return false;
+
+        const existingRoom = roomsById.get(String(reservaItem.id_sala));
+        const existingLocation = normalizeLocation(existingRoom?.ubicacion);
+
         const isSameRoom =
             String(reservaItem.id_sala) === String(reservaActual.id_sala);
 
-        const isActive = reservaItem.estado === true;
+        const isSameLocation =
+            currentLocation !== "" &&
+            existingLocation !== "" &&
+            currentLocation === existingLocation;
 
-        const reservaFecha = String(reservaItem.fecha).split("T")[0];
-
-        const isSameSelectedDay = reservaFecha === fecha;
-
-        if (!isActive || !isSameRoom || isSameReserva || !isSameSelectedDay) {
-            return false;
-        }
+        if (!isSameRoom && !isSameLocation) return false;
 
         const reservaStartTime = getTimeFromIso(reservaItem.hora_inicio);
         const reservaEndTime = getTimeFromIso(reservaItem.hora_fin);

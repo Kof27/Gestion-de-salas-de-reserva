@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"d:\\\\Programacion\\\\desarrollo web+\\\\ingenieriaDeSoftware\\\\Gestion-de-salas-de-reserva\\\\Gestion-de-salas-de-reserva\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)",
+      "Bash(Get-ChildItem -Path \"d:\\\\Programacion\\\\desarrollo web+\\\\ingenieriaDeSoftware\\\\Gestion-de-salas-de-reserva\\\\Gestion-de-salas-de-reserva\" -Directory)",
+      "Bash(Select-Object -First 20)",
+      "Bash(Select-Object Name)",
+      "Bash(cd /d 'd:\\\\Programacion\\\\desarrollo web+\\\\ingenieriaDeSoftware\\\\Gestion-de-salas-de-reserva\\\\Gestion-de-salas-de-reserva')",
+      "Bash(Find /s /name \"*.tsx\" /name \"*.ts\" /name \"*.jsx\" /name \"*.js\")",
+      "PowerShell(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(Get-ChildItem -Path \"d:\\\\Programacion\\\\desarrollo web+\\\\ingenieriaDeSoftware\\\\Gestion-de-salas-de-reserva\\\\Gestion-de-salas-de-reserva\\\\src\\\\features\" -Recurse -File)",
+      "Bash(Select-Object FullName)",
+      "Bash(node -e \"const p=require\\('./node_modules/radix-ui/package.json'\\); console.log\\(p.version\\)\")",
+      "Bash(node -e \"const p=require\\('./node_modules/react-remove-scroll/package.json'\\); console.log\\('react-remove-scroll:', p.version\\)\")",
+      "Bash(node -e \"const p=require\\('./node_modules/react-remove-scroll-bar/package.json'\\); console.log\\('react-remove-scroll-bar:', p.version\\)\")",
+      "Bash(node -e \"const src = require\\('fs'\\).readFileSync\\('./node_modules/radix-ui/dist/index.js', 'utf8'\\); const idx = src.indexOf\\('RemoveScroll'\\); console.log\\(src.substring\\(Math.max\\(0,idx-200\\), idx+400\\)\\)\")",
+      "Bash(node -e \"const src=require\\('fs'\\).readFileSync\\('./node_modules/@radix-ui/react-select/dist/index.js','utf8'\\); console.log\\('has modal:', src.includes\\('modal'\\)\\); console.log\\('has RemoveScroll:', src.includes\\('RemoveScroll'\\)\\); console.log\\('has hideOthers:', src.includes\\('hideOthers'\\)\\);\")",
+      "Bash(node -e \"const l=require\\('lucide-react'\\); console.log\\('Projector:', !!l.Projector, 'Monitor:', !!l.Monitor, 'Tv:', !!l.Tv, 'Volume2:', !!l.Volume2, 'Wind:', !!l.Wind, 'Wifi:', !!l.Wifi, 'Printer:', !!l.Printer, 'Package:', !!l.Package\\);\")",
+      "Bash(Get-ChildItem -Path \"d:\\\\Programacion\\\\desarrollo web+\\\\ingenieriaDeSoftware\\\\Gestion-de-salas-de-reserva\\\\Gestion-de-salas-de-reserva\\\\src\\\\pages\\\\dashboard\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(npm run *)",
+      "Bash(awk '{print $2}')",
+      "Bash(xargs kill -9)",
+      "PowerShell(Get-Process -Name node -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Force -ErrorAction SilentlyContinue)",
+      "PowerShell(\"Procesos detenidos\")"
+    ]
+  }
+}

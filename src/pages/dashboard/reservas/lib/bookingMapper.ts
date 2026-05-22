@@ -21,11 +21,11 @@ export function mapReservaToView(item: reserva, rooms: Sala[]): ReservationView 
     const room = rooms.find((r) => String(r.id_sala) === String(item.id_sala));
 
     return {
-        id: item.id_reserva,
-        roomId: item.id_sala,
+        id: String(item.id_reserva),
+        roomId: String(item.id_sala),
         roomName: room?.nombre ?? `Sala ${item.id_sala}`,
         location: room?.ubicacion ?? "Ubicación no disponible",
-        userId: item.id_usuario,
+        userId: String(item.id_usuario),
         start: String(item.hora_inicio),
         end: String(item.hora_fin),
         reason: item.motivo,

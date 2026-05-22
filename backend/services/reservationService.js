@@ -1,43 +1,58 @@
-const Usuario = require('../models/usuario');
-const SalaReunion = require('../models/sala_reunion');
-const reservationRepository = require('../repositories/reservationRepository');
-const auditRepository = require('../repositories/auditRepository');
-const { validateCreateReservationPayload, parseTimeValue } = require('../validation/reservation.validation');
+const Usuario = require("../models/usuario");
+const SalaReunion = require("../models/sala_reunion");
+const reservationRepository = require("../repositories/reservationRepository");
+const auditRepository = require("../repositories/auditRepository");
+const {
+  validateCreateReservationPayload,
+  parseTimeValue,
+} = require("../validation/reservation.validation");
 
 const createReservation = async (payload, actorId) => {
   const errors = validateCreateReservationPayload(payload);
   if (errors.length) {
-    const error = new Error('Validación de datos fallida');
+    const error = new Error("Validación de datos fallida");
     error.status = 400;
     error.details = errors;
     throw error;
   }
 
-  const hora_inicio = parseTimeValue(payload.hora_inicio);
-  const hora_fin = parseTimeValue(payload.hora_fin);
+  const buildDateTimeFromDateAndTime = (fecha, hora) => {
+    return new Date(`${fecha}T${hora}:00`);
+  };
+
+  const hora_inicio = buildDateTimeFromDateAndTime(
+    payload.fecha,
+    payload.hora_inicio,
+  );
+  const hora_fin = buildDateTimeFromDateAndTime(
+    payload.fecha,
+    payload.hora_fin,
+  );
 
   const user = await Usuario.findByPk(payload.id_usuario);
   if (!user) {
-    const error = new Error('Usuario no encontrado');
+    const error = new Error("Usuario no encontrado");
     error.status = 404;
     throw error;
   }
 
   const sala = await SalaReunion.findByPk(payload.id_sala);
   if (!sala) {
-    const error = new Error('Sala no encontrada');
+    const error = new Error("Sala no encontrada");
     error.status = 404;
     throw error;
   }
 
-  if (!sala.habilitada) {
-    const error = new Error('La sala está deshabilitada y no puede reservarse');
+  if (sala.habilitada === "inactivo") {
+    const error = new Error("La sala está deshabilitada y no puede reservarse");
     error.status = 409;
     throw error;
   }
 
   if (payload.id_usuario !== actorId) {
-    const error = new Error('Solo el usuario autenticado puede crear su propia reserva');
+    const error = new Error(
+      "Solo el usuario autenticado puede crear su propia reserva",
+    );
     error.status = 403;
     throw error;
   }
@@ -46,11 +61,13 @@ const createReservation = async (payload, actorId) => {
     payload.id_sala,
     payload.fecha,
     hora_inicio,
-    hora_fin
+    hora_fin,
   );
 
   if (overlap) {
-    const error = new Error('Ya existe una reserva solapada para esa sala en ese horario');
+    const error = new Error(
+      "Ya existe una reserva solapada para esa sala en ese horario",
+    );
     error.status = 409;
     throw error;
   }
@@ -67,8 +84,8 @@ const createReservation = async (payload, actorId) => {
 
   await auditRepository.createAuditLog({
     id_usuario: actorId,
-    accion: 'Crear reserva',
-    entidad: 'Reserva',
+    accion: "Crear reserva",
+    entidad: "Reserva",
     detalle: `Reserva creada: id_sala=${reservation.id_sala}, fecha=${reservation.fecha}, hora_inicio=${reservation.hora_inicio}, hora_fin=${reservation.hora_fin}`,
   });
 
@@ -82,48 +99,59 @@ const getAllReservations = async () => {
 const getReservationById = async (id) => {
   const reservation = await reservationRepository.findReservationById(id);
   if (!reservation) {
-    const error = new Error('Reserva no encontrada');
+    const error = new Error("Reserva no encontrada");
     error.status = 404;
     throw error;
   }
   return reservation;
 };
 
-const updateReservation = async (id, payload, actorId) => {
+const updateReservation = async (id, payload, actorId, actorRole = 1) => {
   const reservation = await reservationRepository.findReservationById(id);
   if (!reservation) {
-    const error = new Error('Reserva no encontrada');
+    const error = new Error("Reserva no encontrada");
     error.status = 404;
     throw error;
   }
 
-  if (reservation.id_usuario !== actorId) {
-    const error = new Error('Solo el creador de la reserva puede modificarla');
+  // Permitir edición si:
+  // 1. Es el creador de la reserva (docente)
+  // 2. Es secretaria (id_rol = 2)
+  if (actorRole !== 2 && reservation.id_usuario !== actorId) {
+    const error = new Error("Solo el creador de la reserva o una secretaria pueden modificarla");
     error.status = 403;
     throw error;
   }
 
-  const updatedReservation = await reservationRepository.updateReservation(id, payload);
+  const updatedReservation = await reservationRepository.updateReservation(
+    id,
+    payload,
+  );
   await auditRepository.createAuditLog({
     id_usuario: actorId,
-    accion: 'Actualizar reserva',
-    entidad: 'Reserva',
+    accion: "Actualizar reserva",
+    entidad: "Reserva",
     detalle: `Reserva actualizada: id_reserva=${id}`,
   });
 
   return updatedReservation;
 };
 
-const cancelReservation = async (id, actorId) => {
+const cancelReservation = async (id, actorId, actorRole = 1) => {
   const reservation = await reservationRepository.findReservationById(id);
   if (!reservation) {
-    const error = new Error('Reserva no encontrada');
+    const error = new Error("Reserva no encontrada");
     error.status = 404;
     throw error;
   }
 
-  if (reservation.id_usuario !== actorId) {
-    const error = new Error('Solo el creador de la reserva puede cancelarla');
+  // Permitir cancelación si:
+  // 1. Es el creador de la reserva (docente)
+  // 2. Es secretaria (id_rol = 2)
+  if (actorRole !== 2 && reservation.id_usuario !== actorId) {
+    const error = new Error(
+      "Solo el creador de la reserva o una secretaria pueden cancelarla",
+    );
     error.status = 403;
     throw error;
   }
@@ -131,12 +159,25 @@ const cancelReservation = async (id, actorId) => {
   const canceledReservation = await reservationRepository.cancelReservation(id);
   await auditRepository.createAuditLog({
     id_usuario: actorId,
-    accion: 'Cancelar reserva',
-    entidad: 'Reserva',
+    accion: "Cancelar reserva",
+    entidad: "Reserva",
     detalle: `Reserva cancelada: id_reserva=${id}`,
   });
 
   return canceledReservation;
+};
+
+const getTeacherReservationHistory = async (userId) => {
+  const user = await Usuario.findByPk(userId);
+  if (!user) {
+    const error = new Error("Usuario no encontrado");
+    error.status = 404;
+    throw error;
+  }
+
+  const reservations =
+    await reservationRepository.findReservationsByUserId(userId);
+  return reservations;
 };
 
 module.exports = {
@@ -145,4 +186,5 @@ module.exports = {
   getReservationById,
   updateReservation,
   cancelReservation,
+  getTeacherReservationHistory,
 };
