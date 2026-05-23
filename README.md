@@ -36,6 +36,9 @@ Clona el repositorio y luego instala las dependencias:
 npm install
 ```
 
+## Archivo .env 
+Este es importante tenerlo. Las credenciales estaran en la entrega en el apartado de anexos
+
 > **Importante:** Se recomienda ejecutar `npm install` siempre que se haga merge de la rama `dev`, para asegurar que todas las dependencias estén actualizadas correctamente.
 
 ## Ejecución en entorno de desarrollo
@@ -49,6 +52,22 @@ npm run dev
 Luego abre en tu navegador:
 http://localhost:3000
 
+## Ejecución servidor 
+Debes tener en una terminal diferente ubicada dentro de Gestion-de-salas-de-reserva\backend. Depues ejecutas
+```bash
+node app.js
+```
+
+## Usuarios de prueba
+Correo:mariana.torres@uao.edu.co
+Contraseña: Password123
+Rol: Secretaria del area de ingenieria 
+
+Correo: markus.salazar@uao.edu.co
+Contraseña: Password123
+Rol: Secretario facultad de Ciencias Básicas
+
+Se puede crear cualquier otro usuario de la facultad deseada pero solo con el rol docente
 ## Comandos útiles
 
 Instalar dependencias:
