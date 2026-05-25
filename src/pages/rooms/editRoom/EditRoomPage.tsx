@@ -365,7 +365,7 @@ export function EditRoomPage() {
           <div className="mb-4 flex items-center gap-1.5 text-sm text-gray-400">
             <span
               className="cursor-pointer hover:text-gray-600"
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push("/salas")}
             >
               Salas
             </span>
